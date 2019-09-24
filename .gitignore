@@ -30,3 +30,9 @@
 *.exe
 *.out
 *.app
+
+imgui.ini
+
+build/
+!pkg/**
+.xmake/
