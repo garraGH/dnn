@@ -10,8 +10,6 @@
 
 
 #define LOG_TRACE
-#include "logger.h"
-#include "timer.h"
 #include "elsa.h"
 
 #include <stdio.h>
@@ -29,20 +27,6 @@ public:
 
     }
 
-    void Run() override
-    {
-        TimerCPU t("DNN:Run");
-        CORE_TRACE("DNN:Run");
-        CORE_WARN("DNN:Run");
-        CORE_INFO("DNN:Run");
-        CORE_ERROR("DNN:Run");
-        CORE_CRITICAL("DNN:Run");
-        TRACE("DNN:Run");
-        WARN("DNN:Run");
-        INFO("DNN:Run");
-        ERROR("DNN:Run");
-        CRITICAL("DNN:Run");
-    }
 protected:
 private:
 };

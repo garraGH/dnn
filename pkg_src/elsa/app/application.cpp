@@ -11,6 +11,9 @@
 
 #include <stdio.h>
 #include "application.h"
+#include "logger.h"
+#include "timer.h"
+#include "../event/event_application.h"
 
 Application::Application()
 {
@@ -24,9 +27,20 @@ Application::~Application()
 
 void Application::Run()
 {
-    printf("Application::Run\n");
-    while(true)
+    TimerCPU t("Application::Run");
+    INFO("Application::Run\n");
+    WindowResizeEvent e(1280, 720);
+    if(e.IsCategory(EC_Application))
     {
-
+        TRACE(e);
     }
+    if(e.IsCategory(EC_Input))
+    {
+        TRACE(e);
+    }
+
+//     while(true)
+//     {
+// 
+//     }
 }

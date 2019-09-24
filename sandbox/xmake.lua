@@ -1,7 +1,7 @@
 target("sandbox")
     set_kind("binary")
     add_files("*.cpp")
-    add_packages("utils", "elsa")
+    add_packages("elsa", "utils")
     before_build(function(target)
         target:add(find_packages("cuda"))
     end)
