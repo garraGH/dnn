@@ -9,9 +9,12 @@
 ============================================*/
 
 #include "application.h"
+#include "logger.h"
 
 int main(int argc, char** argv)
 {
+    Logger::Init();
+
     Application* app = CreateApplication();
     app->Run();
     delete app;

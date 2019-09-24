@@ -12,6 +12,8 @@
 #!/bin/bash
 
 
-xmake p -o ../../pkg/build -P pkg_src/elsa
-xmake -P sandbox
-xmake r -F sandbox/xmake.lua
+xmake p -D -v -o pkg/build utils &&
+xmake p -D -v -o pkg/build elsa  &&
+xmake -D -v -F xmake.lua sandbox &&
+xmake i -o ./ sandbox            &&
+./bin/sandbox

@@ -35,4 +35,6 @@ imgui.ini
 
 build/
 !pkg/**
+pkg/build
 .xmake/
+bin/

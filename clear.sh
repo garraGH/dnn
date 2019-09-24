@@ -14,4 +14,5 @@
 
 find ./ -type d -name "build" -exec rm -r {} +
 find ./ -type d -name "\.xmake" -exec rm -r {} +
+rm -rf ./bin
 

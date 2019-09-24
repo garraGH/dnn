@@ -1,6 +1,7 @@
-
-add_packagedirs("../pkg/build/")
-target("sandboxapp")
+target("sandbox")
     set_kind("binary")
     add_files("*.cpp")
-    add_packages("elsa")
+    add_packages("utils", "elsa")
+    before_build(function(target)
+        target:add(find_packages("cuda"))
+    end)

@@ -17,7 +17,7 @@ public:
     Application();
     virtual ~Application();
 
-    void Run();
+    virtual void Run();
 protected:
 private:
 };
