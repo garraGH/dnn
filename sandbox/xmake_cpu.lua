@@ -1,4 +1,5 @@
 target("sandbox")
     set_kind("binary")
     add_files("*.cpp")
-    add_packages("elsa", "utils")
+    add_packages("elsa", "utils", "glfw3")
+    add_links("dl", "pthread", "X11", "OpenGL")

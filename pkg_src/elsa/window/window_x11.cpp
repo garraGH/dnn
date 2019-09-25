@@ -8,13 +8,22 @@
 *
 ============================================*/
 
-
+#include "../core.h"
 #include "window_x11.h"
+#include "logger.h"
+#include "../event/event_key.h"
+#include "../event/event_mouse.h"
+#include "../event/event_application.h"
 
 static bool s_GLFWInitialized = false;
 Window* Window::Create(const WindowsProps& props)
 {
     return new X11Window(props);
+}
+
+static void GLFWErrorCallback(int error, const char* description)
+{
+    CORE_ERROR("GLFW Error ({0}): {1}", error, description);
 }
 
 X11Window::X11Window(const WindowsProps& props)
@@ -29,27 +38,122 @@ X11Window::~X11Window()
 
 void X11Window::_Init(const WindowsProps& props)
 {
+    _SaveProps(props);
+    _InitGLFW();
+    _CreateWindow();
+    _SetEventCallback();
+    SetVSync(true);
+}
+
+void X11Window::_SaveProps(const WindowsProps& props)
+{
     m_data.title = props.title;
     m_data.width = props.width;
     m_data.height = props.height;
-
     CORE_INFO("Creating X11Window {} ({}, {})", m_data.title, m_data.width, m_data.height);
+}
 
+void X11Window::_InitGLFW()
+{
     if(!s_GLFWInitialized)
     {
         s_GLFWInitialized = true;
         int success = glfwInit();
         CORE_ASSERT(success, "Could not initialize GLFW!");
+        glfwSetErrorCallback(GLFWErrorCallback);
     }
+}
 
+void X11Window::_CreateWindow()
+{
     m_window = glfwCreateWindow(m_data.width, m_data.height, m_data.title.c_str(), nullptr, nullptr);
     glfwMakeContextCurrent(m_window);
     glfwSetWindowUserPointer(m_window, &m_data);
-    SetVSync(true);
 }
 
+void X11Window::_SetEventCallback()
+{
+    glfwSetWindowSizeCallback(m_window, [](GLFWwindow* window, int width, int height)
+    {
+       WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+       WindowResizeEvent event(width, height);
+       data.eventCallback(event);
+       data.width = width;
+       data.height = height;
+    });
+
+    glfwSetWindowCloseCallback(m_window, [](GLFWwindow* window)
+    {
+        WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+        WindowCloseEvent event;
+        data.eventCallback(event);
+    });
+
+    glfwSetKeyCallback(m_window, [](GLFWwindow* window, int key, int scancode, int action, int mods)
+    { 
+        static int repeatCount = 0;
+        WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+        switch(action)
+        {
+            case GLFW_PRESS:
+            {
+                repeatCount = 0;
+                KeyPressedEvent event(key, repeatCount);
+                data.eventCallback(event);
+                break;
+            }
+            case GLFW_RELEASE:
+            {
+                KeyReleasedEvent event(key);
+                data.eventCallback(event);
+                break;
+            }
+            case GLFW_REPEAT:
+            {
+                KeyPressedEvent event(key, ++repeatCount);
+                data.eventCallback(event);
+                break;
+            }
+        }
+    });
+
+    glfwSetMouseButtonCallback(m_window, [](GLFWwindow* window, int button, int action, int mods)
+    {
+        WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+        switch(action)
+        {
+            case GLFW_PRESS:
+            {
+                MouseButtonPressedEvent event(button);
+                data.eventCallback(event);
+                break;
+            }
+            case GLFW_RELEASE:
+            {
+                MouseButtonReleasedEvent event(button);
+                data.eventCallback(event);
+                break;
+            }
+        }
+    });
+
+    glfwSetScrollCallback(m_window, [](GLFWwindow* window, double xOffset, double yOffset)
+    { 
+        WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+        MouseScrolledEvent event(xOffset, yOffset);
+        data.eventCallback(event);
+    });
+
+    glfwSetCursorPosCallback(m_window, [](GLFWwindow* window, double xPos, double yPos)
+    { 
+        WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+        MouseMovedEvent event(xPos, yPos);
+        data.eventCallback(event);
+    });
 
 
+
+}
 
 void X11Window::_Shutdown()
 {
@@ -57,4 +161,30 @@ void X11Window::_Shutdown()
 }
 
 
+void X11Window::SetVSync(bool enabled)
+{
+    if(m_data.bVSync == enabled)
+    {
+        return ;
+    }
+
+    m_data.bVSync = enabled;
+    glfwSwapInterval(enabled);
+}
+
+void X11Window::SetFullscreen(bool enabled)
+{
+    if(m_data.bFullscreen == enabled)
+    {
+        return ;
+    }
+    m_data.bFullscreen = enabled;
+}
+
+
+void X11Window::OnUpdate()
+{
+    glfwPollEvents()    ;
+    glfwSwapBuffers(m_window);
+}
 

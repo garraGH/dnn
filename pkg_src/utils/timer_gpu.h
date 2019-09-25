@@ -8,6 +8,7 @@
 *
 ============================================*/
 
+#include "timer.h"
 #include <cuda_runtime.h>
 
 #pragma once

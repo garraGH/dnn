@@ -20,27 +20,32 @@ public:
     virtual ~X11Window();
 
     void OnUpdate() override;
-    inline unsigned int GetWidth() const override { return m_data.width; }
-    inline unsigned int GetHeight() const override { return m_dat.height; } 
     void SetVSync(bool enabled) override;
     void SetFullscreen(bool enabled) override;
     bool IsVSync() const override { return m_data.bVSync; }
     bool IsFullscreen() const override { return m_data.bFullscreen; }
+    void SetEventCallback(const EventCallback& eventCallback) override { m_data.eventCallback = eventCallback; }
+    inline unsigned int GetWidth() const override { return m_data.width; }
+    inline unsigned int GetHeight() const override { return m_data.height; } 
 
 protected:
     void _Init(const WindowsProps& props);
+    void _SaveProps(const WindowsProps& props);
+    void _InitGLFW();
+    void _CreateWindow();
+    void _SetEventCallback();
     void _Shutdown();
 
 private:
-    GLFWWindow* m_window;
-    Struct WindowData
+    GLFWwindow* m_window;
+    struct WindowData
     {
         std::string title;
         unsigned int width;
         unsigned int height;
         bool bVSync;
         bool bFullscreen;
-        EventCallback ecb;
+        EventCallback eventCallback;
     };
     WindowData m_data;
 };

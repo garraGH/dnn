@@ -10,6 +10,13 @@
 
 
 #pragma once
+#include <memory>
+
+#include "../event/event.h"
+#include "../event/event_key.h"
+#include "../event/event_mouse.h"
+#include "../event/event_application.h"
+#include "../window/window.h"
 
 class Application
 {
@@ -19,7 +26,13 @@ public:
 
     virtual void Run();
 protected:
+    void OnEvent(Event& e);
+    bool OnKeyPressed(KeyPressedEvent& e);
+    bool OnWindowClose(WindowCloseEvent& e);
+
 private:
+    std::unique_ptr<Window> m_window;
+    bool m_running;
 };
 
 Application* CreateApplication();

@@ -24,7 +24,7 @@ public:
     std::string ToString() const override
     {
         std::stringstream ss;
-        ss << "WindowResizeEvent: " << m_width << ", " << m_height;
+        ss << GetName() << ": " << m_width << ", " << m_height;
         return ss.str();
     }
     
@@ -46,7 +46,7 @@ public:
     std::string ToString() const override
     {
         std::stringstream ss;
-        ss << "WindowMoveEvent: " << m_posX << ", " << m_posY;
+        ss << GetName() << ": " << m_posX << ", " << m_posY;
         return ss.str();
     }
 

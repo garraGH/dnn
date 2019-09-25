@@ -39,9 +39,9 @@ public:
     
     virtual void SetEventCallback(const EventCallback& ecb) = 0;
     virtual void SetVSync(bool enabled) = 0;
-    virtual void IsVSync() const = 0;
     virtual void SetFullscreen(bool enabled) = 0;
-    virtual void IsFullscreen() const = 0;
+    virtual bool IsVSync() const = 0;
+    virtual bool IsFullscreen() const = 0;
 
     static Window* Create(const WindowsProps& props = WindowsProps());
 };

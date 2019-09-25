@@ -13,16 +13,44 @@
 #include "application.h"
 #include "logger.h"
 #include "timer_cpu.h"
-#include "../event/event_application.h"
+#include "glfw3.h"
 
+#define BIND_EVENT_CALLBACK(x) std::bind(&Application::x,  this, std::placeholders::_1)
 Application::Application()
+    : m_running(true)
 {
-
+    m_window = std::unique_ptr<Window>(Window::Create());
+    m_window->SetEventCallback(BIND_EVENT_CALLBACK(OnEvent));
 }
 
 Application::~Application()
 {
 
+}
+
+void Application::OnEvent(Event& e)
+{
+    EventDispatcher ed(e);
+    ed.Dispatch<WindowCloseEvent>(BIND_EVENT_CALLBACK(OnWindowClose));
+    ed.Dispatch<KeyPressedEvent>(BIND_EVENT_CALLBACK(OnKeyPressed));
+    CORE_TRACE("{0}", e);
+}
+
+bool Application::OnWindowClose(WindowCloseEvent& e)
+{
+    INFO("CLOSED");
+    m_running = false;
+    return true;
+}
+
+bool Application::OnKeyPressed(KeyPressedEvent& e)
+{
+    if(e.GetKeyCode() == 'q')
+    {
+        INFO("QUIT");
+        m_running = false;
+    }
+    return true;
 }
 
 void Application::Run()
@@ -39,8 +67,10 @@ void Application::Run()
         TRACE(e);
     }
 
-//     while(true)
-//     {
-// 
-//     }
+    while(m_running)
+    {
+        glClearColor(1, 0, 1, 1);
+        glClear(GL_COLOR_BUFFER_BIT);
+        m_window->OnUpdate();
+    }
 }

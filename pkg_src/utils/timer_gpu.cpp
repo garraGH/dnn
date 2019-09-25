@@ -9,7 +9,7 @@
 ============================================*/
 
 
-#include "timer.h"
+#include "timer_gpu.h"
 
 TimerGPU::TimerGPU(const char* msg)
     : Timer(msg)
