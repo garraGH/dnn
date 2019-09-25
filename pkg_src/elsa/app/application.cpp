@@ -12,7 +12,7 @@
 #include <stdio.h>
 #include "application.h"
 #include "logger.h"
-#include "timer.h"
+#include "timer_cpu.h"
 #include "../event/event_application.h"
 
 Application::Application()
