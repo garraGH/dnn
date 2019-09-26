@@ -11,8 +11,8 @@
 
 #pragma once
 #include "window.h"
-#include "glfw3.h"
 
+class GLFWwindow;
 class X11Window : public Window
 {
 public:
@@ -32,6 +32,7 @@ protected:
     void _Init(const WindowsProps& props);
     void _SaveProps(const WindowsProps& props);
     void _InitGLFW();
+    void _InitGlad();
     void _CreateWindow();
 
     void _SetEventCallback();

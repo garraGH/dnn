@@ -9,6 +9,8 @@
 ============================================*/
 
 #include "core.h"
+#include "glad.h"
+#include "glfw3.h"
 #include "window_x11.h"
 #include "logger.h"
 #include "../event/event_key.h"
@@ -41,6 +43,7 @@ void X11Window::_Init(const WindowsProps& props)
     _SaveProps(props);
     _InitGLFW();
     _CreateWindow();
+    _InitGlad();
     _SetEventCallback();
     SetVSync(true);
 }
@@ -62,6 +65,12 @@ void X11Window::_InitGLFW()
         CORE_ASSERT(success, "Could not initialize GLFW!");
         glfwSetErrorCallback(GLFWErrorCallback);
     }
+}
+
+void X11Window::_InitGlad()
+{
+    int success = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
+    CORE_ASSERT(success, "Failed to initialized glad!");
 }
 
 void X11Window::_CreateWindow()

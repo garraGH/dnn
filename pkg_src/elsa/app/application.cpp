@@ -11,7 +11,7 @@
 
 #include <stdio.h>
 #include "application.h"
-#include "glfw3.h"
+#include "glad.h"
 #include "logger.h"
 #include "timer_cpu.h"
 
