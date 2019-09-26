@@ -24,3 +24,7 @@ void Logger::Init()
     s_clientLogger->set_level(spdlog::level::trace);
 }
 
+void Logger::Close()
+{
+    spdlog::drop_all();
+}

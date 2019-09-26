@@ -19,6 +19,7 @@ int main(int argc, char** argv)
     app->Run();
     delete app;
 
+    Logger::Close();
     return 0;
 }
 
