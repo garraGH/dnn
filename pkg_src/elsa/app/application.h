@@ -18,6 +18,7 @@
 #include "../event/event_mouse.h"
 #include "../event/event_application.h"
 #include "../window/window.h"
+#include "../layer/layerstack.h"
 
 #define ON_KEY_PRESSED(key) bool _OnKeyPressed_##key(int repeatCount)
 #define ON_KEY_RELEASED(key) bool _OnKeyReleased_##key()
@@ -29,6 +30,10 @@ public:
     virtual ~Application();
 
     virtual void Run();
+
+    void PushLayer(Layer* layer);
+    void PushOverlay(Layer* layer);
+
 protected:
     void OnEvent(Event& e);
     bool OnKeyPressed(KeyPressedEvent& e);
@@ -47,6 +52,7 @@ private:
     bool m_running;
     std::map<int, std::function<bool(int)>> m_keyPressed;
     std::map<int, std::function<bool()>> m_keyReleased;
+    LayerStack m_layerStack;
 };
 
 Application* CreateApplication();

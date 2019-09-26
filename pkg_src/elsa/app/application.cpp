@@ -42,8 +42,18 @@ void Application::OnEvent(Event& e)
     CORE_TRACE("{0}", e);
     EventDispatcher ed(e);
     ed.Dispatch<WindowCloseEvent>(BIND_EVENT_CALLBACK(OnWindowClose));
-//     ed.Dispatch<KeyPressedEvent>(BIND_EVENT_CALLBACK(OnKeyPressed));
+    ed.Dispatch<KeyPressedEvent>(BIND_EVENT_CALLBACK(OnKeyPressed));
     ed.Dispatch<KeyReleasedEvent>(BIND_EVENT_CALLBACK(OnKeyReleased));
+
+
+    for(auto it = m_layerStack.end(); it != m_layerStack.begin();)
+    {
+        (*--it)->OnEvent(e);
+        if(e.IsHandled())
+        {
+            break;
+        }
+    }
 }
 
 bool Application::OnWindowClose(WindowCloseEvent& e)
@@ -84,6 +94,10 @@ void Application::Run()
         glClearColor(1, 0, 1, 1);
         glClear(GL_COLOR_BUFFER_BIT);
         m_window->OnUpdate();
+        for(Layer* layer : m_layerStack)
+        {
+            layer->OnUpdate();
+        }
     }
 }
 
@@ -113,7 +127,15 @@ bool Application::_OnKeyReleased_Q()
     return true;
 }
 
+void Application::PushLayer(Layer* layer)
+{
+    m_layerStack.PushLayer(layer);
+}
 
+void Application::PushOverlay(Layer* layer)
+{
+    m_layerStack.PushOverlay(layer);
+}
 
 
 

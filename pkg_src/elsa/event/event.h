@@ -63,6 +63,7 @@ public:
     virtual int GetCategoryFlags() const = 0;
     virtual std::string ToString() const { return GetName(); }
     inline bool IsCategory(EventCategory c) { return GetCategoryFlags()&c; }
+    inline bool IsHandled() const { return m_bHandled; }
     friend std::ostream& operator <<(std::ostream& out, const Event& e) { return out << e.ToString(); }
 protected:
     bool m_bHandled = false;
