@@ -10,10 +10,11 @@
 
 
 #include <stdio.h>
-#include "application.h"
 #include "glad.h"
+#include "application.h"
 #include "logger.h"
 #include "timer_cpu.h"
+#include "core.h"
 
 #define BIND_EVENT_CALLBACK(x) std::bind(&Application::x,  this, std::placeholders::_1)
 #define BIND_KEY_PRESSED_FUNCTION(x) std::bind(&Application::x, this, std::placeholders::_1)
@@ -21,9 +22,14 @@
 #define REGISTER_KEY_PRESSED_FUNCTION(key) m_keyPressed[#key[0]] = BIND_KEY_PRESSED_FUNCTION(_OnKeyPressed_##key)
 #define REGISTER_KEY_RELEASED_FUNCTION(key) m_keyReleased[#key[0]] = BIND_KEY_RELEASED_FUNCTION(_OnKeyReleased_##key)
 
+Application* Application::s_instance = nullptr;
+
 Application::Application()
     : m_running(true)
 {
+    CORE_ASSERT(!s_instance, "Application already exist!");
+    s_instance = this;
+
     m_window = std::unique_ptr<Window>(Window::Create());
     m_window->SetEventCallback(BIND_EVENT_CALLBACK(OnEvent));
     REGISTER_KEY_PRESSED_FUNCTION(a);
@@ -129,11 +135,13 @@ bool Application::_OnKeyReleased_Q()
 
 void Application::PushLayer(Layer* layer)
 {
+    layer->OnAttach();
     m_layerStack.PushLayer(layer);
 }
 
 void Application::PushOverlay(Layer* layer)
 {
+    layer->OnAttach();
     m_layerStack.PushOverlay(layer);
 }
 

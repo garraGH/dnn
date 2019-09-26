@@ -34,6 +34,9 @@ public:
     void PushLayer(Layer* layer);
     void PushOverlay(Layer* layer);
 
+    inline Window& GetWindow() const { return *m_window; }
+    inline static Application& Get() { return *s_instance; }
+
 protected:
     void OnEvent(Event& e);
     bool OnKeyPressed(KeyPressedEvent& e);
@@ -47,12 +50,16 @@ private:
     ON_KEY_PRESSED(a);
     
     
+    
 private:
     std::unique_ptr<Window> m_window;
     bool m_running;
     std::map<int, std::function<bool(int)>> m_keyPressed;
     std::map<int, std::function<bool()>> m_keyReleased;
     LayerStack m_layerStack;
+
+private:
+    static Application* s_instance;
 };
 
 Application* CreateApplication();
