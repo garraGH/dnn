@@ -33,7 +33,15 @@ protected:
     void _SaveProps(const WindowsProps& props);
     void _InitGLFW();
     void _CreateWindow();
+
     void _SetEventCallback();
+    void _SetEventCallback_WindowResize();
+    void _SetEventCallback_WindowClose();
+    void _SetEventCallback_Key();
+    void _SetEventCallback_MouseButton();
+    void _SetEventCallback_MouseScroll();
+    void _SetEventCallback_MouseMove();
+
     void _Shutdown();
 
 private:

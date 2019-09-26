@@ -1,9 +1,10 @@
-
+includes("../utils/xmake.lua")
 target("elsa")
     set_kind("static")
-    add_headerfiles("*.h", "app/*.h", "event/*.h", "window/*.h")
     add_files("**/*.cpp")
-    add_packages("utils", "glfw3")
+    add_deps("utils")
+    add_packages("glfw3")
+    add_links("dl", "pthread", "X11", "OpenGL")
     before_build(function(target)
         target:add(find_packages("cuda"))
     end)

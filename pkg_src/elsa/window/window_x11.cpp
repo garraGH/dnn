@@ -8,7 +8,7 @@
 *
 ============================================*/
 
-#include "../core.h"
+#include "core.h"
 #include "window_x11.h"
 #include "logger.h"
 #include "../event/event_key.h"
@@ -73,6 +73,16 @@ void X11Window::_CreateWindow()
 
 void X11Window::_SetEventCallback()
 {
+    _SetEventCallback_WindowResize();
+    _SetEventCallback_WindowClose();
+    _SetEventCallback_Key();
+    _SetEventCallback_MouseButton();
+    _SetEventCallback_MouseMove();
+    _SetEventCallback_MouseScroll();
+}
+
+void X11Window::_SetEventCallback_WindowResize()
+{
     glfwSetWindowSizeCallback(m_window, [](GLFWwindow* window, int width, int height)
     {
        WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
@@ -81,42 +91,52 @@ void X11Window::_SetEventCallback()
        data.width = width;
        data.height = height;
     });
+}
 
+void X11Window::_SetEventCallback_WindowClose()
+{
     glfwSetWindowCloseCallback(m_window, [](GLFWwindow* window)
     {
         WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
         WindowCloseEvent event;
         data.eventCallback(event);
     });
+}
 
+void X11Window::_SetEventCallback_Key()
+{
     glfwSetKeyCallback(m_window, [](GLFWwindow* window, int key, int scancode, int action, int mods)
     { 
         static int repeatCount = 0;
         WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+        int keyCode = mods&GLFW_MOD_SHIFT? key : key+32;
         switch(action)
         {
             case GLFW_PRESS:
             {
                 repeatCount = 0;
-                KeyPressedEvent event(key, repeatCount);
+                KeyPressedEvent event(keyCode, repeatCount);
                 data.eventCallback(event);
                 break;
             }
             case GLFW_RELEASE:
             {
-                KeyReleasedEvent event(key);
+                KeyReleasedEvent event(keyCode);
                 data.eventCallback(event);
                 break;
             }
             case GLFW_REPEAT:
             {
-                KeyPressedEvent event(key, ++repeatCount);
+                KeyPressedEvent event(keyCode, ++repeatCount);
                 data.eventCallback(event);
                 break;
             }
         }
     });
+}
 
+void X11Window::_SetEventCallback_MouseButton()
+{
     glfwSetMouseButtonCallback(m_window, [](GLFWwindow* window, int button, int action, int mods)
     {
         WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
@@ -136,23 +156,26 @@ void X11Window::_SetEventCallback()
             }
         }
     });
+}
 
+void X11Window::_SetEventCallback_MouseScroll()
+{
     glfwSetScrollCallback(m_window, [](GLFWwindow* window, double xOffset, double yOffset)
     { 
         WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
         MouseScrolledEvent event(xOffset, yOffset);
         data.eventCallback(event);
     });
+}
 
+void X11Window::_SetEventCallback_MouseMove()
+{
     glfwSetCursorPosCallback(m_window, [](GLFWwindow* window, double xPos, double yPos)
     { 
         WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
         MouseMovedEvent event(xPos, yPos);
         data.eventCallback(event);
     });
-
-
-
 }
 
 void X11Window::_Shutdown()

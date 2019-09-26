@@ -11,9 +11,6 @@
 
 #!/bin/bash
 
-
-xmake p -D -v -o pkg/build -F xmake_cpu.lua utils &&
-xmake p -D -v -o pkg/build -F xmake_cpu.lua elsa  &&
-xmake -D -v -F xmake_cpu.lua sandbox &&
-xmake i -o ./ sandbox            &&
+xmake -D -v -F xmake_cpu.lua &&
+xmake i -o ./ sandbox &&
 ./bin/sandbox

@@ -1,4 +1,3 @@
-add_includedirs("pkg/include")
-add_packagedirs("pkg/build")
+add_includedirs("pkg/include", "pkg_src/elsa", "pkg_src/utils")
 add_packagedirs("pkg/vendor")
-add_subdirs("pkg_src/utils", "pkg_src/elsa", "sandbox")
+add_subdirs("sandbox/xmake.lua")

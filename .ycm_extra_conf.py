@@ -55,17 +55,7 @@ flags = [
         '-std=c++11', 
         '-isystem/usr/include', 
         '-isystem/usr/local/cuda/include/',
-        '-ISUB./pkg',
-#         '-I./pkg/include',
-#         '-I./pkg/vendor/gl3w.pkg/include',
-#         '-I./pkg/vendor/glfw3.pkg/include',
-#         '-I./pkg/vendor/imgui.pkg/include',
-#         '-I./pkg/vendor/stb_image.pkg/include',
-#         '-I./pkg/self/container.pkg/linux/x86_64/include',
-#         '-I./pkg/self/gpu.pkg/linux/x86_64/include',
-#         '-I./pkg/self/imageprocess.pkg/linux/x86_64/include',
-#         '-I./pkg/self/render.pkg/linux/x86_64/include',
-#         '-I./pkg/self/utils.pkg/linux/x86_64/include',
+        '-ISUB./',
         ]
 
 flags = IncludeFlagsOfSubdirectory(flags, "./" )

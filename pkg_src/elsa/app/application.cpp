@@ -11,9 +11,9 @@
 
 #include <stdio.h>
 #include "application.h"
+#include "glfw3.h"
 #include "logger.h"
 #include "timer_cpu.h"
-#include "glfw3.h"
 
 #define BIND_EVENT_CALLBACK(x) std::bind(&Application::x,  this, std::placeholders::_1)
 Application::Application()
@@ -30,10 +30,10 @@ Application::~Application()
 
 void Application::OnEvent(Event& e)
 {
+    CORE_TRACE("{0}", e);
     EventDispatcher ed(e);
     ed.Dispatch<WindowCloseEvent>(BIND_EVENT_CALLBACK(OnWindowClose));
     ed.Dispatch<KeyPressedEvent>(BIND_EVENT_CALLBACK(OnKeyPressed));
-    CORE_TRACE("{0}", e);
 }
 
 bool Application::OnWindowClose(WindowCloseEvent& e)
