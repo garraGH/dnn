@@ -34,8 +34,8 @@ public:
     void PushLayer(Layer* layer);
     void PushOverlay(Layer* layer);
 
-    inline Window& GetWindow() const { return *m_window; }
-    inline static Application& Get() { return *s_instance; }
+    inline Window* GetWindow() const { return m_window.get(); }
+    inline static Application* Get() { return s_instance; }
 
 protected:
     void OnEvent(Event& e);

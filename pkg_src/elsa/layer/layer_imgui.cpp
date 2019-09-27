@@ -32,8 +32,8 @@ void ImGuiLayer::OnAttach()
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGui::StyleColorsDark();
-//     ImGui_ImplGlfw_InitForOpenGL(Application::GetWindow(), true);
-    ImGui_ImplOpenGL3_Init("#version 460");
+    ImGui_ImplGlfw_InitForOpenGL((GLFWwindow*)Application::Get()->GetWindow(), true);
+    ImGui_ImplOpenGL3_Init("#version 410");
     ImGuiIO& io = ImGui::GetIO();
     io.IniFilename = nullptr;
 }
@@ -45,20 +45,21 @@ void ImGuiLayer::OnDetach()
 
 void ImGuiLayer::OnUpdate()
 {
+    TRACE("ImGuiLayer::OnUpdate");
     ImGuiIO& io = ImGui::GetIO();
     float time = (float)glfwGetTime();
     io.DeltaTime = m_time>0.0f? (time-m_time) : 1.0f/60;
     m_time = time;
 
-    Application& app = Application::Get();
-    io.DisplaySize = ImVec2(app.GetWindow().GetWidth(), app.GetWindow().GetHeight());
+    Application* app = Application::Get();
+    io.DisplaySize = ImVec2(app->GetWindow()->GetWidth(), app->GetWindow()->GetHeight());
 
     
     ImGui_ImplOpenGL3_NewFrame();
     ImGui::NewFrame();
 
-//     static bool show = true;
-//     ImGui::ShowDemoWindow(&show);
+    static bool show = true;
+    ImGui::ShowDemoWindow(&show);
 
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
