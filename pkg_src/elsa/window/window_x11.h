@@ -27,6 +27,7 @@ public:
     void SetEventCallback(const EventCallback& eventCallback) override { m_data.eventCallback = eventCallback; }
     inline unsigned int GetWidth() const override { return m_data.width; }
     inline unsigned int GetHeight() const override { return m_data.height; } 
+    GLFWwindow* GetInnerWindow() { return m_window; }
 
 protected:
     void _Init(const WindowsProps& props);

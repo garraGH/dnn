@@ -63,14 +63,10 @@ void X11Window::_InitGLFW()
         s_GLFWInitialized = true;
         int success = glfwInit();
         CORE_ASSERT(success, "Could not initialize GLFW!");
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
         glfwSetErrorCallback(GLFWErrorCallback);
     }
-}
-
-void X11Window::_InitGlad()
-{
-    int success = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
-    CORE_ASSERT(success, "Failed to initialized glad!");
 }
 
 void X11Window::_CreateWindow()
@@ -79,6 +75,14 @@ void X11Window::_CreateWindow()
     glfwMakeContextCurrent(m_window);
     glfwSetWindowUserPointer(m_window, &m_data);
 }
+
+void X11Window::_InitGlad()
+{
+//     int success = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
+    int success = gladLoadGL();
+    CORE_ASSERT(success, "Failed to initialized glad!");
+}
+
 
 void X11Window::_SetEventCallback()
 {
@@ -190,6 +194,7 @@ void X11Window::_SetEventCallback_MouseMove()
 void X11Window::_Shutdown()
 {
     glfwDestroyWindow(m_window);
+    glfwTerminate();
 }
 
 

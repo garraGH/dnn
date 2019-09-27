@@ -15,6 +15,7 @@
 #include "imgui_impl_opengl3.h"
 #include "../app/application.cpp"
 #include "glfw3.h"
+#include "../window/window_x11.h"
 
 ImGuiLayer::ImGuiLayer()
     : Layer( "ImGuiLayer" )
@@ -25,17 +26,20 @@ ImGuiLayer::ImGuiLayer()
 
 ImGuiLayer::~ImGuiLayer()
 {
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
 }
 
 void ImGuiLayer::OnAttach()
 {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+
     ImGui::StyleColorsDark();
-    ImGui_ImplGlfw_InitForOpenGL((GLFWwindow*)Application::Get()->GetWindow(), true);
-    ImGui_ImplOpenGL3_Init("#version 410");
-    ImGuiIO& io = ImGui::GetIO();
-    io.IniFilename = nullptr;
+    ImGui_ImplGlfw_InitForOpenGL(((X11Window*)Application::Get()->GetWindow())->GetInnerWindow(), true);
+    ImGui_ImplOpenGL3_Init("#version 130");
 }
 
 void ImGuiLayer::OnDetach()
@@ -56,10 +60,16 @@ void ImGuiLayer::OnUpdate()
 
     
     ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
     static bool show = true;
     ImGui::ShowDemoWindow(&show);
+
+    ImGui::Begin("IMGUI");
+    ImGui::Button("Hello");
+    ImGui::End();
+
 
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
