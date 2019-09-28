@@ -9,7 +9,8 @@
 ============================================*/
 
 #include "core.h"
-#include "glad.h"
+#include "glad/glad.h"
+// #include "GL/gl3w.h"
 #include "glfw3.h"
 #include "window_x11.h"
 #include "logger.h"
@@ -43,6 +44,7 @@ void X11Window::_Init(const WindowsProps& props)
     _SaveProps(props);
     _InitGLFW();
     _CreateWindow();
+//     _InitGl3w();
     _InitGlad();
     _SetEventCallback();
     SetVSync(true);
@@ -78,17 +80,22 @@ void X11Window::_CreateWindow()
 
 void X11Window::_InitGlad()
 {
-//     int success = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
     int success = gladLoadGL();
     CORE_ASSERT(success, "Failed to initialized glad!");
 }
 
+// void X11Window::_InitGl3w()
+// {
+//     int success = gl3wInit();
+//     CORE_ASSERT(success, "Failed to initialized glad!");
+// }
 
 void X11Window::_SetEventCallback()
 {
     _SetEventCallback_WindowResize();
     _SetEventCallback_WindowClose();
     _SetEventCallback_Key();
+    _SetEventCallback_Char();
     _SetEventCallback_MouseButton();
     _SetEventCallback_MouseMove();
     _SetEventCallback_MouseScroll();
@@ -122,7 +129,7 @@ void X11Window::_SetEventCallback_Key()
     { 
         static int repeatCount = 0;
         WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
-        int keyCode = mods&GLFW_MOD_SHIFT? key : key+32;
+        int keyCode = (0x41<=key&&key<=0x5A)&&(!(mods&GLFW_MOD_SHIFT))? key+32 : key;
         switch(action)
         {
             case GLFW_PRESS:
@@ -145,6 +152,16 @@ void X11Window::_SetEventCallback_Key()
                 break;
             }
         }
+    });
+}
+
+void X11Window::_SetEventCallback_Char()
+{
+    glfwSetCharCallback(m_window, [](GLFWwindow* window, unsigned int keyCode)
+    {
+        WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+        KeyTypedEvent event(keyCode);
+        data.eventCallback(event);
     });
 }
 
@@ -221,7 +238,7 @@ void X11Window::SetFullscreen(bool enabled)
 
 void X11Window::OnUpdate()
 {
-    glfwPollEvents()    ;
+    glfwPollEvents();
     glfwSwapBuffers(m_window);
 }
 

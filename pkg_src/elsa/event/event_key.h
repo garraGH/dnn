@@ -55,3 +55,18 @@ public:
 
     EVENT_CLASS_TYPE(ET_KeyReleased);
 };
+
+class KeyTypedEvent : public KeyEvent
+{
+public:
+    KeyTypedEvent(int keyCode) : KeyEvent(keyCode) {  }
+    std::string ToString() const override
+    {
+        std::stringstream ss;
+        ss << GetName() << ": " << m_keyCode;
+        return ss.str();
+    }
+
+    EVENT_CLASS_TYPE(ET_KeyTyped);
+};
+

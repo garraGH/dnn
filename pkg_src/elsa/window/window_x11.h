@@ -27,19 +27,21 @@ public:
     void SetEventCallback(const EventCallback& eventCallback) override { m_data.eventCallback = eventCallback; }
     inline unsigned int GetWidth() const override { return m_data.width; }
     inline unsigned int GetHeight() const override { return m_data.height; } 
-    GLFWwindow* GetInnerWindow() { return m_window; }
+    void* GetNativeWindow() const override { return m_window; }
 
 protected:
     void _Init(const WindowsProps& props);
     void _SaveProps(const WindowsProps& props);
     void _InitGLFW();
     void _InitGlad();
+    void _InitGl3w();
     void _CreateWindow();
 
     void _SetEventCallback();
     void _SetEventCallback_WindowResize();
     void _SetEventCallback_WindowClose();
     void _SetEventCallback_Key();
+    void _SetEventCallback_Char();
     void _SetEventCallback_MouseButton();
     void _SetEventCallback_MouseScroll();
     void _SetEventCallback_MouseMove();

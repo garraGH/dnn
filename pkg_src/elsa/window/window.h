@@ -43,5 +43,7 @@ public:
     virtual bool IsVSync() const = 0;
     virtual bool IsFullscreen() const = 0;
 
+    virtual void* GetNativeWindow() const = 0;
+
     static Window* Create(const WindowsProps& props = WindowsProps());
 };

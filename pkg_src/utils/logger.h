@@ -52,14 +52,31 @@ private:
 //     #define WARN(...)
 // #endif
 
-#define CORE_WARN(...)  Logger::getCoreLogger()->warn(__VA_ARGS__);
-#define CORE_INFO(...)  Logger::getCoreLogger()->info(__VA_ARGS__);
-#define CORE_TRACE(...) Logger::getCoreLogger()->trace(__VA_ARGS__);
-#define CORE_ERROR(...) Logger::getCoreLogger()->error(__VA_ARGS__);
+#define ENABLE_LOG
+
+#ifdef ENABLE_LOG
+
+#define CORE_WARN(...)     Logger::getCoreLogger()->warn(__VA_ARGS__);
+#define CORE_INFO(...)     Logger::getCoreLogger()->info(__VA_ARGS__);
+#define CORE_TRACE(...)    Logger::getCoreLogger()->trace(__VA_ARGS__);
+#define CORE_ERROR(...)    Logger::getCoreLogger()->error(__VA_ARGS__);
 #define CORE_CRITICAL(...) Logger::getCoreLogger()->critical(__VA_ARGS__);
 
-#define WARN(...)  Logger::getClientLogger()->warn(__VA_ARGS__);
-#define INFO(...)  Logger::getClientLogger()->info(__VA_ARGS__);
-#define TRACE(...) Logger::getClientLogger()->trace(__VA_ARGS__);
-#define ERROR(...) Logger::getClientLogger()->error(__VA_ARGS__);
+#define WARN(...)     Logger::getClientLogger()->warn(__VA_ARGS__);
+#define INFO(...)     Logger::getClientLogger()->info(__VA_ARGS__);
+#define TRACE(...)    Logger::getClientLogger()->trace(__VA_ARGS__);
+#define ERROR(...)    Logger::getClientLogger()->error(__VA_ARGS__);
 #define CRITICAL(...) Logger::getClientLogger()->critical(__VA_ARGS__);
+#else
+#define CORE_WARN(...)     
+#define CORE_INFO(...)     
+#define CORE_TRACE(...)    
+#define CORE_ERROR(...)    
+#define CORE_CRITICAL(...) 
+
+#define WARN(...)     
+#define INFO(...)     
+#define TRACE(...)    
+#define ERROR(...)    
+#define CRITICAL(...) 
+#endif

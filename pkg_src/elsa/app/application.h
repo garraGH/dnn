@@ -20,9 +20,6 @@
 #include "../window/window.h"
 #include "../layer/layerstack.h"
 
-#define ON_KEY_PRESSED(key) bool _OnKeyPressed_##key(int repeatCount)
-#define ON_KEY_RELEASED(key) bool _OnKeyReleased_##key()
-
 class Application
 {
 public:
@@ -38,17 +35,23 @@ public:
     inline static Application* Get() { return s_instance; }
 
 protected:
+#define ON(event) bool _On##event(event& e)
     void OnEvent(Event& e);
-    bool OnKeyPressed(KeyPressedEvent& e);
-    bool OnKeyReleased(KeyReleasedEvent& e);
-    bool OnWindowClose(WindowCloseEvent& e);
+    ON(KeyPressedEvent);
+    ON(KeyReleasedEvent);
+    ON(WindowCloseEvent);
+#undef ON
 
 private:
+#define ON_KEY_PRESSED(key) bool _OnKeyPressed_##key(int repeatCount)
+#define ON_KEY_RELEASED(key) bool _OnKeyReleased_##key()
     ON_KEY_RELEASED(q);
     ON_KEY_RELEASED(Q);
     ON_KEY_PRESSED(R);
     ON_KEY_PRESSED(a);
-    
+#undef ON_KEY_PRESSED    
+#undef ON_KEY_RELEASED
+
     
     
 private:

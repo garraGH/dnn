@@ -10,18 +10,15 @@
 
 
 #include <stdio.h>
-#include "glad.h"
+#include "glad/glad.h"
+// #include "GL/gl3w.h"
 #include "application.h"
 #include "logger.h"
 #include "timer_cpu.h"
 #include "core.h"
+#include "../input/input.h"
 
 #define BIND_EVENT_CALLBACK(x) std::bind(&Application::x,  this, std::placeholders::_1)
-#define BIND_KEY_PRESSED_FUNCTION(x) std::bind(&Application::x, this, std::placeholders::_1)
-#define BIND_KEY_RELEASED_FUNCTION(x) std::bind(&Application::x, this)
-#define REGISTER_KEY_PRESSED_FUNCTION(key) m_keyPressed[#key[0]] = BIND_KEY_PRESSED_FUNCTION(_OnKeyPressed_##key)
-#define REGISTER_KEY_RELEASED_FUNCTION(key) m_keyReleased[#key[0]] = BIND_KEY_RELEASED_FUNCTION(_OnKeyReleased_##key)
-
 Application* Application::s_instance = nullptr;
 
 Application::Application()
@@ -32,10 +29,15 @@ Application::Application()
 
     m_window = std::unique_ptr<Window>(Window::Create());
     m_window->SetEventCallback(BIND_EVENT_CALLBACK(OnEvent));
+
+#define REGISTER_KEY_PRESSED_FUNCTION(key) m_keyPressed[#key[0]] = std::bind(&Application::_OnKeyPressed_##key, this, std::placeholders::_1)
+#define REGISTER_KEY_RELEASED_FUNCTION(key) m_keyReleased[#key[0]] = std::bind(&Application::_OnKeyReleased_##key, this)
     REGISTER_KEY_PRESSED_FUNCTION(a);
     REGISTER_KEY_PRESSED_FUNCTION(R);
     REGISTER_KEY_RELEASED_FUNCTION(q);
     REGISTER_KEY_RELEASED_FUNCTION(Q);
+#undef REGISTER_KEY_PRESSED_FUNCTION
+#undef REGISTER_KEY_RELEASED_FUNCTION
 }
 
 Application::~Application()
@@ -47,11 +49,11 @@ void Application::OnEvent(Event& e)
 {
     CORE_TRACE("{0}", e);
     EventDispatcher ed(e);
-    ed.Dispatch<WindowCloseEvent>(BIND_EVENT_CALLBACK(OnWindowClose));
-    ed.Dispatch<KeyPressedEvent>(BIND_EVENT_CALLBACK(OnKeyPressed));
-    ed.Dispatch<KeyReleasedEvent>(BIND_EVENT_CALLBACK(OnKeyReleased));
-
-
+#define DISPATCH(event) ed.Dispatch<event>(BIND_EVENT_CALLBACK(_On##event))
+    DISPATCH(WindowCloseEvent);
+    DISPATCH(KeyPressedEvent);
+    DISPATCH(KeyReleasedEvent);
+#undef DISPATCH
     for(auto it = m_layerStack.end(); it != m_layerStack.begin();)
     {
         (*--it)->OnEvent(e);
@@ -62,24 +64,27 @@ void Application::OnEvent(Event& e)
     }
 }
 
-bool Application::OnWindowClose(WindowCloseEvent& e)
+#define _ON(event) bool Application::_On##event(event& e)
+_ON(WindowCloseEvent)
 {
     INFO("CLOSED");
     m_running = false;
     return true;
 }
 
-bool Application::OnKeyPressed(KeyPressedEvent& e)
+_ON(KeyPressedEvent)
 {
     std::function<bool(int)> fn = m_keyPressed[e.GetKeyCode()];
     return fn == nullptr? false : fn(e.GetRepeatCount());
 }
 
-bool Application::OnKeyReleased(KeyReleasedEvent& e)
+_ON(KeyReleasedEvent)
 {
     std::function<bool()> fn = m_keyReleased[e.GetKeyCode()];
     return fn == nullptr? false : fn();
 }
+
+#undef _ON
 
 void Application::Run()
 {
@@ -99,11 +104,14 @@ void Application::Run()
     {
         glClearColor(1, 0, 1, 1);
         glClear(GL_COLOR_BUFFER_BIT);
-        m_window->OnUpdate();
         for(Layer* layer : m_layerStack)
         {
             layer->OnUpdate();
         }
+        m_window->OnUpdate();
+
+        auto[x, y] = Input::GetMousePosition();
+        CORE_TRACE("{0}, {0}", x, y);
     }
 }
 
@@ -145,5 +153,5 @@ void Application::PushOverlay(Layer* layer)
     m_layerStack.PushOverlay(layer);
 }
 
-
+#undef BIND_EVENT_CALLBACK
 

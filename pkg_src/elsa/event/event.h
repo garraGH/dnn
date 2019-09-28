@@ -28,6 +28,7 @@ enum class EventType
     ET_AppRender, 
     ET_KeyPressed, 
     ET_KeyReleased, 
+    ET_KeyTyped, 
     ET_MouseMoved, 
     ET_MouseScrolled,  
     ET_MouseButtonPressed, 

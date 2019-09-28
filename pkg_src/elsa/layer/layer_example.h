@@ -22,6 +22,6 @@ public:
     }
     void OnUpdate() override
     {
-        TRACE("ExampleLayer OnUpdate.");
+//         TRACE("ExampleLayer OnUpdate.");
     }
 };
