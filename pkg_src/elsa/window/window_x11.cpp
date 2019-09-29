@@ -67,6 +67,7 @@ void X11Window::_InitGLFW()
         CORE_ASSERT(success, "Could not initialize GLFW!");
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+//         glfwWindowHint(GLFW_DECORATED, false);
         glfwSetErrorCallback(GLFWErrorCallback);
     }
 }
