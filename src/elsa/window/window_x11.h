@@ -11,6 +11,7 @@
 
 #pragma once
 #include "window.h"
+#include "../context/context.h"
 
 class GLFWwindow;
 class X11Window : public Window
@@ -35,7 +36,7 @@ protected:
     void _InitGLFW();
     void _InitGlad();
     void _InitGl3w();
-    void _CreateWindow();
+    void _CreateContext();
 
     void _SetEventCallback();
     void _SetEventCallback_WindowResize();
@@ -49,7 +50,9 @@ protected:
     void _Shutdown();
 
 private:
+    GraphicsContext* m_context;
     GLFWwindow* m_window;
+
     struct WindowData
     {
         std::string title;

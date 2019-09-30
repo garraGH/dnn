@@ -12,6 +12,8 @@
 #pragma once
 
 #include <sys/signal.h>
+#include "logger.h"
+
 #define ENABLE_ASSERT
 #ifdef ENABLE_ASSERT
     #define ASSERT(x, ...) { if(!(x)) { ERROR("Assertion Failed: { 0 }", __VA_ARGS__); raise(SIGTRAP); } } 

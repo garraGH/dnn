@@ -17,6 +17,7 @@
 #include "../event/event_key.h"
 #include "../event/event_mouse.h"
 #include "../event/event_application.h"
+#include "../context/context_opengl.h"
 
 static bool s_GLFWInitialized = false;
 Window* Window::Create(const WindowsProps& props)
@@ -43,7 +44,7 @@ void X11Window::_Init(const WindowsProps& props)
 {
     _SaveProps(props);
     _InitGLFW();
-    _CreateWindow();
+    _CreateContext();
 //     _InitGl3w();
     _InitGlad();
     _SetEventCallback();
@@ -72,10 +73,11 @@ void X11Window::_InitGLFW()
     }
 }
 
-void X11Window::_CreateWindow()
+void X11Window::_CreateContext()
 {
     m_window = glfwCreateWindow(m_data.width, m_data.height, m_data.title.c_str(), nullptr, nullptr);
-    glfwMakeContextCurrent(m_window);
+    m_context = new OpenGLContext(m_window);
+    m_context->Init();
     glfwSetWindowUserPointer(m_window, &m_data);
 }
 
@@ -85,11 +87,11 @@ void X11Window::_InitGlad()
     CORE_ASSERT(success, "Failed to initialized glad!");
 }
 
-// void X11Window::_InitGl3w()
-// {
+void X11Window::_InitGl3w()
+{
 //     int success = gl3wInit();
-//     CORE_ASSERT(success, "Failed to initialized glad!");
-// }
+//     CORE_ASSERT(success, "Failed to initialized gl3w!");
+}
 
 void X11Window::_SetEventCallback()
 {
@@ -240,6 +242,6 @@ void X11Window::SetFullscreen(bool enabled)
 void X11Window::OnUpdate()
 {
     glfwPollEvents();
-    glfwSwapBuffers(m_window);
+    m_context->SwapBuffers();
 }
 
