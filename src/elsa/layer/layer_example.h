@@ -12,6 +12,7 @@
 #pragma once
 #include "layer.h"
 #include "logger.h"
+#include "imgui.h"
 
 class ExampleLayer : public Layer
 {
@@ -23,5 +24,11 @@ public:
     void OnUpdate() override
     {
 //         TRACE("ExampleLayer OnUpdate.");
+    }
+    void OnImGuiRender() override
+    {
+        ImGui::Begin("ExampleLayer");
+        ImGui::Button("ExampleLayer");
+        ImGui::End();
     }
 };

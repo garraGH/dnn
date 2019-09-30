@@ -19,6 +19,7 @@
 #include "../event/event_application.h"
 #include "../window/window.h"
 #include "../layer/layerstack.h"
+#include "../layer/layer_imgui.h"
 
 class Application
 {
@@ -56,6 +57,7 @@ private:
     
 private:
     std::unique_ptr<Window> m_window;
+    ImGuiLayer* m_layerImGui;
     bool m_running;
     std::map<int, std::function<bool(int)>> m_keyPressed;
     std::map<int, std::function<bool()>> m_keyReleased;

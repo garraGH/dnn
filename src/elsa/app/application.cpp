@@ -11,7 +11,6 @@
 
 #include <stdio.h>
 #include "glad/gl.h"
-// #include "GL/gl3w.h"
 #include "application.h"
 #include "logger.h"
 #include "timer_cpu.h"
@@ -29,6 +28,9 @@ Application::Application()
 
     m_window = std::unique_ptr<Window>(Window::Create());
     m_window->SetEventCallback(BIND_EVENT_CALLBACK(OnEvent));
+
+    m_layerImGui = new ImGuiLayer;
+    PushOverlay(m_layerImGui);
 
 #define REGISTER_KEY_PRESSED_FUNCTION(key) m_keyPressed[#key[0]] = std::bind(&Application::_OnKeyPressed_##key, this, std::placeholders::_1)
 #define REGISTER_KEY_RELEASED_FUNCTION(key) m_keyReleased[#key[0]] = std::bind(&Application::_OnKeyReleased_##key, this)
@@ -108,6 +110,14 @@ void Application::Run()
         {
             layer->OnUpdate();
         }
+
+        m_layerImGui->Begin();
+        for(Layer* layer : m_layerStack)
+        {
+            layer->OnImGuiRender();
+        }
+        m_layerImGui->End();
+
         m_window->OnUpdate();
 
         auto[x, y] = Input::GetMousePosition();

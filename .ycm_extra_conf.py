@@ -56,6 +56,9 @@ flags = [
         '-isystem/usr/include', 
         '-isystem/usr/local/cuda/include/',
         '-ISUB./',
+        '-I./deps/modules/imgui/',
+        '-I./deps/modules/imgui/examples',
+        '-I./deps/modules/glfw/deps/'
         ]
 
 flags = IncludeFlagsOfSubdirectory(flags, "./" )

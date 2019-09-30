@@ -22,7 +22,6 @@ public:
     DNN()
     {
         PushLayer(new ExampleLayer());
-        PushOverlay(new ImGuiLayer());
     }
 
     ~DNN()
