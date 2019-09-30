@@ -32,6 +32,31 @@ Application::Application()
     m_layerImGui = new ImGuiLayer;
     PushOverlay(m_layerImGui);
 
+    glGenVertexArrays(1, &m_vertexArray);
+    glGenBuffers(1, &m_vertexBuffer);
+    glGenBuffers(1, &m_indexBuffer);
+    glBindVertexArray(m_vertexArray);
+    glBindBuffer(GL_ARRAY_BUFFER, m_vertexBuffer);
+
+    float vertices[3*3] = 
+    {
+        -0.5f, -0.5f, 0.0f, 
+        +0.5f, -0.5f, 0.0f, 
+        +0.0f, +1.0f, 0.0f
+    };
+
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3*sizeof(float), nullptr);
+
+
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBuffer);
+    unsigned int indices[3] = { 0, 1, 2 };
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+
+
 #define REGISTER_KEY_PRESSED_FUNCTION(key) m_keyPressed[#key[0]] = std::bind(&Application::_OnKeyPressed_##key, this, std::placeholders::_1)
 #define REGISTER_KEY_RELEASED_FUNCTION(key) m_keyReleased[#key[0]] = std::bind(&Application::_OnKeyReleased_##key, this)
     REGISTER_KEY_PRESSED_FUNCTION(a);
@@ -44,6 +69,9 @@ Application::Application()
 
 Application::~Application()
 {
+    glDeleteBuffers(1, &m_vertexBuffer);
+    glDeleteBuffers(1, &m_indexBuffer);
+    glDeleteVertexArrays(1, &m_vertexArray);
     CORE_TRACE("Application destructed.");
 }
 
@@ -104,8 +132,12 @@ void Application::Run()
 
     while(m_running)
     {
-        glClearColor(1, 0, 1, 1);
+        glClearColor(0.1, 0.1, 0.1, 1);
         glClear(GL_COLOR_BUFFER_BIT);
+
+        glBindVertexArray(m_vertexArray);
+        glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr);
+
         for(Layer* layer : m_layerStack)
         {
             layer->OnUpdate();
@@ -120,8 +152,8 @@ void Application::Run()
 
         m_window->OnUpdate();
 
-        auto[x, y] = Input::GetMousePosition();
-        CORE_TRACE("{0}, {0}", x, y);
+//         auto[x, y] = Input::GetMousePosition();
+//         CORE_TRACE("{0}, {0}", x, y);
     }
 }
 

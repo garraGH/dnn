@@ -63,6 +63,7 @@ private:
     std::map<int, std::function<bool()>> m_keyReleased;
     LayerStack m_layerStack;
 
+    unsigned int m_vertexArray, m_vertexBuffer, m_indexBuffer;
 private:
     static Application* s_instance;
 };

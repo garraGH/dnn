@@ -26,14 +26,15 @@ void OpenGLContext::Init()
     glfwMakeContextCurrent(m_window);
     int success = gladLoadGL(glfwGetProcAddress);
     CORE_ASSERT(success, "Failed to initialize GLAD!");
+
+    CORE_INFO("OpenGL INFO:");
+    CORE_INFO("     Vendor: {}", glGetString(GL_VENDOR));
+    CORE_INFO("   Renderer: {}", glGetString(GL_RENDERER));
+    CORE_INFO("    Version: {}", glGetString(GL_VERSION));
+    CORE_INFO("       GLSL: {}", glGetString(GL_SHADING_LANGUAGE_VERSION));
 }
 
 void OpenGLContext::SwapBuffers()
 {
-    glBegin(GL_TRIANGLES);
-    glVertex2f(-0.5f, -0.5f);
-    glVertex2f(+0.5f, -0.5f);
-    glVertex2f(-0.0f, +0.5f);
-    glEnd();
     glfwSwapBuffers(m_window);
 }
