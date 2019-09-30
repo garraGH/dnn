@@ -1,6 +1,0 @@
-option("gl3w")
-    set_showmenu(true)
-    set_category("package")
-    add_includedirs("include")
-    add_linkdirs("lib")
-    add_links("gl3w")

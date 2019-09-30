@@ -1,5 +1,5 @@
-set_languages("c++17")
-includes("../pkg_src/elsa/xmake.lua")
+includes("../src/elsa/xmake.lua")
+add_syslinks("dl", "pthread", "X11", "OpenGL")
 target("sandbox")
     set_kind("binary")
     add_files("*.cpp")

@@ -1,0 +1,15 @@
+[submodule "deps/modules/imgui"]
+	path = deps/modules/imgui
+	url = https://github.com/garraGH/imgui
+[submodule "deps/modules/glfw"]
+	path = deps/modules/glfw
+	url = https://github.com/garraGH/glfw
+[submodule "deps/modules/glm"]
+	path = deps/modules/glm
+	url = https://github.com/garraGH/glm
+[submodule "deps/modules/spdlog"]
+	path = deps/modules/spdlog
+	url = https://github.com/garraGH/spdlog.git
+[submodule "deps/modules/stb"]
+	path = deps/modules/stb
+	url = https://github.com/garraGH/stb

@@ -1,6 +1,0 @@
-option("imgui_glad")
-    set_showmenu(true)
-    set_category("package")
-    add_links("imgui_glad")
-    add_linkdirs("lib")
-    add_includedirs("include")

@@ -1,3 +1,7 @@
-add_includedirs("pkg/include", "pkg_src/elsa", "pkg_src/utils")
-add_packagedirs("pkg/vendor")
+set_languages("c++17")
+add_includedirs("src/utils")
+add_includedirs("src/elsa")
+add_includedirs("deps/modules/glm")
+add_includedirs("deps/modules/spdlog/include")
 add_subdirs("sandbox/xmake.lua")
+

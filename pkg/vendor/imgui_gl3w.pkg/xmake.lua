@@ -1,6 +1,0 @@
-option("imgui_gl3w")
-    set_showmenu(true)
-    set_category("package")
-    add_links("imgui_gl3w")
-    add_linkdirs("lib")
-    add_includedirs("include")
