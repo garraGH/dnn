@@ -20,6 +20,7 @@
 #include "../window/window.h"
 #include "../layer/layerstack.h"
 #include "../layer/layer_imgui.h"
+#include "../shader/shader.h"
 
 class Application
 {
@@ -64,6 +65,7 @@ private:
     LayerStack m_layerStack;
 
     unsigned int m_vertexArray, m_vertexBuffer, m_indexBuffer;
+    std::unique_ptr<Shader> m_shader;
 private:
     static Application* s_instance;
 };
