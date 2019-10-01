@@ -16,7 +16,8 @@
 #include "timer_cpu.h"
 #include "core.h"
 #include "../input/input.h"
-#include "../shader/shader_glsl.h"
+#include "../renderer/shader/shader_glsl.h"
+#include "../renderer/buffer/buffer_opengl.h"
 
 #define BIND_EVENT_CALLBACK(x) std::bind(&Application::x,  this, std::placeholders::_1)
 Application* Application::s_instance = nullptr;
@@ -36,8 +37,6 @@ Application::Application()
     glGenVertexArrays(1, &m_vertexArray);
     glBindVertexArray(m_vertexArray);
 
-    glGenBuffers(1, &m_vertexBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, m_vertexBuffer);
 
     float vertices[3*3] = 
     {
@@ -46,16 +45,14 @@ Application::Application()
         +0.0f, +0.8f, 0.0f
     };
 
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    m_vertexBuffer = Buffer::CreateVertex(sizeof(vertices), vertices);
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3*sizeof(float), nullptr);
 
 
 
-    glGenBuffers(1, &m_indexBuffer);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBuffer);
     unsigned int indices[3] = { 0, 1, 2 };
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    m_indexBuffer = Buffer::CreateIndex(sizeof(indices), indices);
 
     std::string srcVertex = R"(
         #version 460 core
@@ -78,7 +75,7 @@ Application::Application()
         }
     )";
 
-    m_shader.reset(new GLSLProgram(srcVertex, srcFragment));
+    m_shader.reset(Shader::Create(srcVertex, srcFragment));
     
 
 
@@ -94,8 +91,6 @@ Application::Application()
 
 Application::~Application()
 {
-    glDeleteBuffers(1, &m_vertexBuffer);
-    glDeleteBuffers(1, &m_indexBuffer);
     glDeleteVertexArrays(1, &m_vertexArray);
     CORE_TRACE("Application destructed.");
 }
@@ -162,7 +157,7 @@ void Application::Run()
 
         m_shader->Bind();
         glBindVertexArray(m_vertexArray);
-        glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr);
+        glDrawElements(GL_TRIANGLES, m_indexBuffer->GetCount(), GL_UNSIGNED_INT, nullptr);
 
         for(Layer* layer : m_layerStack)
         {

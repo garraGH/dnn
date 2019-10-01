@@ -12,7 +12,7 @@
 #include <vector>
 #include "shader_glsl.h"
 #include "glad/gl.h"
-#include "../core.h"
+#include "../../core.h"
 
 GLSLProgram::GLSLProgram(const std::string& srcFile)
     : Shader(srcFile)
@@ -23,7 +23,7 @@ GLSLProgram::GLSLProgram(const std::string& srcFile)
 GLSLProgram::GLSLProgram(const std::string& srcVertex, const std::string& srcFragment)
     : Shader(srcVertex, srcFragment)
 {
-    _create(srcVertex, srcFragment);
+    _compile(srcVertex, srcFragment);
 }
 
 GLSLProgram::~GLSLProgram()
@@ -31,17 +31,17 @@ GLSLProgram::~GLSLProgram()
     glDeleteProgram(m_id);
 }
 
-void GLSLProgram::Bind()
+void GLSLProgram::Bind(unsigned int slot) const 
 {
     glUseProgram(m_id);
 }
 
-void GLSLProgram::Unbind()
+void GLSLProgram::Unbind() const 
 {
     glUseProgram(0);
 }
 
-void GLSLProgram::_create(const std::string& srcVertex, const std::string& srcFragment)
+void GLSLProgram::_compile(const std::string& srcVertex, const std::string& srcFragment)
 {
 
     // Create an empty vertex shader handle
@@ -157,3 +157,14 @@ void GLSLProgram::_create(const std::string& srcVertex, const std::string& srcFr
     glDetachShader(m_id, fragmentShader);
 }
 
+
+Shader* Shader::Create(const std::string& srcFile)
+{
+    return new GLSLProgram(srcFile);
+}
+
+
+Shader* Shader::Create(const std::string& srcVertex, const std::string& srcFragment)
+{
+    return new GLSLProgram(srcVertex, srcFragment);
+}

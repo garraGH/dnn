@@ -12,6 +12,7 @@
 #pragma once
 #include "shader.h"
 
+
 class GLSLProgram : public Shader
 {
 public:
@@ -20,9 +21,9 @@ public:
 
     ~GLSLProgram(); 
 
-    virtual void Bind() override;
-    virtual void Unbind() override;
+    virtual void Bind(unsigned int slot=0) const override;
+    virtual void Unbind() const override;
 
 protected:
-    virtual void _create(const std::string& srcVertex, const std::string& srcFragment) override;
+    virtual void _compile(const std::string& srcVertex, const std::string& srcFragment) override;
 };

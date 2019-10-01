@@ -20,7 +20,8 @@
 #include "../window/window.h"
 #include "../layer/layerstack.h"
 #include "../layer/layer_imgui.h"
-#include "../shader/shader.h"
+#include "../renderer/shader/shader.h"
+#include "../renderer/buffer/buffer.h"
 
 class Application
 {
@@ -64,7 +65,9 @@ private:
     std::map<int, std::function<bool()>> m_keyReleased;
     LayerStack m_layerStack;
 
-    unsigned int m_vertexArray, m_vertexBuffer, m_indexBuffer;
+    unsigned int m_vertexArray;
+    Buffer* m_vertexBuffer = nullptr;
+    Buffer* m_indexBuffer = nullptr;
     std::unique_ptr<Shader> m_shader;
 private:
     static Application* s_instance;

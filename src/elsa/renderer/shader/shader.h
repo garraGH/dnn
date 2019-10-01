@@ -12,21 +12,21 @@
 #pragma once
 #include <string>
 #include <utility>
-class Shader
+#include "../rendererobject.h"
+
+class Shader : public RenderObject
 {
 public:
     Shader(const std::string& srcFile);
     Shader(const std::string& srcVertex, const std::string& srcFragment);
-    virtual ~Shader() {};
-    
 
-    virtual void Bind() = 0;
-    virtual void Unbind() = 0;
+    static Shader* Create(const std::string& srcFile);
+    static Shader* Create(const std::string& srcVertex, const std::string& srcFragment);
+
 protected:
     std::pair<std::string, std::string> _parseSrc(const std::string& srcFile);
-    virtual void _create(const std::string& srcVertex, const std::string& srcFragment) = 0;
+    virtual void _compile(const std::string& srcVertex, const std::string& srcFragment) = 0;
 
 protected:
     const std::string& m_srcFile;
-    unsigned int m_id = 0;
 };
