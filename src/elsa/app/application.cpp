@@ -38,30 +38,44 @@ Application::Application()
     glBindVertexArray(m_vertexArray);
 
 
-    float vertices[3*3] = 
+    float vertices[3*7] = 
     {
-        -0.5f, -0.5f, 0.0f, 
-        +0.5f, -0.5f, 0.0f, 
-        +0.0f, +0.8f, 0.0f
+        -0.5f, -0.5f, 0.0f, 255, 0, 0, 255,  
+        +0.5f, -0.5f, 0.0f, 0, 255, 0, 0, 
+        +0.0f, +0.8f, 0.0f, 0, 0, 255, 128
     };
 
-    m_vertexBuffer = Buffer::CreateVertex(sizeof(vertices), vertices);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3*sizeof(float), nullptr);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    Buffer::Layout layoutVextex = 
+    {
+        { Buffer::Element::DataType::Float3, false, "a_Position" }, 
+        { Buffer::Element::DataType::Int4, true, "a_Color" }
+    };
+    m_vertexBuffer.reset(Buffer::CreateVertex(sizeof(vertices), vertices));
+    m_vertexBuffer->SetLayout(layoutVextex);
 
 
 
-    unsigned int indices[3] = { 0, 1, 2 };
-    m_indexBuffer = Buffer::CreateIndex(sizeof(indices), indices);
+    unsigned char indices[3] = { 0, 1, 2 };
+    Buffer::Layout layoutIndex;
+    Buffer::Element e(Buffer::Element::DataType::UChar);
+    layoutIndex.Push(e);
+    m_indexBuffer.reset(Buffer::CreateIndex(sizeof(indices), indices));
+    m_indexBuffer->SetLayout(layoutIndex);
 
     std::string srcVertex = R"(
         #version 460 core
         layout(location = 0) in vec3 a_Position;
+        layout(location = 1) in vec4 a_Color;
         out vec4 v_Position;
+        out vec4 v_Color;
         void main()
         {
             gl_Position = vec4(a_Position+0.2, 1.0f);
             v_Position = gl_Position;
+            v_Color = a_Color;
         }
     )";
 
@@ -69,9 +83,11 @@ Application::Application()
         #version 460 core
         in vec4 v_Position;
         out vec4 color;
+        in vec4 v_Color;
         void main()
         {
-            color = v_Position;
+//             color = v_Position;
+            color = v_Color;
         }
     )";
 
@@ -157,7 +173,7 @@ void Application::Run()
 
         m_shader->Bind();
         glBindVertexArray(m_vertexArray);
-        glDrawElements(GL_TRIANGLES, m_indexBuffer->GetCount(), GL_UNSIGNED_INT, nullptr);
+        glDrawElements(GL_TRIANGLES, m_indexBuffer->GetCount(), static_cast<OpenGLIndexBuffer*>(m_indexBuffer.get())->GetIndexType(), nullptr);
 
         for(Layer* layer : m_layerStack)
         {

@@ -66,8 +66,8 @@ private:
     LayerStack m_layerStack;
 
     unsigned int m_vertexArray;
-    Buffer* m_vertexBuffer = nullptr;
-    Buffer* m_indexBuffer = nullptr;
+    std::unique_ptr<Buffer> m_vertexBuffer;
+    std::unique_ptr<Buffer> m_indexBuffer;
     std::unique_ptr<Shader> m_shader;
 private:
     static Application* s_instance;
