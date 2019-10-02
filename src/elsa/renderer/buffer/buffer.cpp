@@ -18,7 +18,7 @@ Buffer* Buffer::CreateVertex(unsigned int size, float* data)
 {
     switch(Renderer::GetAPI())
     {
-        case RendererAPI::OpenGL:
+        case Renderer::API::OpenGL:
             return new OpenGLVertexBuffer(size, data);
         default:
             CORE_ASSERT(false, "Buffer::CreateVertex: API is currently not supported!");
@@ -30,7 +30,7 @@ Buffer* Buffer::CreateIndex(unsigned int size, void* data)
 {
     switch(Renderer::GetAPI())
     {
-        case RendererAPI::OpenGL:
+        case Renderer::API::OpenGL:
             return new OpenGLIndexBuffer(size, data);
         default:
             CORE_ASSERT(false, "Buffer::CreateIndex: API is currently not supported!");
@@ -42,7 +42,7 @@ BufferArray* BufferArray::Create()
 {
     switch(Renderer::GetAPI())
     {
-        case RendererAPI::OpenGL:
+        case Renderer::API::OpenGL:
             return new OpenGLBufferArray();
         default:
             CORE_ASSERT(false, "BufferArray::Create: API is currently not supported!");
@@ -67,10 +67,11 @@ void Buffer::SetLayout(const Layout& layout)
     m_layout = layout;
 }
 
-void Buffer::ApplyLayout() const
+void Buffer::ApplyLayout(const std::shared_ptr<Shader>& shader) const
 {
 
 }
+
 
 unsigned int Buffer::GetCount() const 
 {
@@ -78,10 +79,10 @@ unsigned int Buffer::GetCount() const
 }
 
 
-Buffer::Element::Element(DataType type, bool normalized, const std::string& name)
+Buffer::Element::Element(DataType type, const std::string& name, bool normalized)
     : m_type(type)
-    , m_normalized(normalized)
     , m_name(name)
+    , m_normalized(normalized)
 {
 }
 
@@ -149,3 +150,13 @@ void Buffer::Layout::_calculateOffsetAndStride(Element& e)
     m_stride += e.Size();
 }
 
+void BufferArray::UsedByShader(const std::shared_ptr<Shader>& shader)
+{
+    if(m_shader == shader)
+    {
+        return ;
+    }
+
+    m_shader = shader;
+    _OnShaderChanged();
+}

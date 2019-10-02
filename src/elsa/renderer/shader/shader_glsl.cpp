@@ -157,14 +157,3 @@ void GLSLProgram::_compile(const std::string& srcVertex, const std::string& srcF
     glDetachShader(m_id, fragmentShader);
 }
 
-
-Shader* Shader::Create(const std::string& srcFile)
-{
-    return new GLSLProgram(srcFile);
-}
-
-
-Shader* Shader::Create(const std::string& srcVertex, const std::string& srcFragment)
-{
-    return new GLSLProgram(srcVertex, srcFragment);
-}

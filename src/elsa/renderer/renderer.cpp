@@ -11,4 +11,4 @@
 
 #include "renderer.h"
 
-RendererAPI Renderer::s_api = RendererAPI::OpenGL;
+Renderer::API Renderer::s_api = API::OpenGL;

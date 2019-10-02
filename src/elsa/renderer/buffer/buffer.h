@@ -14,6 +14,7 @@
 #include <string>
 #include "../rendererobject.h"
 #include "../../core.h"
+#include "../shader/shader.h"
 
 class Buffer : public RenderObject
 {
@@ -24,18 +25,19 @@ public:
         enum class DataType { UnKnown = 0, Float, Float2, Float3, Float4, Mat3, Mat4, Int, Int2, Int3, Int4, UChar, UShort, UInt, Bool };
 
     public:
-        Element(DataType type, bool normalized=false, const std::string& name="");
+        Element(DataType type, const std::string& name="", bool normalized=false);
         DataType Type() const { return m_type; }
+        const std::string& Name() const { return m_name; } 
         bool Normalized() const { return m_normalized; }
-        unsigned int Offset() const { return m_offset; }
+        size_t Offset() const { return m_offset; }
         unsigned int Size() const ;
         unsigned int Components() const;
 
     private:
         DataType m_type = DataType::UnKnown;
-        bool m_normalized = false;
         std::string m_name;
-        unsigned int m_offset = 0;
+        bool m_normalized = false;
+        size_t m_offset = 0;
         friend class Buffer;
     };
 
@@ -61,13 +63,16 @@ public:
     Buffer(unsigned int size);
     virtual ~Buffer();
 
-    void SetLayout(const Layout& layout);
-    virtual void ApplyLayout() const;
-    
+    virtual void Bind(unsigned int slot=0) const override {}
+    virtual void Unbind() const override {}
+
     unsigned int GetCount() const;
+    void SetLayout(const Layout& layout);
+    virtual void ApplyLayout(const std::shared_ptr<Shader>& shader) const;
 
     static Buffer* CreateVertex(unsigned int size, float* data);
     static Buffer* CreateIndex(unsigned int size, void* data);
+
 
 
 protected:
@@ -78,7 +83,22 @@ protected:
 class BufferArray : public RenderObject
 {
 public:
-    virtual void Add(std::shared_ptr<Buffer> buffer) = 0;
+    void UsedByShader(const std::shared_ptr<Shader>& shader);
+
+    virtual void AddVertexBuffer(const std::shared_ptr<Buffer>& buffer) = 0;
+    virtual void SetIndexBuffer(const std::shared_ptr<Buffer>& buffer) = 0;
+
+    virtual unsigned int IndexCount() const = 0;
+    virtual unsigned int IndexType() const = 0;
+
     static BufferArray* Create();
+
+protected:
+    virtual void _OnShaderChanged() const = 0;
+
+protected:
+    std::shared_ptr<Shader> m_shader = nullptr;
+    std::shared_ptr<Buffer> m_indexBuffer = nullptr;
+    std::vector<std::shared_ptr<Buffer>> m_vertexBuffers;
 };
 

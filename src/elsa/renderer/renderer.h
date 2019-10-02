@@ -11,23 +11,24 @@
 
 #pragma once
 
-enum class RendererAPI
-{
-    UNKOWN = 0, 
-    OpenGL = 1, 
-    Vulcan = 2,
-    DirectX9 = 3, 
-    DirectX11 = 4, 
-    Directx12 = 5, 
-    Metal = 6
-};
 
 class Renderer
 {
 public:
-    inline static RendererAPI GetAPI() { return s_api; }
-    inline static void SetAPI(RendererAPI api) { s_api = api; }
+    enum class API
+    {
+        UNKOWN = 0, 
+        OpenGL = 1, 
+        Vulcan = 2,
+        DirectX9 = 3, 
+        DirectX11 = 4, 
+        Directx12 = 5, 
+        Metal = 6
+    };
+public:
+    inline static API GetAPI() { return s_api; }
+    inline static void SetAPI(API api) { s_api = api; }
         
 private:
-    static RendererAPI s_api;
+    static API s_api;
 };

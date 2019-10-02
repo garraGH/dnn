@@ -38,38 +38,32 @@ Application::Application()
     float vertices[3*7] = 
     {
         -0.5f, -0.5f, 0.0f, 255, 0, 0, 255,  
-        +0.5f, -0.5f, 0.0f, 0, 255, 0, 0, 
-        +0.0f, +0.8f, 0.0f, 0, 0, 255, 128
+        +0.5f, -0.5f, 0.0f, 0, 255, 0, 255, 
+        +0.0f, +0.8f, 0.0f, 0, 0, 255, 255
     };
 
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+//     glEnable(GL_BLEND);
+//     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     Buffer::Layout layoutVextex = 
     {
-        { Buffer::Element::DataType::Float3, false, "a_Position" }, 
-        { Buffer::Element::DataType::Int4, true, "a_Color" }
+        { Buffer::Element::DataType::Float3, "a_Position", false }, 
+        { Buffer::Element::DataType::Int4, "a_Color", true }
     };
     m_vertexBuffer.reset(Buffer::CreateVertex(sizeof(vertices), vertices));
     m_vertexBuffer->SetLayout(layoutVextex);
 
-
-
     unsigned char indices[3] = { 0, 1, 2 };
+    m_indexBuffer.reset(Buffer::CreateIndex(sizeof(indices), indices));
     Buffer::Layout layoutIndex;
     Buffer::Element e(Buffer::Element::DataType::UChar);
     layoutIndex.Push(e);
-    m_indexBuffer.reset(Buffer::CreateIndex(sizeof(indices), indices));
     m_indexBuffer->SetLayout(layoutIndex);
-
-    m_bufferArray.reset(BufferArray::Create());
-    m_bufferArray->Add(m_vertexBuffer);
-    m_bufferArray->Add(m_indexBuffer);
 
     std::string srcVertex = R"(
         #version 460 core
         layout(location = 0) in vec3 a_Position;
-        layout(location = 1) in vec4 a_Color;
+        layout(location = 5) in vec4 a_Color;
         out vec4 v_Position;
         out vec4 v_Color;
         void main()
@@ -93,8 +87,60 @@ Application::Application()
     )";
 
     m_shader.reset(Shader::Create(srcVertex, srcFragment));
-    
 
+    m_bufferArrayTri.reset(BufferArray::Create());
+    m_bufferArrayTri->UsedByShader(m_shader);
+    m_bufferArrayTri->AddVertexBuffer(m_vertexBuffer);
+    m_bufferArrayTri->SetIndexBuffer(m_indexBuffer);
+
+    CORE_INFO("tri indexcount: {}, indextype: {}", m_bufferArrayTri->IndexCount(), m_bufferArrayTri->IndexType());
+
+    unsigned short indices_quad[] = { 0, 1, 2, 0, 2, 3 };
+    std::shared_ptr<Buffer> indexBuffer_quad(Buffer::CreateIndex(sizeof(indices_quad), indices_quad));
+    Buffer::Layout layoutIndex_quad = 
+    {
+        { Buffer::Element::DataType::UShort }
+    };
+    indexBuffer_quad->SetLayout(layoutIndex_quad);
+
+    float vertices_quad[4*3] = 
+    {
+        -0.5f, -0.5f, 0.0f,
+        +0.5f, -0.5f, 0.0f,
+        +0.5f, +0.5f, 0.0f,
+        -0.5f, +0.5f, 0.0f
+    };
+
+    float colors_quad[4*4] = 
+    {
+        0, 0, 0, 255, 
+        255, 0, 0, 255, 
+        255, 255, 255, 255, 
+        0, 255, 0, 255 
+    };
+
+    Buffer::Layout layoutVextex_quad = 
+    {
+        { Buffer::Element::DataType::Float3, "a_Position", false }, 
+    };
+    Buffer::Layout layoutColor_quad = 
+    {
+        { Buffer::Element::DataType::Int4, "a_Color", true }
+    };
+
+    std::shared_ptr<Buffer> vertexBuffer_quad(Buffer::CreateVertex(sizeof(vertices_quad), vertices_quad));
+    std::shared_ptr<Buffer> colorBuffer_quad(Buffer::CreateVertex(sizeof(colors_quad), colors_quad));
+
+    vertexBuffer_quad->SetLayout(layoutVextex_quad);
+    colorBuffer_quad->SetLayout(layoutColor_quad);
+
+
+    m_bufferArrayQuad.reset(BufferArray::Create());
+    m_bufferArrayQuad->UsedByShader(m_shader);
+    m_bufferArrayQuad->AddVertexBuffer(vertexBuffer_quad);
+    m_bufferArrayQuad->AddVertexBuffer(colorBuffer_quad);
+    m_bufferArrayQuad->SetIndexBuffer(indexBuffer_quad);
+    
 
 #define REGISTER_KEY_PRESSED_FUNCTION(key) m_keyPressed[#key[0]] = std::bind(&Application::_OnKeyPressed_##key, this, std::placeholders::_1)
 #define REGISTER_KEY_RELEASED_FUNCTION(key) m_keyReleased[#key[0]] = std::bind(&Application::_OnKeyReleased_##key, this)
@@ -171,9 +217,12 @@ void Application::Run()
         glClearColor(0.1, 0.1, 0.1, 1);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        m_shader->Bind();
-        m_bufferArray->Bind();
-        glDrawElements(GL_TRIANGLES, m_indexBuffer->GetCount(), static_cast<OpenGLIndexBuffer*>(m_indexBuffer.get())->GetIndexType(), nullptr);
+        m_bufferArrayQuad->Bind();
+        glDrawElements(GL_TRIANGLES, m_bufferArrayQuad->IndexCount(), m_bufferArrayQuad->IndexType(), nullptr);
+
+        m_bufferArrayTri->Bind();
+        glDrawElements(GL_TRIANGLES, m_bufferArrayTri->IndexCount(), m_bufferArrayTri->IndexType(), nullptr);
+
 
         for(Layer* layer : m_layerStack)
         {

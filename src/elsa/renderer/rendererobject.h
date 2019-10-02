@@ -19,6 +19,8 @@ public:
     virtual ~RenderObject() {}
     virtual void Bind(unsigned int slot=0) const = 0;
     virtual void Unbind() const = 0;
+    RenderObjectID ID() const { return m_id; }
+
 protected:
     RenderObjectID m_id = 0;
 };

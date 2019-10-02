@@ -16,11 +16,13 @@ OpenGLBuffer::OpenGLBuffer(unsigned int size)
     : Buffer(size)
 {
     glGenBuffers(1, &m_id);
+    CORE_INFO("OpenGLBuffer size: {}, id: {}", size, m_id);
 }
 
 OpenGLBuffer::~OpenGLBuffer()
 {
     glDeleteBuffers(1, &m_id);
+    CORE_INFO("OpenGLBuffer delete: {}", m_id);
 }
 
 GLenum OpenGLBuffer::_TypeFrom(Element::DataType dataType) const
@@ -52,14 +54,25 @@ OpenGLVertexBuffer::OpenGLVertexBuffer(unsigned int size, float* data)
     glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
 }
 
-void OpenGLVertexBuffer::ApplyLayout() const
+void OpenGLVertexBuffer::ApplyLayout(const std::shared_ptr<Shader>& shader) const
 {
-    unsigned int location = 0;
+    if(!shader)
+    {
+        return;
+    }
+
+    int location = 0;
     for(const auto e : m_layout)
     {
+        location = glad_glGetAttribLocation(shader->ID(), e.Name().c_str());
+        CORE_INFO("attribute: {}, location: {}", e.Name(), location);
+        if(location == -1)
+        {
+            continue;
+        }
+
         glEnableVertexAttribArray(location);
         glVertexAttribPointer(location, e.Components(), _TypeFrom(e.Type()), e.Normalized()? GL_TRUE:GL_FALSE, m_layout.Stride(), (const void*)e.Offset());
-        location++;
     }
 }
 
@@ -91,7 +104,7 @@ void OpenGLIndexBuffer::Unbind() const
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
-GLenum OpenGLIndexBuffer::GetIndexType()
+GLenum OpenGLIndexBuffer::GetType()
 {
     const Element& e = *m_layout.begin();
     return _TypeFrom(e.Type());
@@ -110,6 +123,14 @@ OpenGLBufferArray::~OpenGLBufferArray()
 void OpenGLBufferArray::Bind(unsigned int slot) const
 {
     glBindVertexArray(m_id);
+    if(m_shader)
+    {
+        m_shader->Bind();
+    }
+    if(m_indexBuffer)
+    {
+        m_indexBuffer->Bind();
+    }
 }
 
 void OpenGLBufferArray::Unbind() const
@@ -117,9 +138,47 @@ void OpenGLBufferArray::Unbind() const
     glBindVertexArray(0);
 }
 
-void OpenGLBufferArray::Add(std::shared_ptr<Buffer> buffer)
+void OpenGLBufferArray::AddVertexBuffer(const std::shared_ptr<Buffer>& buffer)
 {
+    if(std::find(m_vertexBuffers.begin(), m_vertexBuffers.end(), buffer) != m_vertexBuffers.end())
+    {
+        return ;
+    }
+    m_vertexBuffers.push_back(buffer);
+
     Bind();
     buffer->Bind();
-    buffer->ApplyLayout();
+    buffer->ApplyLayout(m_shader);
+}
+
+void OpenGLBufferArray::SetIndexBuffer(const std::shared_ptr<Buffer>& buffer)
+{
+    if(m_indexBuffer == buffer)
+    {
+        return ;
+    }
+    m_indexBuffer = buffer;
+
+    Bind();
+    buffer->Bind();
+}
+
+void OpenGLBufferArray::_OnShaderChanged() const
+{
+    Bind();
+    for(const auto buffer : m_vertexBuffers)
+    {
+        buffer->Bind();
+        buffer->ApplyLayout(m_shader);
+    }
+}
+
+unsigned int OpenGLBufferArray::IndexCount() const
+{
+    return m_indexBuffer->GetCount();
+}
+
+unsigned int OpenGLBufferArray::IndexType() const
+{
+    return static_cast<OpenGLIndexBuffer*>(m_indexBuffer.get())->GetType();
 }
