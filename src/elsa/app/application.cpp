@@ -34,9 +34,6 @@ Application::Application()
     m_layerImGui = new ImGuiLayer;
     PushOverlay(m_layerImGui);
 
-    glGenVertexArrays(1, &m_vertexArray);
-    glBindVertexArray(m_vertexArray);
-
 
     float vertices[3*7] = 
     {
@@ -64,6 +61,10 @@ Application::Application()
     layoutIndex.Push(e);
     m_indexBuffer.reset(Buffer::CreateIndex(sizeof(indices), indices));
     m_indexBuffer->SetLayout(layoutIndex);
+
+    m_bufferArray.reset(BufferArray::Create());
+    m_bufferArray->Add(m_vertexBuffer);
+    m_bufferArray->Add(m_indexBuffer);
 
     std::string srcVertex = R"(
         #version 460 core
@@ -107,7 +108,6 @@ Application::Application()
 
 Application::~Application()
 {
-    glDeleteVertexArrays(1, &m_vertexArray);
     CORE_TRACE("Application destructed.");
 }
 
@@ -172,7 +172,7 @@ void Application::Run()
         glClear(GL_COLOR_BUFFER_BIT);
 
         m_shader->Bind();
-        glBindVertexArray(m_vertexArray);
+        m_bufferArray->Bind();
         glDrawElements(GL_TRIANGLES, m_indexBuffer->GetCount(), static_cast<OpenGLIndexBuffer*>(m_indexBuffer.get())->GetIndexType(), nullptr);
 
         for(Layer* layer : m_layerStack)

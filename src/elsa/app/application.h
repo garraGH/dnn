@@ -65,9 +65,9 @@ private:
     std::map<int, std::function<bool()>> m_keyReleased;
     LayerStack m_layerStack;
 
-    unsigned int m_vertexArray;
-    std::unique_ptr<Buffer> m_vertexBuffer;
-    std::unique_ptr<Buffer> m_indexBuffer;
+    std::unique_ptr<BufferArray> m_bufferArray;
+    std::shared_ptr<Buffer> m_vertexBuffer;
+    std::shared_ptr<Buffer> m_indexBuffer;
     std::unique_ptr<Shader> m_shader;
 private:
     static Application* s_instance;

@@ -31,8 +31,7 @@ public:
     void Bind(unsigned int slot=0) const override;
     void Unbind() const override;
 
-protected:
-    virtual void _ApplyLayout() const override;
+    virtual void ApplyLayout() const override;
 };
 
 
@@ -43,4 +42,16 @@ public:
     void Bind(unsigned int slot=0) const override;
     void Unbind() const override;
     GLenum GetIndexType();
+};
+
+class OpenGLBufferArray : public BufferArray
+{
+public:
+    OpenGLBufferArray();
+    virtual ~OpenGLBufferArray();
+    
+    virtual void Bind(unsigned int slot=0) const override;
+    virtual void Unbind() const override;
+
+    virtual void Add(std::shared_ptr<Buffer> buffer) override;
 };

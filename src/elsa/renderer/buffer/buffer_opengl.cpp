@@ -52,7 +52,7 @@ OpenGLVertexBuffer::OpenGLVertexBuffer(unsigned int size, float* data)
     glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
 }
 
-void OpenGLVertexBuffer::_ApplyLayout() const
+void OpenGLVertexBuffer::ApplyLayout() const
 {
     unsigned int location = 0;
     for(const auto e : m_layout)
@@ -95,4 +95,31 @@ GLenum OpenGLIndexBuffer::GetIndexType()
 {
     const Element& e = *m_layout.begin();
     return _TypeFrom(e.Type());
+}
+
+OpenGLBufferArray::OpenGLBufferArray()
+{
+    glGenVertexArrays(1, &m_id);
+}
+
+OpenGLBufferArray::~OpenGLBufferArray()
+{
+    glDeleteVertexArrays(1, &m_id);
+}
+
+void OpenGLBufferArray::Bind(unsigned int slot) const
+{
+    glBindVertexArray(m_id);
+}
+
+void OpenGLBufferArray::Unbind() const
+{
+    glBindVertexArray(0);
+}
+
+void OpenGLBufferArray::Add(std::shared_ptr<Buffer> buffer)
+{
+    Bind();
+    buffer->Bind();
+    buffer->ApplyLayout();
 }

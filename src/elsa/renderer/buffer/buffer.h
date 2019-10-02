@@ -62,16 +62,23 @@ public:
     virtual ~Buffer();
 
     void SetLayout(const Layout& layout);
-    unsigned int GetCount() const;
+    virtual void ApplyLayout() const;
     
+    unsigned int GetCount() const;
 
     static Buffer* CreateVertex(unsigned int size, float* data);
     static Buffer* CreateIndex(unsigned int size, void* data);
 
-protected:
-    virtual void _ApplyLayout() const;
 
 protected:
     Layout m_layout;
     unsigned int m_size = 0;
 };
+
+class BufferArray : public RenderObject
+{
+public:
+    virtual void Add(std::shared_ptr<Buffer> buffer) = 0;
+    static BufferArray* Create();
+};
+

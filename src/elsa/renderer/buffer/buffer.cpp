@@ -11,8 +11,8 @@
 
 #include "buffer.h"
 #include "../renderer.h"
-#include "buffer_opengl.h"
 #include "../../core.h"
+#include "buffer_opengl.h"
 
 Buffer* Buffer::CreateVertex(unsigned int size, float* data)
 {
@@ -21,7 +21,7 @@ Buffer* Buffer::CreateVertex(unsigned int size, float* data)
         case RendererAPI::OpenGL:
             return new OpenGLVertexBuffer(size, data);
         default:
-            CORE_ASSERT(false, "API is currently not supported!");
+            CORE_ASSERT(false, "Buffer::CreateVertex: API is currently not supported!");
             return nullptr;
     }
 }
@@ -33,10 +33,23 @@ Buffer* Buffer::CreateIndex(unsigned int size, void* data)
         case RendererAPI::OpenGL:
             return new OpenGLIndexBuffer(size, data);
         default:
-            CORE_ASSERT(false, "API is currently not supported!");
+            CORE_ASSERT(false, "Buffer::CreateIndex: API is currently not supported!");
             return nullptr;
     }
 }
+
+BufferArray* BufferArray::Create()
+{
+    switch(Renderer::GetAPI())
+    {
+        case RendererAPI::OpenGL:
+            return new OpenGLBufferArray();
+        default:
+            CORE_ASSERT(false, "BufferArray::Create: API is currently not supported!");
+            return nullptr;
+    }
+}
+
 
 Buffer::Buffer(unsigned int size)
     : m_size(size)
@@ -52,10 +65,9 @@ Buffer::~Buffer()
 void Buffer::SetLayout(const Layout& layout)
 {
     m_layout = layout;
-    _ApplyLayout();
 }
 
-void Buffer::_ApplyLayout() const
+void Buffer::ApplyLayout() const
 {
 
 }
