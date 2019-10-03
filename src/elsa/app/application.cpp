@@ -16,6 +16,7 @@
 #include "timer_cpu.h"
 #include "core.h"
 #include "../input/input.h"
+#include "../renderer/renderer.h"
 #include "../renderer/shader/shader_glsl.h"
 #include "../renderer/buffer/buffer_opengl.h"
 
@@ -27,6 +28,7 @@ Application::Application()
 {
     CORE_ASSERT(!s_instance, "Application already exist!");
     s_instance = this;
+    Renderer::SetAPIType(Renderer::API::OpenGL);
 
     m_window = std::unique_ptr<Window>(Window::Create());
     m_window->SetEventCallback(BIND_EVENT_CALLBACK(OnEvent));
@@ -93,7 +95,6 @@ Application::Application()
     m_bufferArrayTri->AddVertexBuffer(m_vertexBuffer);
     m_bufferArrayTri->SetIndexBuffer(m_indexBuffer);
 
-    CORE_INFO("tri indexcount: {}, indextype: {}", m_bufferArrayTri->IndexCount(), m_bufferArrayTri->IndexType());
 
     unsigned short indices_quad[] = { 0, 1, 2, 0, 2, 3 };
     std::shared_ptr<Buffer> indexBuffer_quad(Buffer::CreateIndex(sizeof(indices_quad), indices_quad));
@@ -102,6 +103,7 @@ Application::Application()
         { Buffer::Element::DataType::UShort }
     };
     indexBuffer_quad->SetLayout(layoutIndex_quad);
+
 
     float vertices_quad[4*3] = 
     {
@@ -214,15 +216,11 @@ void Application::Run()
 
     while(m_running)
     {
-        glClearColor(0.1, 0.1, 0.1, 1);
-        glClear(GL_COLOR_BUFFER_BIT);
-
-        m_bufferArrayQuad->Bind();
-        glDrawElements(GL_TRIANGLES, m_bufferArrayQuad->IndexCount(), m_bufferArrayQuad->IndexType(), nullptr);
-
-        m_bufferArrayTri->Bind();
-        glDrawElements(GL_TRIANGLES, m_bufferArrayTri->IndexCount(), m_bufferArrayTri->IndexType(), nullptr);
-
+        Renderer::BeginScene();
+        Renderer::SetBackgroundColor(0.1, 0.1, 0.1, 1);
+        Renderer::Submit(m_bufferArrayQuad);
+        Renderer::Submit(m_bufferArrayTri);
+        Renderer::EndScene();
 
         for(Layer* layer : m_layerStack)
         {
@@ -238,8 +236,6 @@ void Application::Run()
 
         m_window->OnUpdate();
 
-//         auto[x, y] = Input::GetMousePosition();
-//         CORE_TRACE("{0}, {0}", x, y);
     }
 }
 

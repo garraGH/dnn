@@ -16,7 +16,7 @@
 
 Buffer* Buffer::CreateVertex(unsigned int size, float* data)
 {
-    switch(Renderer::GetAPI())
+    switch(Renderer::GetAPIType())
     {
         case Renderer::API::OpenGL:
             return new OpenGLVertexBuffer(size, data);
@@ -28,7 +28,7 @@ Buffer* Buffer::CreateVertex(unsigned int size, float* data)
 
 Buffer* Buffer::CreateIndex(unsigned int size, void* data)
 {
-    switch(Renderer::GetAPI())
+    switch(Renderer::GetAPIType())
     {
         case Renderer::API::OpenGL:
             return new OpenGLIndexBuffer(size, data);
@@ -40,7 +40,7 @@ Buffer* Buffer::CreateIndex(unsigned int size, void* data)
 
 BufferArray* BufferArray::Create()
 {
-    switch(Renderer::GetAPI())
+    switch(Renderer::GetAPIType())
     {
         case Renderer::API::OpenGL:
             return new OpenGLBufferArray();

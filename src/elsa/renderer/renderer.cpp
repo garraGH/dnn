@@ -10,5 +10,21 @@
 
 
 #include "renderer.h"
+#include "api/api_opengl.h"
 
-Renderer::API Renderer::s_api = API::OpenGL;
+std::unique_ptr<Renderer::API> Renderer::s_api = std::make_unique<OpenGLAPI>(OpenGLAPI());
+Renderer::API::Type Renderer::API::s_type = API::Type::OpenGL;
+
+void Renderer::SetAPIType(API::Type apiType)
+{
+    if(s_api && apiType==s_api->GetType())
+    {
+        return ;
+    }
+
+    switch(apiType)
+    {
+        case API::OpenGL: s_api.reset(new OpenGLAPI()); break;
+        default: CORE_ASSERT(false, "Renderer::SetAPIType: API is currently not supported!");
+    }
+}

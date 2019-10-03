@@ -37,7 +37,7 @@ std::pair<std::string, std::string> Shader::_parseSrc(const std::string& srcFile
 
 Shader* Shader::Create(const std::string& srcFile)
 {
-    switch(Renderer::GetAPI())
+    switch(Renderer::GetAPIType())
     {
         case Renderer::API::OpenGL: return new GLSLProgram(srcFile);
         default: CORE_ASSERT(false, "API is currently unsupported."); return nullptr;
@@ -48,7 +48,7 @@ Shader* Shader::Create(const std::string& srcFile)
 Shader* Shader::Create(const std::string& srcVertex, const std::string& srcFragment)
 {
     
-    switch(Renderer::GetAPI())
+    switch(Renderer::GetAPIType())
     {
         case Renderer::API::OpenGL: return new GLSLProgram(srcVertex, srcFragment); 
         default: CORE_ASSERT(false, "API is currently unsupported."); return nullptr;

@@ -65,8 +65,8 @@ private:
     std::map<int, std::function<bool()>> m_keyReleased;
     LayerStack m_layerStack;
 
-    std::unique_ptr<BufferArray> m_bufferArrayTri = nullptr;
-    std::unique_ptr<BufferArray> m_bufferArrayQuad = nullptr;
+    std::shared_ptr<BufferArray> m_bufferArrayTri = nullptr;
+    std::shared_ptr<BufferArray> m_bufferArrayQuad = nullptr;
     std::shared_ptr<Buffer> m_vertexBuffer = nullptr;
     std::shared_ptr<Buffer> m_indexBuffer = nullptr;
     std::shared_ptr<Shader> m_shader = nullptr;
