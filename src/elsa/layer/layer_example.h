@@ -13,22 +13,23 @@
 #include "layer.h"
 #include "logger.h"
 #include "imgui.h"
+#include "../renderer/shader/shader.h"
+#include "../renderer/buffer/buffer.h"
+#include "../renderer/camera/camera.h"
+
+
 
 class ExampleLayer : public Layer
 {
 public:
-    void OnEvent(Event& e) override
-    {
-        TRACE("ExampleLayer: event {}", e);
-    }
-    void OnUpdate() override
-    {
-//         TRACE("ExampleLayer OnUpdate.");
-    }
-    void OnImGuiRender() override
-    {
-        ImGui::Begin("ExampleLayer");
-        ImGui::Button("ExampleLayer");
-        ImGui::End();
-    }
+    ExampleLayer();
+
+    void OnEvent(Event& e) override;
+    void OnUpdate() override;
+    void OnImGuiRender() override;
+ 
+private:
+    std::shared_ptr<BufferArray> m_bufferArrayTri = nullptr;
+    std::shared_ptr<BufferArray> m_bufferArrayQuad = nullptr;
+    std::shared_ptr<Camera> m_camera = nullptr;
 };
