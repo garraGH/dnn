@@ -12,8 +12,9 @@
 #include "renderer.h"
 #include "api/api_opengl.h"
 
-std::unique_ptr<Renderer::API> Renderer::s_api = std::make_unique<OpenGLAPI>(OpenGLAPI());
-Renderer::API::Type Renderer::API::s_type = API::Type::OpenGL;
+std::shared_ptr<Camera> Renderer::s_camera = nullptr;
+std::unique_ptr<Renderer::API> Renderer::s_api = nullptr;
+Renderer::API::Type Renderer::API::s_type = API::Type::UNKOWN;
 
 void Renderer::SetAPIType(API::Type apiType)
 {
@@ -27,4 +28,12 @@ void Renderer::SetAPIType(API::Type apiType)
         case API::OpenGL: s_api.reset(new OpenGLAPI()); break;
         default: CORE_ASSERT(false, "Renderer::SetAPIType: API is currently not supported!");
     }
+}
+
+void Renderer::Submit(const std::shared_ptr<BufferArray>& bufferArray) 
+{
+    auto shader = bufferArray->GetShader();
+    shader->Bind();
+    shader->UploadUniformMat4("u_ViewProjection", s_camera->GetViewProjectionMatrix());
+    Command::DrawIndexed(bufferArray);
 }

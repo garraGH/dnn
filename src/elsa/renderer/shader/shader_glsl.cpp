@@ -13,6 +13,7 @@
 #include "shader_glsl.h"
 #include "glad/gl.h"
 #include "../../core.h"
+#include "glm/gtc/type_ptr.hpp"
 
 GLSLProgram::GLSLProgram(const std::string& srcFile)
     : Shader(srcFile)
@@ -155,5 +156,14 @@ void GLSLProgram::_compile(const std::string& srcVertex, const std::string& srcF
     // Always detach shaders after a successful link.
     glDetachShader(m_id, vertexShader);
     glDetachShader(m_id, fragmentShader);
+}
+
+void GLSLProgram::UploadUniformMat4(const std::string& name, const glm::mat4& matrix)
+{
+    int location = glad_glGetUniformLocation(m_id, name.c_str());
+    if(location != -1)
+    {
+        glad_glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(matrix));
+    }
 }
 

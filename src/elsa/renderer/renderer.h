@@ -11,6 +11,7 @@
 
 #pragma once
 #include "buffer/buffer.h"
+#include "camera/camera.h"
 
 class Renderer
 {
@@ -50,11 +51,13 @@ public:
     inline static API::Type GetAPIType() { return s_api->GetType(); }
     static void SetAPIType(API::Type apiType);
 
-    static void BeginScene() {}
+    static void BeginScene(std::shared_ptr<Camera>& camera) { s_camera = camera; }
     static void EndScene() {}
     static void SetBackgroundColor(float r, float g, float b, float a) { Command::SetBackgroundColor(r, g, b, a); }
-    static void Submit(const std::shared_ptr<BufferArray>& bufferArray) { Command::DrawIndexed(bufferArray); }
+    static void Submit(const std::shared_ptr<BufferArray>& bufferArray);
+
 
 private:
     static std::unique_ptr<API> s_api;
+    static std::shared_ptr<Camera> s_camera;
 };

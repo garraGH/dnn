@@ -19,6 +19,9 @@
 #include "../renderer/renderer.h"
 #include "../renderer/shader/shader_glsl.h"
 #include "../renderer/buffer/buffer_opengl.h"
+#include "../renderer/camera/camera_orthographic.h"
+#include "glm/glm.hpp"
+#include "glm/gtx/string_cast.hpp"
 
 #define BIND_EVENT_CALLBACK(x) std::bind(&Application::x,  this, std::placeholders::_1)
 Application* Application::s_instance = nullptr;
@@ -30,11 +33,14 @@ Application::Application()
     s_instance = this;
     Renderer::SetAPIType(Renderer::API::OpenGL);
 
-    m_window = std::unique_ptr<Window>(Window::Create());
+    m_window = std::unique_ptr<Window>(Window::Create(WindowsProps("Elsa", 1000, 1000)));
     m_window->SetEventCallback(BIND_EVENT_CALLBACK(OnEvent));
 
     m_layerImGui = new ImGuiLayer;
     PushOverlay(m_layerImGui);
+    
+    m_camera = std::make_shared<OrthographicCamera>(OrthographicCamera(-2, +2, -2, +2));
+
 
 
     float vertices[3*7] = 
@@ -65,12 +71,14 @@ Application::Application()
     std::string srcVertex = R"(
         #version 460 core
         layout(location = 0) in vec3 a_Position;
-        layout(location = 5) in vec4 a_Color;
+        layout(location = 1) in vec4 a_Color;
+        uniform mat4 u_ViewProjection;
         out vec4 v_Position;
         out vec4 v_Color;
+
         void main()
         {
-            gl_Position = vec4(a_Position+0.2, 1.0f);
+            gl_Position = u_ViewProjection*vec4(a_Position+0.2, 1.0f);
             v_Position = gl_Position;
             v_Color = a_Color;
         }
@@ -90,8 +98,14 @@ Application::Application()
 
     m_shader.reset(Shader::Create(srcVertex, srcFragment));
 
+//     CORE_INFO("a_Position location: {}", glad_glGetAttribLocation(m_shader->ID(), "a_Position"));
+//     CORE_INFO("a_Color location: {}", glad_glGetAttribLocation(m_shader->ID(), "a_Color"));
+//     CORE_INFO("u_ViewProjection location: {}", glad_glGetUniformLocation(m_shader->ID(), "u_ViewProjection"));
+//     const glm::mat4& vp = m_camera->GetViewProjectionMatrix();
+//     CORE_INFO("VP: {}", glm::to_string(vp));
+
     m_bufferArrayTri.reset(BufferArray::Create());
-    m_bufferArrayTri->UsedByShader(m_shader);
+    m_bufferArrayTri->SetShader(m_shader);
     m_bufferArrayTri->AddVertexBuffer(m_vertexBuffer);
     m_bufferArrayTri->SetIndexBuffer(m_indexBuffer);
 
@@ -138,7 +152,7 @@ Application::Application()
 
 
     m_bufferArrayQuad.reset(BufferArray::Create());
-    m_bufferArrayQuad->UsedByShader(m_shader);
+    m_bufferArrayQuad->SetShader(m_shader);
     m_bufferArrayQuad->AddVertexBuffer(vertexBuffer_quad);
     m_bufferArrayQuad->AddVertexBuffer(colorBuffer_quad);
     m_bufferArrayQuad->SetIndexBuffer(indexBuffer_quad);
@@ -216,7 +230,9 @@ void Application::Run()
 
     while(m_running)
     {
-        Renderer::BeginScene();
+        m_camera->SetPosition(glm::vec3(0.5, 0.5, 0.0));
+        m_camera->SetRotation(glm::vec3(0, 0, 90));
+        Renderer::BeginScene(m_camera);
         Renderer::SetBackgroundColor(0.1, 0.1, 0.1, 1);
         Renderer::Submit(m_bufferArrayQuad);
         Renderer::Submit(m_bufferArrayTri);

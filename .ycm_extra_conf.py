@@ -55,7 +55,9 @@ flags = [
         '-std=c++11', 
         '-isystem/usr/include', 
         '-isystem/usr/local/cuda/include/',
-        '-ISUB./',
+        '-ISUBdeps/',
+        '-I./deps/modules/glm/',
+        '-I./deps/modules/spdlog/include',
         '-I./deps/modules/imgui/',
         '-I./deps/modules/imgui/examples',
         '-I./deps/modules/glfw/deps/'

@@ -22,6 +22,7 @@
 #include "../layer/layer_imgui.h"
 #include "../renderer/shader/shader.h"
 #include "../renderer/buffer/buffer.h"
+#include "../renderer/camera/camera.h"
 
 class Application
 {
@@ -70,6 +71,7 @@ private:
     std::shared_ptr<Buffer> m_vertexBuffer = nullptr;
     std::shared_ptr<Buffer> m_indexBuffer = nullptr;
     std::shared_ptr<Shader> m_shader = nullptr;
+    std::shared_ptr<Camera> m_camera = nullptr;
 private:
     static Application* s_instance;
 };
