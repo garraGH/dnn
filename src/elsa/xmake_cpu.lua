@@ -1,7 +1,0 @@
-includes("../utils/xmake_cpu.lua")
-target("elsa")
-    set_kind("static")
-    add_files("**/*.cpp")
-    add_deps("utils")
-    add_packages("glfw3", "imgui")
-    add_links("dl", "pthread", "X11", "GL")

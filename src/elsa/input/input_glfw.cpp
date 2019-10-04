@@ -19,7 +19,7 @@ bool GLFWInput::_IsKeyPressed(KeyCode keyCode)
 {
     auto window = static_cast<GLFWwindow*>(Application::Get()->GetWindow()->GetNativeWindow());
     auto state = glfwGetKey(window, keyCode);
-    return state == GLFW_PRESS || GLFW_REPEAT;
+    return state == GLFW_PRESS || state == GLFW_REPEAT;
 }
 
 bool GLFWInput::_IsMouseButtonPressed(MouseButtonCode mouseButtonCode)

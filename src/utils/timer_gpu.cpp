@@ -9,31 +9,41 @@
 ============================================*/
 
 
+#include <logger.h>
 #include "timer_gpu.h"
 
-TimerGPU::TimerGPU(const char* msg)
-    : Timer(msg)
+TimerGPU::TimerGPU(const std::string& taskName)
+    : m_taskName(taskName)
 {
-    cudaEventCreate(&m_tbeg);
-    cudaEventCreate(&m_tend);
-    cudaEventRecord(m_tbeg, 0);
+    cudaEventCreate(&m_beg);
+    cudaEventCreate(&m_pre);
+    cudaEventCreate(&m_now);
+    cudaEventRecord(m_beg, 0);
+    cudaEventRecord(m_pre, 0);
 }
 
-float TimerGPU::timeUsed()
+float TimerGPU::GetElapsedTime()
 {
-    if(m_done)
-    {
-        return m_timeUsed;
-    }
-    m_done = true;
-    cudaEventRecord(m_tend, 0);
-    cudaEventSynchronize(m_tbeg);
-    cudaEventSynchronize(m_tend);
-    cudaEventElapsedTime(&m_timeUsed, m_tbeg, m_tend);
-    return m_timeUsed;
+    cudaEventRecord(m_now, 0);
+    cudaEventSynchronize(m_beg);
+    cudaEventSynchronize(m_now);
+    float timeElapsed = 0.0f;
+    cudaEventElapsedTime(&timeElapsed, m_beg, m_now);
+    return timeElapsed;
+}
+
+float TimerGPU::GetDeltaTime()
+{
+    cudaEventRecord(m_now, 0);
+    cudaEventSynchronize(m_pre);
+    cudaEventSynchronize(m_now);
+    float timeDelta = 0.0f;
+    cudaEventElapsedTime(&timeDelta, m_pre, m_now);
+    cudaEventRecord(m_pre, 0);
+    return timeDelta;
 }
 
 TimerGPU::~TimerGPU()
 {
-    timeUsed();
+    INFO("( {} )TimeElapsed: {}ms", m_taskName, GetElapsedTime());
 }

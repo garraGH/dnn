@@ -16,6 +16,7 @@
 #include "../renderer/camera/camera_orthographic.h"
 #include "glm/glm.hpp"
 #include "glm/gtx/string_cast.hpp"
+#include "../input/input.h"
 
 
 ExampleLayer::ExampleLayer()
@@ -55,7 +56,7 @@ ExampleLayer::ExampleLayer()
 
         void main()
         {
-            gl_Position = u_ViewProjection*vec4(a_Position+0.2, 1.0f);
+            gl_Position = u_ViewProjection*vec4(a_Position, 1.0f);
             v_Position = gl_Position;
             v_Color = a_Color;
         }
@@ -134,15 +135,57 @@ void ExampleLayer::OnEvent(Event& e)
     TRACE("ExampleLayer: event {}", e);
 }
 
-void ExampleLayer::OnUpdate()
+void ExampleLayer::_UpdateCamera(float deltaTime)
 {
-    m_camera->SetPosition(glm::vec3(0.5, 0.5, 0.0));
-    m_camera->SetRotation(glm::vec3(0, 0, 90));
+    float distance = m_speedTranslate*deltaTime/1000;
+    float angle = m_speedRotate*deltaTime/1000;
+
+
+    if(Input::IsKeyPressed(KEY_LEFT) || Input::IsKeyPressed(KEY_S))
+    {
+        CORE_INFO("KEY_LEFT");
+        m_camera->Translate({+distance, 0, 0});
+    }
+    if(Input::IsKeyPressed(KEY_RIGHT) || Input::IsKeyPressed(KEY_F))
+    {
+        m_camera->Translate({-distance, 0, 0});
+    }
+    if(Input::IsKeyPressed(KEY_UP) || Input::IsKeyPressed(KEY_E))
+    {
+        m_camera->Translate({0, -distance, 0});
+    }
+    if(Input::IsKeyPressed(KEY_DOWN) || Input::IsKeyPressed(KEY_D))
+    {
+        m_camera->Translate({0, +distance, 0});
+    }
+
+    if(Input::IsKeyPressed(KEY_J))
+    {
+        m_camera->Rotate({0, 0, +angle});
+    }
+    if(Input::IsKeyPressed(KEY_K))
+    {
+        m_camera->Rotate({0, 0, -angle});
+    }
+    if(Input::IsKeyPressed(KEY_R))
+    {
+        m_camera->Revert();
+    }
+}
+
+void ExampleLayer::_UpdateScene()
+{
     Renderer::BeginScene(m_camera);
     Renderer::SetBackgroundColor(0.1, 0.1, 0.1, 1);
     Renderer::Submit(m_bufferArrayQuad);
     Renderer::Submit(m_bufferArrayTri);
     Renderer::EndScene();
+}
+
+void ExampleLayer::OnUpdate(float deltaTime)
+{
+    _UpdateCamera(deltaTime);
+    _UpdateScene();
 }
 
 void ExampleLayer::OnImGuiRender()

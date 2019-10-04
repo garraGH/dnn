@@ -9,28 +9,35 @@
 ============================================*/
 
 
+#include "logger.h"
 #include "timer_cpu.h"
 
-TimerCPU::TimerCPU(const char* msg)
-    : Timer(msg)
+
+TimerCPU::TimerCPU(const std::string& taskName)
+    : m_taskName(taskName)
 {
     m_beg = std::chrono::high_resolution_clock::now();
+    m_pre = m_beg;
 }
 
-float TimerCPU::timeUsed()
+float TimerCPU::GetElapsedTime()
 {
-    if(m_done)
-    {
-        return m_timeUsed;
-    }
-    m_done = true;
-    auto end = std::chrono::high_resolution_clock::now();
-    auto elapsed_seconds = end-m_beg;
-    m_timeUsed = elapsed_seconds.count() / 1e6;
-    return m_timeUsed;
+    auto now = std::chrono::high_resolution_clock::now();
+    auto elapsed_nanoseconds = (now-m_beg).count();
+    auto elapsed_milliseconds = elapsed_nanoseconds/1e6;
+    return elapsed_milliseconds;
+}
+
+float TimerCPU::GetDeltaTime()
+{
+    auto now = std::chrono::high_resolution_clock::now();
+    auto elapsed_nanoseconds = (now-m_pre).count();
+    auto elapsed_milliseconds = elapsed_nanoseconds/1e6;
+    m_pre = now;
+    return elapsed_milliseconds;
 }
 
 TimerCPU::~TimerCPU()
 {
-    timeUsed();
+    INFO("( {} )TimeElapsed: {}ms", m_taskName, GetElapsedTime());
 }

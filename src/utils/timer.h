@@ -13,11 +13,6 @@
 class Timer
 {
 public:
-    Timer(const char* msg);
-    virtual ~Timer();
-    virtual float timeUsed()  = 0;
-protected:
-    const char* m_msg;
-    float m_timeUsed;
-    bool m_done;
+    virtual float GetElapsedTime()  = 0;
+    virtual float GetDeltaTime()  = 0;
 };

@@ -20,6 +20,7 @@
 #include "../window/window.h"
 #include "../layer/layerstack.h"
 #include "../layer/layer_imgui.h"
+#include "timer_cpu.h"
 
 class Application
 {
@@ -62,6 +63,7 @@ private:
     std::map<int, std::function<bool(int)>> m_keyPressed;
     std::map<int, std::function<bool()>> m_keyReleased;
     LayerStack m_layerStack;
+    std::unique_ptr<TimerCPU> m_timer;
 
 private:
     static Application* s_instance;

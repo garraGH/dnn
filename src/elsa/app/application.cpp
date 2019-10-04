@@ -23,6 +23,7 @@ Application::Application()
     : m_running(true)
 {
     CORE_ASSERT(!s_instance, "Application already exist!");
+    m_timer = std::make_unique<TimerCPU>(TimerCPU("ApplicationRun"));
     s_instance = this;
 
     m_window = std::unique_ptr<Window>(Window::Create(WindowsProps("Elsa", 1000, 1000)));
@@ -90,7 +91,6 @@ _ON(KeyReleasedEvent)
 
 void Application::Run()
 {
-    TimerCPU t("Application::Run");
     INFO("Application::Run\n");
     WindowResizeEvent e(1280, 720);
     if(e.IsCategory(EC_Application))
@@ -106,7 +106,7 @@ void Application::Run()
     {
         for(Layer* layer : m_layerStack)
         {
-            layer->OnUpdate();
+            layer->OnUpdate(m_timer->GetDeltaTime());
         }
 
         m_layerImGui->Begin();

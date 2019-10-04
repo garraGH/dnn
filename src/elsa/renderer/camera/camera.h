@@ -29,6 +29,9 @@ public:
     inline float GetRotationY() { return m_rotation.y; } 
     inline float GetRotationZ() { return m_rotation.z; }
 
+    inline void Translate(const glm::vec3& distance) { m_position += distance; _UpdateViewMatrix(); }
+    inline void Rotate(const glm::vec3& angle) { m_rotation += angle; _UpdateViewMatrix(); }
+    inline void Revert() { m_position = glm::vec3(0.0f); m_rotation = glm::vec3(0.0f); _UpdateViewMatrix(); }
     inline const glm::mat4& GetViewMatrix() const { return m_matView; }
     inline const glm::mat4& GetProjectionMatrix() const { return m_matProjection; }
     inline const glm::mat4 GetViewProjectionMatrix() const { return m_matViewProjection; }
@@ -41,6 +44,6 @@ protected:
     glm::mat4 m_matProjection = glm::mat4(1.0f);
     glm::mat4 m_matViewProjection = glm::mat4(1.0f);
 
-    glm::vec3 m_position = glm::vec3(0, 0, 0);
-    glm::vec3 m_rotation = glm::vec3(0, 0, 0);
+    glm::vec3 m_position = glm::vec3(0.0f);
+    glm::vec3 m_rotation = glm::vec3(0.0f);
 };

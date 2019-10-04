@@ -25,11 +25,19 @@ public:
     ExampleLayer();
 
     void OnEvent(Event& e) override;
-    void OnUpdate() override;
+    void OnUpdate(float deltaTime) override;
     void OnImGuiRender() override;
  
+protected:
+    void _UpdateCamera(float deltaTime);
+    void _UpdateScene();
+
 private:
     std::shared_ptr<BufferArray> m_bufferArrayTri = nullptr;
     std::shared_ptr<BufferArray> m_bufferArrayQuad = nullptr;
     std::shared_ptr<Camera> m_camera = nullptr;
+
+private:
+    float m_speedTranslate = 0.5f;
+    float m_speedRotate = 30.0f;
 };

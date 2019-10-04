@@ -9,17 +9,22 @@
 ============================================*/
 
 #include <chrono>
+#include <string>
 #include "timer.h"
 
 #pragma once
 class TimerCPU : public Timer
 {
 public:
-    TimerCPU(const char* msg);
+    TimerCPU(const std::string& taskName="UnnamedTask");
     ~TimerCPU();
 
-    virtual float timeUsed() override;
+    virtual float GetElapsedTime() override;
+    virtual float GetDeltaTime() override;
 
 private:
-    std::chrono::time_point<std::chrono::high_resolution_clock, std::chrono::nanoseconds> m_beg;
+    using TimePoint = std::chrono::time_point<std::chrono::high_resolution_clock, std::chrono::nanoseconds>;
+    TimePoint m_beg;
+    TimePoint m_pre;
+    std::string m_taskName;
 };

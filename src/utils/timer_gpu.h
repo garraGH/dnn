@@ -10,16 +10,22 @@
 
 #include "timer.h"
 #include <cuda_runtime.h>
+#include <string>
 
 #pragma once
 
 class TimerGPU : public Timer
 {
 public:
-    TimerGPU(const char* msg);
+    TimerGPU(const std::string& taskName="UnnamedTask");
     ~TimerGPU();
 
-    virtual float timeUsed() override;
+    virtual float GetElapsedTime() override;
+    virtual float GetDeltaTime() override;
+
 private:
-    cudaEvent_t m_tbeg, m_tend;
+    std::string m_taskName;
+    cudaEvent_t m_beg = 0;
+    cudaEvent_t m_pre = 0;
+    cudaEvent_t m_now = 0;
 };
