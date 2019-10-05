@@ -50,6 +50,8 @@ class OpenGLBufferArray : public BufferArray
 public:
     OpenGLBufferArray();
     virtual ~OpenGLBufferArray();
+
+    virtual void UsedbyShader(const std::shared_ptr<Shader>& shader) override;
     
     virtual void Bind(unsigned int slot=0) const override;
     virtual void Unbind() const override;
@@ -60,6 +62,4 @@ public:
     virtual unsigned int IndexCount() const override;
     virtual unsigned int IndexType() const override;
 
-protected:
-    virtual void _OnShaderChanged() const override;
 };

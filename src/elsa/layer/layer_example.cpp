@@ -10,19 +10,18 @@
 
 
 #include "layer_example.h"
-#include "../renderer/renderer.h"
 #include "../renderer/shader/shader_glsl.h"
 #include "../renderer/buffer/buffer_opengl.h"
 #include "../renderer/camera/camera_orthographic.h"
-#include "glm/glm.hpp"
-#include "glm/gtx/string_cast.hpp"
 #include "../input/input.h"
+#include "glm/gtx/string_cast.hpp"
 
 
 ExampleLayer::ExampleLayer()
 {
     Renderer::SetAPIType(Renderer::API::OpenGL);
     m_camera = std::make_shared<OrthographicCamera>(OrthographicCamera(-2, +2, -2, +2));
+    m_transform = std::make_shared<Transform>(Transform(glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(0.1f)));
 
     float vertices[3*7] = 
     {
@@ -51,12 +50,13 @@ ExampleLayer::ExampleLayer()
         layout(location = 0) in vec3 a_Position;
         layout(location = 1) in vec4 a_Color;
         uniform mat4 u_ViewProjection;
+        uniform mat4 u_Transform;
         out vec4 v_Position;
         out vec4 v_Color;
 
         void main()
         {
-            gl_Position = u_ViewProjection*vec4(a_Position, 1.0f);
+            gl_Position = u_ViewProjection*u_Transform*vec4(a_Position, 1.0f);
             v_Position = gl_Position;
             v_Color = a_Color;
         }
@@ -75,10 +75,9 @@ ExampleLayer::ExampleLayer()
     )";
 
     std::shared_ptr<Shader> shader(Shader::Create(srcVertex, srcFragment));
-    m_bufferArrayTri.reset(BufferArray::Create());
-    m_bufferArrayTri->SetShader(shader);
-    m_bufferArrayTri->AddVertexBuffer(vertexBuffer);
-    m_bufferArrayTri->SetIndexBuffer(indexBuffer);
+    std::shared_ptr<BufferArray> bufferArrayTri = std::shared_ptr<BufferArray>(BufferArray::Create());
+    bufferArrayTri->AddVertexBuffer(vertexBuffer);
+    bufferArrayTri->SetIndexBuffer(indexBuffer);
 
 
     unsigned short indices_quad[] = { 0, 1, 2, 0, 2, 3 };
@@ -122,12 +121,13 @@ ExampleLayer::ExampleLayer()
     colorBuffer_quad->SetLayout(layoutColor_quad);
 
 
-    m_bufferArrayQuad.reset(BufferArray::Create());
-    m_bufferArrayQuad->SetShader(shader);
-    m_bufferArrayQuad->AddVertexBuffer(vertexBuffer_quad);
-    m_bufferArrayQuad->AddVertexBuffer(colorBuffer_quad);
-    m_bufferArrayQuad->SetIndexBuffer(indexBuffer_quad);
+    std::shared_ptr<BufferArray> bufferArrayQuad = std::shared_ptr<BufferArray>(BufferArray::Create());
+    bufferArrayQuad->AddVertexBuffer(vertexBuffer_quad);
+    bufferArrayQuad->AddVertexBuffer(colorBuffer_quad);
+    bufferArrayQuad->SetIndexBuffer(indexBuffer_quad);
 
+    m_reTri = std::make_shared<Renderer::Element>(Renderer::Element(bufferArrayTri, shader));
+    m_reQuad = std::make_shared<Renderer::Element>(Renderer::Element(bufferArrayQuad, shader));
 }
     
 void ExampleLayer::OnEvent(Event& e)
@@ -137,8 +137,8 @@ void ExampleLayer::OnEvent(Event& e)
 
 void ExampleLayer::_UpdateCamera(float deltaTime)
 {
-    float distance = m_speedTranslate*deltaTime/1000;
-    float angle = m_speedRotate*deltaTime/1000;
+    float distance = m_speedTranslate*deltaTime;
+    float angle = m_speedRotate*deltaTime;
 
 
     if(Input::IsKeyPressed(KEY_LEFT) || Input::IsKeyPressed(KEY_S))
@@ -167,25 +167,76 @@ void ExampleLayer::_UpdateCamera(float deltaTime)
     {
         m_camera->Rotate({0, 0, -angle});
     }
-    if(Input::IsKeyPressed(KEY_R))
+    if(Input::IsKeyPressed(KEY_P))
     {
         m_camera->Revert();
     }
 }
 
-void ExampleLayer::_UpdateScene()
+void ExampleLayer::_UpdateQuads(float deltaTime)
+{
+    float displacement = m_speedTranslate*deltaTime;
+    float degree = m_speedRotate*deltaTime;
+    if(Input::IsKeyPressed(KEY_Z))
+    {
+        m_transform->Translate({-displacement, 0, 0});
+    }
+    if(Input::IsKeyPressed(KEY_V))
+    {
+        m_transform->Translate({+displacement, 0, 0});
+    }
+    if(Input::IsKeyPressed(KEY_X))
+    {
+        m_transform->Translate({0, -displacement, 0});
+    }
+    if(Input::IsKeyPressed(KEY_C))
+    {
+        m_transform->Translate({0, +displacement, 0});
+    }
+    if(Input::IsKeyPressed(KEY_W))
+    {
+        m_transform->Scale(-glm::vec3(0.001f));
+    }
+    if(Input::IsKeyPressed(KEY_R))
+    {
+        m_transform->Scale(+glm::vec3(0.001f));
+    }
+    if(Input::IsKeyPressed(KEY_H))
+    {
+        m_transform->Rotate({0, 0, +degree});
+    }
+    if(Input::IsKeyPressed(KEY_L))
+    {
+        m_transform->Rotate({0, 0, -degree});
+    }
+
+    for(int i=0; i<5; i++)
+    {
+        for(int j=0; j<5; j++)
+        {
+            m_reQuad->SetTransform(m_transform);
+            Renderer::Submit(m_reQuad);
+            m_transform->Translate({ 0.15f, 0, 0 });
+        }
+        m_transform->Translate({-0.15f*5, 0, 0});
+        m_transform->Translate({0, +0.15f, 0});
+    }
+    m_transform->Translate({0, -0.15f*5, 0});
+}
+
+void ExampleLayer::_UpdateScene(float deltaTime)
 {
     Renderer::BeginScene(m_camera);
     Renderer::SetBackgroundColor(0.1, 0.1, 0.1, 1);
-    Renderer::Submit(m_bufferArrayQuad);
-    Renderer::Submit(m_bufferArrayTri);
+    Renderer::Submit(m_reTri);
+    _UpdateQuads(deltaTime);
     Renderer::EndScene();
 }
 
 void ExampleLayer::OnUpdate(float deltaTime)
 {
     _UpdateCamera(deltaTime);
-    _UpdateScene();
+    _UpdateScene(deltaTime);
 }
 
 void ExampleLayer::OnImGuiRender()

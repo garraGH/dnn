@@ -24,17 +24,17 @@ float TimerCPU::GetElapsedTime()
 {
     auto now = std::chrono::high_resolution_clock::now();
     auto elapsed_nanoseconds = (now-m_beg).count();
-    auto elapsed_milliseconds = elapsed_nanoseconds/1e6;
-    return elapsed_milliseconds;
+    auto elapsed_seconds = elapsed_nanoseconds/1e9;
+    return elapsed_seconds;
 }
 
 float TimerCPU::GetDeltaTime()
 {
     auto now = std::chrono::high_resolution_clock::now();
     auto elapsed_nanoseconds = (now-m_pre).count();
-    auto elapsed_milliseconds = elapsed_nanoseconds/1e6;
+    auto elapsed_seconds = elapsed_nanoseconds/1e9;
     m_pre = now;
-    return elapsed_milliseconds;
+    return elapsed_seconds;
 }
 
 TimerCPU::~TimerCPU()

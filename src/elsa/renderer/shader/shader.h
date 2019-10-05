@@ -21,10 +21,10 @@ public:
     Shader(const std::string& srcFile);
     Shader(const std::string& srcVertex, const std::string& srcFragment);
 
-    virtual void Bind(unsigned int slot=0) const override {}
-    virtual void Unbind() const override {}
+//     virtual void Bind(unsigned int slot=0) const override {}
+//     virtual void Unbind() const override {}
 
-    virtual void UploadUniformMat4(const std::string& name, const glm::mat4& matrix) {}
+    virtual void UploadUniformMat4(const std::string& name, const glm::mat4& matrix) = 0;
 
     static Shader* Create(const std::string& srcFile);
     static Shader* Create(const std::string& srcVertex, const std::string& srcFragment);

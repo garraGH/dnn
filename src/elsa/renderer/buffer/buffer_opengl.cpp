@@ -122,15 +122,9 @@ OpenGLBufferArray::~OpenGLBufferArray()
 
 void OpenGLBufferArray::Bind(unsigned int slot) const
 {
+    CORE_ASSERT(m_vertexBuffers.size()&&m_indexBuffer, "OpenGLBufferArray::Bind: Must have at least one VertexBuffer&&IndexBuffer to be Drawn!");
     glBindVertexArray(m_id);
-    if(m_shader)
-    {
-        m_shader->Bind();
-    }
-    if(m_indexBuffer)
-    {
-        m_indexBuffer->Bind();
-    }
+    m_indexBuffer->Bind();
 }
 
 void OpenGLBufferArray::Unbind() const
@@ -145,10 +139,6 @@ void OpenGLBufferArray::AddVertexBuffer(const std::shared_ptr<Buffer>& buffer)
         return ;
     }
     m_vertexBuffers.push_back(buffer);
-
-    Bind();
-    buffer->Bind();
-    buffer->ApplyLayout(m_shader);
 }
 
 void OpenGLBufferArray::SetIndexBuffer(const std::shared_ptr<Buffer>& buffer)
@@ -158,18 +148,21 @@ void OpenGLBufferArray::SetIndexBuffer(const std::shared_ptr<Buffer>& buffer)
         return ;
     }
     m_indexBuffer = buffer;
-
-    Bind();
-    buffer->Bind();
 }
 
-void OpenGLBufferArray::_OnShaderChanged() const
+void OpenGLBufferArray::UsedbyShader(const std::shared_ptr<Shader>& shader)
 {
+    if(shader == m_shader)
+    {
+        return ;
+    }
+    m_shader = shader;
+
     Bind();
     for(const auto buffer : m_vertexBuffers)
     {
         buffer->Bind();
-        buffer->ApplyLayout(m_shader);
+        buffer->ApplyLayout(shader);
     }
 }
 

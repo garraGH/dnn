@@ -150,13 +150,3 @@ void Buffer::Layout::_calculateOffsetAndStride(Element& e)
     m_stride += e.Size();
 }
 
-void BufferArray::SetShader(const std::shared_ptr<Shader>& shader)
-{
-    if(m_shader == shader)
-    {
-        return ;
-    }
-
-    m_shader = shader;
-    _OnShaderChanged();
-}
