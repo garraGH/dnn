@@ -14,6 +14,8 @@
 #include "shader/shader.h"
 #include "transform/transform.h"
 #include "camera/camera.h"
+#include "material/material.h"
+#include "mesh/mesh.h"
 
 
 class Renderer
@@ -52,17 +54,16 @@ public:
     class Element
     {
     public:
-        Element(const std::shared_ptr<BufferArray>& bufferArray=nullptr, const std::shared_ptr<Shader>& shader=nullptr, const std::shared_ptr<Transform>& transform=nullptr);
-        void SetBufferArray(const std::shared_ptr<BufferArray>& bufferArray) { m_bufferArray = bufferArray; }
-        void SetShader(const std::shared_ptr<Shader>& shader) { m_shader = shader; }
-        void SetTransform(const std::shared_ptr<Transform>& transform) { m_transform = transform; }
-
-        void Draw();
+        Element(const std::shared_ptr<Mesh>& mesh, const std::shared_ptr<Material>& material) : m_mesh(mesh), m_material(material) {}
+        void SetMesh(const std::shared_ptr<Mesh>& mesh) { m_mesh = mesh; }
+        void SetMaterial(const std::shared_ptr<Material>& material) { m_material = material; }
+        void SetTransform(const std::shared_ptr<Transform>& transform) { m_mesh->SetTransform(transform); }
+        void SetMaterialAttribute(const std::string& name, const std::shared_ptr<Material::Attribute>& attribute) { m_material->SetAttribute(name, attribute); }
+        void Draw(const std::shared_ptr<Shader>& shader);
 
     private:
-        std::shared_ptr<BufferArray> m_bufferArray = nullptr;
-        std::shared_ptr<Shader> m_shader = nullptr;
-        std::shared_ptr<Transform> m_transform = nullptr;
+        std::shared_ptr<Mesh> m_mesh = nullptr;
+        std::shared_ptr<Material> m_material = nullptr;
     };
 
 public:
@@ -73,7 +74,7 @@ public:
     static void BeginScene(std::shared_ptr<Camera>& camera) { s_camera = camera; }
     static void EndScene() {}
     static void SetBackgroundColor(float r, float g, float b, float a) { Command::SetBackgroundColor(r, g, b, a); }
-    static void Submit(const std::shared_ptr<Element>& rendererElement);
+    static void Submit(const std::shared_ptr<Element>& rendererElement, const std::shared_ptr<Shader>& shader);
 
 
 private:

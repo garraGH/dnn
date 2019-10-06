@@ -14,6 +14,7 @@
 #include "glad/gl.h"
 #include "../../core.h"
 #include "glm/gtc/type_ptr.hpp"
+#include "glm/gtx/string_cast.hpp"
 
 GLSLProgram::GLSLProgram(const std::string& srcFile)
     : Shader(srcFile)
@@ -158,12 +159,24 @@ void GLSLProgram::_compile(const std::string& srcVertex, const std::string& srcF
     glDetachShader(m_id, fragmentShader);
 }
 
-void GLSLProgram::UploadUniformMat4(const std::string& name, const glm::mat4& matrix)
+void GLSLProgram::_Upload(const char* name, const glm::mat4& matrix)
 {
-    int location = glad_glGetUniformLocation(m_id, name.c_str());
+    Bind();
+    int location = glad_glGetUniformLocation(m_id, name);
+    INFO("ShaderUniform: {}, location: {}", name, location);
     if(location != -1)
     {
         glad_glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(matrix));
     }
+}
+
+void GLSLProgram::SetViewProjectionMatrix(const glm::mat4& vp)
+{
+    _Upload("u_ViewProjection", vp);
+}
+
+void GLSLProgram::SetTransform(const glm::mat4& transform)
+{
+    _Upload("u_Transform", transform);
 }
 

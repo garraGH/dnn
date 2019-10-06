@@ -24,8 +24,12 @@ public:
     virtual void Bind(unsigned int slot=0) const override;
     virtual void Unbind() const override;
 
-    virtual void UploadUniformMat4(const std::string& name, const glm::mat4& matrix) override;
+    virtual void SetViewProjectionMatrix(const glm::mat4& vp) override;
+    virtual void SetTransform(const glm::mat4& transform) override;
 
 protected:
     virtual void _compile(const std::string& srcVertex, const std::string& srcFragment) override;
+
+private:
+    void _Upload(const char* name, const glm::mat4& matrix);
 };

@@ -51,7 +51,7 @@ public:
     OpenGLBufferArray();
     virtual ~OpenGLBufferArray();
 
-    virtual void UsedbyShader(const std::shared_ptr<Shader>& shader) override;
+    virtual void Bind(const std::shared_ptr<Shader>& shader) override;
     
     virtual void Bind(unsigned int slot=0) const override;
     virtual void Unbind() const override;

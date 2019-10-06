@@ -84,7 +84,7 @@ class BufferArray : public RenderObject
 {
 public:
 
-    virtual void UsedbyShader(const std::shared_ptr<Shader>& shader) = 0;
+    virtual void Bind(const std::shared_ptr<Shader>& shader) = 0;
 
     virtual void AddVertexBuffer(const std::shared_ptr<Buffer>& buffer) = 0;
     virtual void SetIndexBuffer(const std::shared_ptr<Buffer>& buffer) = 0;

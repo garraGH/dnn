@@ -65,7 +65,7 @@ void OpenGLVertexBuffer::ApplyLayout(const std::shared_ptr<Shader>& shader) cons
     for(const auto e : m_layout)
     {
         location = glad_glGetAttribLocation(shader->ID(), e.Name().c_str());
-        CORE_INFO("attribute: {}, location: {}", e.Name(), location);
+        CORE_INFO("VertexAttribute: {}, location: {}", e.Name(), location);
         if(location == -1)
         {
             continue;
@@ -150,15 +150,15 @@ void OpenGLBufferArray::SetIndexBuffer(const std::shared_ptr<Buffer>& buffer)
     m_indexBuffer = buffer;
 }
 
-void OpenGLBufferArray::UsedbyShader(const std::shared_ptr<Shader>& shader)
+void OpenGLBufferArray::Bind(const std::shared_ptr<Shader>& shader)
 {
+    Bind();
     if(shader == m_shader)
     {
         return ;
     }
     m_shader = shader;
 
-    Bind();
     for(const auto buffer : m_vertexBuffers)
     {
         buffer->Bind();

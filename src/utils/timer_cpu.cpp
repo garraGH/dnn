@@ -39,5 +39,5 @@ float TimerCPU::GetDeltaTime()
 
 TimerCPU::~TimerCPU()
 {
-    INFO("( {} )TimeElapsed: {}ms", m_taskName, GetElapsedTime());
+    INFO("( {} )TimeElapsed: {}s", m_taskName, GetElapsedTime());
 }

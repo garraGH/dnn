@@ -15,13 +15,14 @@
 #include "../renderer/camera/camera_orthographic.h"
 #include "../input/input.h"
 #include "glm/gtx/string_cast.hpp"
+#include "../renderer/mesh/mesh.h"
+#include "../renderer/material/material.h"
 
 
 ExampleLayer::ExampleLayer()
 {
     Renderer::SetAPIType(Renderer::API::OpenGL);
-    m_camera = std::make_shared<OrthographicCamera>(OrthographicCamera(-2, +2, -2, +2));
-    m_transform = std::make_shared<Transform>(Transform(glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(0.1f)));
+    m_camera = std::make_shared<OrthographicCamera>(-2, +2, -2, +2);
 
     float vertices[3*7] = 
     {
@@ -35,15 +36,15 @@ ExampleLayer::ExampleLayer()
         { Buffer::Element::DataType::Float3, "a_Position", false }, 
         { Buffer::Element::DataType::Int4, "a_Color", true }
     };
-    std::shared_ptr<Buffer> vertexBuffer(Buffer::CreateVertex(sizeof(vertices), vertices));
-    vertexBuffer->SetLayout(layoutVextex);
+    std::shared_ptr<Buffer> vertexBuffer_tri(Buffer::CreateVertex(sizeof(vertices), vertices));
+    vertexBuffer_tri->SetLayout(layoutVextex);
 
     unsigned char indices[3] = { 0, 1, 2 };
-    std::shared_ptr<Buffer> indexBuffer(Buffer::CreateIndex(sizeof(indices), indices));
+    std::shared_ptr<Buffer> indexBuffer_tri(Buffer::CreateIndex(sizeof(indices), indices));
     Buffer::Layout layoutIndex;
     Buffer::Element e(Buffer::Element::DataType::UChar);
     layoutIndex.Push(e);
-    indexBuffer->SetLayout(layoutIndex);
+    indexBuffer_tri->SetLayout(layoutIndex);
 
     std::string srcVertex = R"(
         #version 460 core
@@ -67,18 +68,16 @@ ExampleLayer::ExampleLayer()
         in vec4 v_Position;
         out vec4 color;
         in vec4 v_Color;
+        uniform vec4 u_Color;
         void main()
         {
 //             color = v_Position;
-            color = v_Color;
+//             color = v_Color;
+            color = u_Color;
         }
     )";
 
-    std::shared_ptr<Shader> shader(Shader::Create(srcVertex, srcFragment));
-    std::shared_ptr<BufferArray> bufferArrayTri = std::shared_ptr<BufferArray>(BufferArray::Create());
-    bufferArrayTri->AddVertexBuffer(vertexBuffer);
-    bufferArrayTri->SetIndexBuffer(indexBuffer);
-
+    m_shader = std::shared_ptr<Shader>(Shader::Create(srcVertex, srcFragment));
 
     unsigned short indices_quad[] = { 0, 1, 2, 0, 2, 3 };
     std::shared_ptr<Buffer> indexBuffer_quad(Buffer::CreateIndex(sizeof(indices_quad), indices_quad));
@@ -89,7 +88,7 @@ ExampleLayer::ExampleLayer()
     indexBuffer_quad->SetLayout(layoutIndex_quad);
 
 
-    float vertices_quad[4*3] = 
+    float position_quad[4*3] = 
     {
         -0.5f, -0.5f, 0.0f,
         +0.5f, -0.5f, 0.0f,
@@ -97,7 +96,7 @@ ExampleLayer::ExampleLayer()
         -0.5f, +0.5f, 0.0f
     };
 
-    float colors_quad[4*4] = 
+    float color_quad[4*4] = 
     {
         0, 0, 0, 255, 
         255, 0, 0, 255, 
@@ -105,7 +104,7 @@ ExampleLayer::ExampleLayer()
         0, 255, 0, 255 
     };
 
-    Buffer::Layout layoutVextex_quad = 
+    Buffer::Layout layoutPosition_quad = 
     {
         { Buffer::Element::DataType::Float3, "a_Position", false }, 
     };
@@ -114,20 +113,25 @@ ExampleLayer::ExampleLayer()
         { Buffer::Element::DataType::Int4, "a_Color", true }
     };
 
-    std::shared_ptr<Buffer> vertexBuffer_quad(Buffer::CreateVertex(sizeof(vertices_quad), vertices_quad));
-    std::shared_ptr<Buffer> colorBuffer_quad(Buffer::CreateVertex(sizeof(colors_quad), colors_quad));
-
-    vertexBuffer_quad->SetLayout(layoutVextex_quad);
+    std::shared_ptr<Buffer> positionBuffer_quad(Buffer::CreateVertex(sizeof(position_quad), position_quad));
+    std::shared_ptr<Buffer> colorBuffer_quad(Buffer::CreateVertex(sizeof(color_quad), color_quad));
+    positionBuffer_quad->SetLayout(layoutPosition_quad);
     colorBuffer_quad->SetLayout(layoutColor_quad);
 
+    std::shared_ptr<Mesh> meshTri = std::shared_ptr<Mesh>(Mesh::Create("mesh_tri"));
+    std::shared_ptr<Mesh> meshQuad = std::shared_ptr<Mesh>(Mesh::Create("mesh_quad"));
+    std::shared_ptr<Material> materialTri = std::shared_ptr<Material>(Material::Create("mtr_tri"));
+    std::shared_ptr<Material> materialQuad = std::shared_ptr<Material>(Material::Create("mtr_quad"));
 
-    std::shared_ptr<BufferArray> bufferArrayQuad = std::shared_ptr<BufferArray>(BufferArray::Create());
-    bufferArrayQuad->AddVertexBuffer(vertexBuffer_quad);
-    bufferArrayQuad->AddVertexBuffer(colorBuffer_quad);
-    bufferArrayQuad->SetIndexBuffer(indexBuffer_quad);
-
-    m_reTri = std::make_shared<Renderer::Element>(Renderer::Element(bufferArrayTri, shader));
-    m_reQuad = std::make_shared<Renderer::Element>(Renderer::Element(bufferArrayQuad, shader));
+    meshTri->SetIndexBuffer(indexBuffer_tri);
+    meshTri->AddVertexBuffer(vertexBuffer_tri);
+    meshQuad->SetIndexBuffer(indexBuffer_quad);
+    meshQuad->AddVertexBuffer(positionBuffer_quad);
+    meshQuad->AddVertexBuffer(colorBuffer_quad);
+    materialTri->SetAttribute("u_Color", m_colorRed);
+    materialQuad->SetAttribute("u_Color", m_colorBlue);
+    m_reTri = std::make_shared<Renderer::Element>(meshTri, materialTri);
+    m_reQuad = std::make_shared<Renderer::Element>(meshQuad, materialQuad);
 }
     
 void ExampleLayer::OnEvent(Event& e)
@@ -179,56 +183,64 @@ void ExampleLayer::_UpdateQuads(float deltaTime)
     float degree = m_speedRotate*deltaTime;
     if(Input::IsKeyPressed(KEY_Z))
     {
-        m_transform->Translate({-displacement, 0, 0});
+        m_transformQuad->Translate({-displacement, 0, 0});
     }
     if(Input::IsKeyPressed(KEY_V))
     {
-        m_transform->Translate({+displacement, 0, 0});
+        m_transformQuad->Translate({+displacement, 0, 0});
     }
     if(Input::IsKeyPressed(KEY_X))
     {
-        m_transform->Translate({0, -displacement, 0});
+        m_transformQuad->Translate({0, -displacement, 0});
     }
     if(Input::IsKeyPressed(KEY_C))
     {
-        m_transform->Translate({0, +displacement, 0});
+        m_transformQuad->Translate({0, +displacement, 0});
     }
     if(Input::IsKeyPressed(KEY_W))
     {
-        m_transform->Scale(-glm::vec3(0.001f));
+        m_transformQuad->Scale(-glm::vec3(0.001f));
     }
     if(Input::IsKeyPressed(KEY_R))
     {
-        m_transform->Scale(+glm::vec3(0.001f));
+        m_transformQuad->Scale(+glm::vec3(0.001f));
     }
     if(Input::IsKeyPressed(KEY_H))
     {
-        m_transform->Rotate({0, 0, +degree});
+        m_transformQuad->Rotate({0, 0, +degree});
     }
     if(Input::IsKeyPressed(KEY_L))
     {
-        m_transform->Rotate({0, 0, -degree});
+        m_transformQuad->Rotate({0, 0, -degree});
     }
 
     for(int i=0; i<5; i++)
     {
         for(int j=0; j<5; j++)
         {
-            m_reQuad->SetTransform(m_transform);
-            Renderer::Submit(m_reQuad);
-            m_transform->Translate({ 0.15f, 0, 0 });
+            m_reQuad->SetTransform(m_transformQuad);
+            m_reQuad->SetMaterialAttribute("u_Color", (i+j)%2? m_colorRed : m_colorBlue);
+            Renderer::Submit(m_reQuad, m_shader);
+            m_transformQuad->Translate({ 0.15f, 0, 0 });
         }
-        m_transform->Translate({-0.15f*5, 0, 0});
-        m_transform->Translate({0, +0.15f, 0});
+        m_transformQuad->Translate({-0.15f*5, 0, 0});
+        m_transformQuad->Translate({0, +0.15f, 0});
     }
-    m_transform->Translate({0, -0.15f*5, 0});
+    m_transformQuad->Translate({0, -0.15f*5, 0});
+}
+
+void ExampleLayer::_UpdateTri(float deltaTime)
+{
+    m_reTri->SetTransform(m_transformTri);
+    m_reTri->SetMaterialAttribute("u_Color", m_colorGreen);
+    Renderer::Submit(m_reTri, m_shader);
 }
 
 void ExampleLayer::_UpdateScene(float deltaTime)
 {
     Renderer::BeginScene(m_camera);
     Renderer::SetBackgroundColor(0.1, 0.1, 0.1, 1);
-    Renderer::Submit(m_reTri);
+    _UpdateTri(deltaTime);
     _UpdateQuads(deltaTime);
     Renderer::EndScene();
 }

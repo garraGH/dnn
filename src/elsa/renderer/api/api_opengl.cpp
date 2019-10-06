@@ -25,7 +25,6 @@ void OpenGLAPI::SetBackgroundColor(float r, float g, float b, float a)
 
 void OpenGLAPI::DrawIndexed(const std::shared_ptr<BufferArray>& bufferArray)
 {
-    bufferArray->Bind();
     glad_glDrawElements(GL_TRIANGLES, bufferArray->IndexCount(), bufferArray->IndexType(), nullptr);
 }
 
