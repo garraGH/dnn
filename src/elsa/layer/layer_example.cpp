@@ -258,5 +258,7 @@ void ExampleLayer::OnImGuiRender()
 {
     ImGui::Begin("ExampleLayer");
     ImGui::Button("ExampleLayer");
+    ImGui::ColorPicker4("color_tri", (float*)m_colorGreen->GetData());
+    ImGui::ColorPicker4("color_quad", (float*)m_colorRed->GetData());
     ImGui::End();
 }
