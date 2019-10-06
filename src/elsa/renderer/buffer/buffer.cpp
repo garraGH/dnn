@@ -14,36 +14,36 @@
 #include "../../core.h"
 #include "buffer_opengl.h"
 
-Buffer* Buffer::CreateVertex(unsigned int size, float* data)
+std::shared_ptr<Buffer> Buffer::CreateVertex(unsigned int size, const void* data)
 {
     switch(Renderer::GetAPIType())
     {
         case Renderer::API::OpenGL:
-            return new OpenGLVertexBuffer(size, data);
+            return std::make_shared<OpenGLVertexBuffer>(size, data);
         default:
             CORE_ASSERT(false, "Buffer::CreateVertex: API is currently not supported!");
             return nullptr;
     }
 }
 
-Buffer* Buffer::CreateIndex(unsigned int size, void* data)
+std::shared_ptr<Buffer> Buffer::CreateIndex(unsigned int size, const void* data)
 {
     switch(Renderer::GetAPIType())
     {
         case Renderer::API::OpenGL:
-            return new OpenGLIndexBuffer(size, data);
+            return std::make_shared<OpenGLIndexBuffer>(size, data);
         default:
             CORE_ASSERT(false, "Buffer::CreateIndex: API is currently not supported!");
             return nullptr;
     }
 }
 
-BufferArray* BufferArray::Create()
+std::shared_ptr<BufferArray> BufferArray::Create()
 {
     switch(Renderer::GetAPIType())
     {
         case Renderer::API::OpenGL:
-            return new OpenGLBufferArray();
+            return std::make_shared<OpenGLBufferArray>();
         default:
             CORE_ASSERT(false, "BufferArray::Create: API is currently not supported!");
             return nullptr;
@@ -51,8 +51,9 @@ BufferArray* BufferArray::Create()
 }
 
 
-Buffer::Buffer(unsigned int size)
+Buffer::Buffer(unsigned int size, const void* data)
     : m_size(size)
+    , m_data(data)
 {
 
 }
@@ -67,7 +68,7 @@ void Buffer::SetLayout(const Layout& layout)
     m_layout = layout;
 }
 
-void Buffer::ApplyLayout(const std::shared_ptr<Shader>& shader) const
+void Buffer::Bind(const std::shared_ptr<Shader>& shader) const
 {
 
 }

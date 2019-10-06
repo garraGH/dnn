@@ -36,11 +36,11 @@ ExampleLayer::ExampleLayer()
         { Buffer::Element::DataType::Float3, "a_Position", false }, 
         { Buffer::Element::DataType::Int4, "a_Color", true }
     };
-    std::shared_ptr<Buffer> vertexBuffer_tri(Buffer::CreateVertex(sizeof(vertices), vertices));
+    std::shared_ptr<Buffer> vertexBuffer_tri = Buffer::CreateVertex(sizeof(vertices), vertices);
     vertexBuffer_tri->SetLayout(layoutVextex);
 
     unsigned char indices[3] = { 0, 1, 2 };
-    std::shared_ptr<Buffer> indexBuffer_tri(Buffer::CreateIndex(sizeof(indices), indices));
+    std::shared_ptr<Buffer> indexBuffer_tri = Buffer::CreateIndex(sizeof(indices), indices);
     Buffer::Layout layoutIndex;
     Buffer::Element e(Buffer::Element::DataType::UChar);
     layoutIndex.Push(e);
@@ -77,10 +77,10 @@ ExampleLayer::ExampleLayer()
         }
     )";
 
-    m_shader = std::shared_ptr<Shader>(Shader::Create(srcVertex, srcFragment));
+    m_shader = Shader::Create(srcVertex, srcFragment);
 
     unsigned short indices_quad[] = { 0, 1, 2, 0, 2, 3 };
-    std::shared_ptr<Buffer> indexBuffer_quad(Buffer::CreateIndex(sizeof(indices_quad), indices_quad));
+    std::shared_ptr<Buffer> indexBuffer_quad = Buffer::CreateIndex(sizeof(indices_quad), indices_quad);
     Buffer::Layout layoutIndex_quad = 
     {
         { Buffer::Element::DataType::UShort }
@@ -113,15 +113,15 @@ ExampleLayer::ExampleLayer()
         { Buffer::Element::DataType::Int4, "a_Color", true }
     };
 
-    std::shared_ptr<Buffer> positionBuffer_quad(Buffer::CreateVertex(sizeof(position_quad), position_quad));
-    std::shared_ptr<Buffer> colorBuffer_quad(Buffer::CreateVertex(sizeof(color_quad), color_quad));
+    std::shared_ptr<Buffer> positionBuffer_quad = Buffer::CreateVertex(sizeof(position_quad), position_quad);
+    std::shared_ptr<Buffer> colorBuffer_quad = Buffer::CreateVertex(sizeof(color_quad), color_quad);
     positionBuffer_quad->SetLayout(layoutPosition_quad);
     colorBuffer_quad->SetLayout(layoutColor_quad);
 
-    std::shared_ptr<Mesh> meshTri = std::shared_ptr<Mesh>(Mesh::Create("mesh_tri"));
-    std::shared_ptr<Mesh> meshQuad = std::shared_ptr<Mesh>(Mesh::Create("mesh_quad"));
-    std::shared_ptr<Material> materialTri = std::shared_ptr<Material>(Material::Create("mtr_tri"));
-    std::shared_ptr<Material> materialQuad = std::shared_ptr<Material>(Material::Create("mtr_quad"));
+    std::shared_ptr<Mesh> meshTri = Mesh::Create("mesh_tri");
+    std::shared_ptr<Mesh> meshQuad = Mesh::Create("mesh_quad");
+    std::shared_ptr<Material> materialTri = Material::Create("mtr_tri");
+    std::shared_ptr<Material> materialQuad = Material::Create("mtr_quad");
 
     meshTri->SetIndexBuffer(indexBuffer_tri);
     meshTri->AddVertexBuffer(vertexBuffer_tri);

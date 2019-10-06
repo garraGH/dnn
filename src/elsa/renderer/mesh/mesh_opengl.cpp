@@ -11,9 +11,9 @@
 
 #include "mesh_opengl.h"
 
-Mesh* Mesh::Create(const std::string& name)
+std::shared_ptr<Mesh> Mesh::Create(const std::string& name)
 {
-    return new OpenGLMesh(name);
+    return std::make_shared<OpenGLMesh>(name);
 }
 
 void OpenGLMesh::Bind(const std::shared_ptr<Shader>& shader)

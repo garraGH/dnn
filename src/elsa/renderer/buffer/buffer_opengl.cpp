@@ -12,8 +12,8 @@
 #include "buffer_opengl.h"
 #include "../../core.h"
 
-OpenGLBuffer::OpenGLBuffer(unsigned int size)
-    : Buffer(size)
+OpenGLBuffer::OpenGLBuffer(unsigned int size, const void* data)
+    : Buffer(size, data)
 {
     glGenBuffers(1, &m_id);
     CORE_INFO("OpenGLBuffer size: {}, id: {}", size, m_id);
@@ -47,20 +47,16 @@ GLenum OpenGLBuffer::_TypeFrom(Element::DataType dataType) const
     }
 }
 
-OpenGLVertexBuffer::OpenGLVertexBuffer(unsigned int size, float* data)
-    : OpenGLBuffer(size)
+OpenGLVertexBuffer::OpenGLVertexBuffer(unsigned int size, const void* data)
+    : OpenGLBuffer(size, data)
 {
     glBindBuffer(GL_ARRAY_BUFFER, m_id);
     glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
 }
 
-void OpenGLVertexBuffer::ApplyLayout(const std::shared_ptr<Shader>& shader) const
+void OpenGLVertexBuffer::Bind(const std::shared_ptr<Shader>& shader) const
 {
-    if(!shader)
-    {
-        return;
-    }
-
+    Bind();
     int location = 0;
     for(const auto e : m_layout)
     {
@@ -86,8 +82,8 @@ void OpenGLVertexBuffer::Unbind() const
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-OpenGLIndexBuffer::OpenGLIndexBuffer(unsigned int size, void* data)
-    : OpenGLBuffer(size)
+OpenGLIndexBuffer::OpenGLIndexBuffer(unsigned int size, const void* data)
+    : OpenGLBuffer(size, data)
 {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_id);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
@@ -161,8 +157,7 @@ void OpenGLBufferArray::Bind(const std::shared_ptr<Shader>& shader)
 
     for(const auto buffer : m_vertexBuffers)
     {
-        buffer->Bind();
-        buffer->ApplyLayout(shader);
+        buffer->Bind(shader);
     }
 }
 

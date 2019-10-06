@@ -18,7 +18,7 @@
 class Mesh
 {
 public:
-    Mesh(const std::string& name) : m_name(name) {} 
+    Mesh(const std::string& name="undefined") : m_name(name) {} 
     virtual void Bind(const std::shared_ptr<Shader>& shader) = 0;
 
     void SetTransform(const std::shared_ptr<Transform>& transform) { m_transform = transform; m_dirty = true; }
@@ -27,14 +27,14 @@ public:
 
     const std::shared_ptr<BufferArray>& GetBufferArray() const { return m_bufferArray; }
 
-    static Mesh* Create(const std::string& anme);
+    static std::shared_ptr<Mesh> Create(const std::string& anme);
 
 protected:
     bool m_dirty = true;
-    std::shared_ptr<BufferArray> m_bufferArray = std::shared_ptr<BufferArray>(BufferArray::Create());
+    std::shared_ptr<BufferArray> m_bufferArray = BufferArray::Create();
     std::shared_ptr<Shader> m_shader = nullptr;
     std::shared_ptr<Transform> m_transform = std::make_shared<Transform>();
 
 private:
-    const std::string m_name = "undefined";
+    const std::string m_name;
 };

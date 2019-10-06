@@ -13,9 +13,9 @@
 #include "../../core.h"
 #include "glad/gl.h"
 
-Material* Material::Create(const std::string& name)
+std::shared_ptr<Material> Material::Create(const std::string& name)
 {
-    return new OpenGLMaterial(name);
+    return std::make_shared<OpenGLMaterial>(name);
 }
 
 void OpenGLMaterial::Bind(const std::shared_ptr<Shader>& shader)

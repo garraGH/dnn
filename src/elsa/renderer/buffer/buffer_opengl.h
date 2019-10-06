@@ -17,7 +17,7 @@
 class OpenGLBuffer : public Buffer
 {
 public:
-    OpenGLBuffer(unsigned int size);
+    OpenGLBuffer(unsigned int size, const void* data);
     virtual ~OpenGLBuffer();
 
 protected:
@@ -27,19 +27,19 @@ protected:
 class OpenGLVertexBuffer : public OpenGLBuffer
 {
 public:
-    OpenGLVertexBuffer(unsigned int size, float* data);
+    OpenGLVertexBuffer(unsigned int size, const void* data);
 
     void Bind(unsigned int slot=0) const override;
     void Unbind() const override;
 
-    virtual void ApplyLayout(const std::shared_ptr<Shader>& shader) const override;
+    virtual void Bind(const std::shared_ptr<Shader>& shader) const override;
 };
 
 
 class OpenGLIndexBuffer : public OpenGLBuffer
 {
 public:
-    OpenGLIndexBuffer(unsigned int size, void* data);
+    OpenGLIndexBuffer(unsigned int size, const void* data);
     void Bind(unsigned int slot=0) const override;
     void Unbind() const override;
     GLenum GetType();

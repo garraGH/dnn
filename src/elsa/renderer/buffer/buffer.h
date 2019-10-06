@@ -60,7 +60,7 @@ public:
     };
     
 public:
-    Buffer(unsigned int size);
+    Buffer(unsigned int size, const void* data);
     virtual ~Buffer();
 
     virtual void Bind(unsigned int slot=0) const override {}
@@ -68,16 +68,19 @@ public:
 
     unsigned int GetCount() const;
     void SetLayout(const Layout& layout);
-    virtual void ApplyLayout(const std::shared_ptr<Shader>& shader) const;
+    virtual void Bind(const std::shared_ptr<Shader>& shader) const;
 
-    static Buffer* CreateVertex(unsigned int size, float* data);
-    static Buffer* CreateIndex(unsigned int size, void* data);
+//     static Buffer* CreateVertex(unsigned int size, const void* data);
+//     static Buffer* CreateIndex(unsigned int size, const void* data);
 
+    static std::shared_ptr<Buffer> CreateVertex(unsigned int size, const void* data);
+    static std::shared_ptr<Buffer> CreateIndex(unsigned int size, const void* data);
 
 
 protected:
     Layout m_layout;
     unsigned int m_size = 0;
+    const void* m_data = nullptr;
 };
 
 class BufferArray : public RenderObject
@@ -92,7 +95,7 @@ public:
     virtual unsigned int IndexCount() const = 0;
     virtual unsigned int IndexType() const = 0;
 
-    static BufferArray* Create();
+    static std::shared_ptr<BufferArray> Create();
 
 protected:
     std::shared_ptr<Shader> m_shader = nullptr;

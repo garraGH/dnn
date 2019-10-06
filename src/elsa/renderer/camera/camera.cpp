@@ -30,7 +30,7 @@ void Camera::_UpdateViewMatrix()
     {
         return;
     }
-    m_dirty = false
+    m_dirty = false;
 
     glm::mat4 transform = glm::rotate(glm::mat4(1.0f), glm::radians(m_rotation.x), glm::vec3(1, 0, 0)) 
                         * glm::rotate(glm::mat4(1.0f), glm::radians(m_rotation.y), glm::vec3(0, 1, 0)) 

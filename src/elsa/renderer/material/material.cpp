@@ -43,35 +43,6 @@ int Material::Attribute::_TypeSize() const
 void Material::Attribute::_Save(const void* data)
 {
     int size = m_count*_TypeSize();
-    m_data = new unsigned char[size];
-    memcpy((void*)m_data, data, size);
+    m_data = std::shared_ptr<char>(new char[size], [](char* p) { delete[] p; });
+    memcpy(m_data.get(), data, size);
 }                                  
-
-void Material::Attribute::_Clear()
-{
-    switch(m_type)
-    {
-        case Type::Float1:
-        case Type::Float2:
-        case Type::Float3:
-        case Type::Float4:
-        case Type::Mat2x2:
-        case Type::Mat2x3:
-        case Type::Mat2x4:
-        case Type::Mat3x2:
-        case Type::Mat3x3:
-        case Type::Mat3x4:
-        case Type::Mat4x2:
-        case Type::Mat4x3:
-        case Type::Mat4x4: delete[] (float*)m_data; break;
-        case Type::Int1: 
-        case Type::Int2: 
-        case Type::Int3: 
-        case Type::Int4:   delete[] (int*)m_data; break;
-        case Type::UInt1:
-        case Type::UInt2:
-        case Type::UInt3:
-        case Type::UInt4:  delete[] (unsigned int*)m_data; break;
-        default: break;
-    }
-}

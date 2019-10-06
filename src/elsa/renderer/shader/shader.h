@@ -11,6 +11,7 @@
 
 #pragma once
 #include <string>
+#include <memory>
 #include <utility>
 #include "../rendererobject.h"
 #include "glm/glm.hpp"
@@ -24,8 +25,8 @@ public:
     virtual void SetViewProjectionMatrix(const glm::mat4& vp) = 0;
     virtual void SetTransform(const glm::mat4& transform) = 0;
 
-    static Shader* Create(const std::string& srcFile);
-    static Shader* Create(const std::string& srcVertex, const std::string& srcFragment);
+    static std::shared_ptr<Shader> Create(const std::string& srcFile);
+    static std::shared_ptr<Shader> Create(const std::string& srcVertex, const std::string& srcFragment);
 
 protected:
     std::pair<std::string, std::string> _parseSrc(const std::string& srcFile);
