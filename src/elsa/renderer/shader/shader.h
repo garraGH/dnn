@@ -13,8 +13,10 @@
 #include <string>
 #include <memory>
 #include <utility>
+#include <map>
 #include "../rendererobject.h"
 #include "glm/glm.hpp"
+
 
 class Shader : public RenderObject
 {
@@ -28,10 +30,14 @@ public:
     static std::shared_ptr<Shader> Create(const std::string& srcFile);
     static std::shared_ptr<Shader> Create(const std::string& srcVertex, const std::string& srcFragment);
 
+    int GetLocation(const std::string& name);
+
 protected:
     std::pair<std::string, std::string> _parseSrc(const std::string& srcFile);
     virtual void _compile(const std::string& srcVertex, const std::string& srcFragment) = 0;
+    virtual int _UpdateLocations(const std::string& name) = 0;
 
 protected:
     const std::string& m_srcFile;
+    std::map<const std::string, int> m_locations;
 };

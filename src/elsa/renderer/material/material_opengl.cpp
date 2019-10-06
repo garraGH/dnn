@@ -31,8 +31,7 @@ void OpenGLMaterial::Bind(const std::shared_ptr<Shader>& shader)
     using MAT = Material::Attribute::Type;
     for(auto& a : m_attributes)
     {
-        int location = glGetUniformLocation(m_shader->ID(), a.first.c_str());
-        INFO("ShaderUniform: {}, location: {}", a.first, location);
+        int location = m_shader->GetLocation(a.first);
         if(location == -1)
         {
             continue;

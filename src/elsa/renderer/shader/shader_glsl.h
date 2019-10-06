@@ -29,7 +29,8 @@ public:
 
 protected:
     virtual void _compile(const std::string& srcVertex, const std::string& srcFragment) override;
-
+    virtual int _UpdateLocations(const std::string& name) override;
+    
 private:
     void _Upload(const char* name, const glm::mat4& matrix);
 };

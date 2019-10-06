@@ -174,6 +174,9 @@ void ExampleLayer::_UpdateCamera(float deltaTime)
     if(Input::IsKeyPressed(KEY_P))
     {
         m_camera->Revert();
+        m_transformQuad->SetTranslation(glm::vec3(0));
+        m_transformQuad->SetRotation(glm::vec3(0));
+        m_transformQuad->SetScale(glm::vec3(0.1f));
     }
 }
 

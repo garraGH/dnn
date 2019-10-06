@@ -60,8 +60,7 @@ void OpenGLVertexBuffer::Bind(const std::shared_ptr<Shader>& shader) const
     int location = 0;
     for(const auto e : m_layout)
     {
-        location = glad_glGetAttribLocation(shader->ID(), e.Name().c_str());
-        CORE_INFO("VertexAttribute: {}, location: {}", e.Name(), location);
+        location = shader->GetLocation(e.Name());
         if(location == -1)
         {
             continue;

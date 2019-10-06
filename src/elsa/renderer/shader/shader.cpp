@@ -54,3 +54,13 @@ std::shared_ptr<Shader> Shader::Create(const std::string& srcVertex, const std::
         default: CORE_ASSERT(false, "API is currently unsupported."); return nullptr;
     }
 }
+
+int Shader::GetLocation(const std::string& name)
+{
+    auto result = m_locations.find(name);
+    int location =  result != m_locations.end()? result->second : _UpdateLocations(name);
+    INFO("Shader::GetLocation: {}, {}", name, location);
+    return location;
+}
+
+

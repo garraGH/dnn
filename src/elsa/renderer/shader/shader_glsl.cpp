@@ -162,8 +162,7 @@ void GLSLProgram::_compile(const std::string& srcVertex, const std::string& srcF
 void GLSLProgram::_Upload(const char* name, const glm::mat4& matrix)
 {
     Bind();
-    int location = glad_glGetUniformLocation(m_id, name);
-    INFO("ShaderUniform: {}, location: {}", name, location);
+    int location = GetLocation(name);
     if(location != -1)
     {
         glad_glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(matrix));
@@ -180,3 +179,19 @@ void GLSLProgram::SetTransform(const glm::mat4& transform)
     _Upload("u_Transform", transform);
 }
 
+int GLSLProgram::_UpdateLocations(const std::string& name)
+{
+    int location = glad_glGetAttribLocation(m_id, name.c_str());
+    if(location != -1)
+    {
+        m_locations[name] = location;
+        return location;
+    }
+
+    location = glad_glGetUniformLocation(m_id, name.c_str());
+    if(location != -1)
+    {
+        m_locations[name] = location;
+    }
+    return location;
+}
