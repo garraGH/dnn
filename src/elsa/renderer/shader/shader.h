@@ -15,11 +15,12 @@
 #include <utility>
 #include <map>
 #include <unordered_map>
-#include "../rendererobject.h"
 #include "glm/glm.hpp"
+#include "../rendererobject.h"
 
 
-class Shader : public RenderObject
+
+class Shader : public RenderObject, public std::enable_shared_from_this<Shader>
 {
 public:
     enum Type
@@ -34,31 +35,26 @@ public:
     };
 
 public:
-    Shader(const std::string& srcFile);
-    Shader(const std::string& srcVertex, const std::string& srcFragment);
-
+    Shader(const std::string& name) : RenderObject(name) {}
     virtual void SetViewProjectionMatrix(const glm::mat4& vp) = 0;
-    virtual void SetTransform(const glm::mat4& transform) = 0;
+    virtual void SetTransformMatrix(const glm::mat4& trans) = 0;
 
-    static std::shared_ptr<Shader> Create(const std::string& srcFile);
-    static std::shared_ptr<Shader> Create(const std::string& srcVertex, const std::string& srcFragment);
+    virtual std::shared_ptr<Shader> LoadFile(const std::string& srcFile) = 0;
+    virtual std::shared_ptr<Shader> LoadSource(const std::string& srcVertex, const std::string& srcFragment) = 0;
 
     int GetLocation(const std::string& name);
 
-protected:
-    std::pair<std::string, std::string> _parseSrc(const std::string& srcFile);
-//     virtual void _compile(const std::string& srcVertex, const std::string& srcFragment) = 0;
-    virtual int _UpdateLocations(const std::string& name) = 0;
+    static std::shared_ptr<Shader> Create(const std::string& name);
 
+protected:
+    virtual int _UpdateLocations(const std::string& name) = 0;
     virtual void _Compile(const std::unordered_map<Type, std::string>& splitShaderSources) = 0;
 
     std::string _ReadFile(const std::string& srcFile) const ;
     std::unordered_map<Type, std::string> _SplitShaders(const std::string& sources) const;
     Type _TypeFromString(const std::string& type) const;
 
-
 protected:
     std::string m_srcFile;
-    std::string m_name;
     std::map<const std::string, int> m_locations;
 };

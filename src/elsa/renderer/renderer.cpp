@@ -16,6 +16,7 @@ std::shared_ptr<Camera> Renderer::s_camera = nullptr;
 std::unique_ptr<Renderer::API> Renderer::s_api = nullptr;
 Renderer::API::Type Renderer::API::s_type = API::Type::UNKOWN;
 
+
 void Renderer::SetAPIType(API::Type apiType)
 {
     if(s_api && apiType==s_api->GetType())

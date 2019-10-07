@@ -48,6 +48,7 @@ public:
 
 public:
     Material(const std::string& name="undefined") : m_name(name) {}
+    const std::string& GetName() const { return m_name; }
     void SetAttribute(const std::string& name, const std::shared_ptr<Attribute>& attribute) { m_attributes[name] = attribute; m_dirty = true; }
     virtual void Bind(const std::shared_ptr<Shader>& shader) = 0;
     static std::shared_ptr<Material> Create(const std::string& name);

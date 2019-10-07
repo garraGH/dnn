@@ -16,23 +16,6 @@
 #include "glm/gtc/type_ptr.hpp"
 #include "glm/gtx/string_cast.hpp"
 
-GLSLProgram::GLSLProgram(const std::string& srcFile)
-    : Shader(srcFile)
-{
-    std::string sources = _ReadFile(srcFile);
-    std::unordered_map<Type, std::string> splitShaderSources = _SplitShaders(sources);
-    _Compile(splitShaderSources);
-}
-
-GLSLProgram::GLSLProgram(const std::string& srcVertex, const std::string& srcFragment)
-    : Shader(srcVertex, srcFragment)
-{
-    std::unordered_map<Type, std::string> splitShaderSources;
-    splitShaderSources[VERTEX] = srcVertex;
-    splitShaderSources[FRAGMENT] = srcFragment;
-    _Compile(splitShaderSources);
-}
-
 GLSLProgram::~GLSLProgram()
 {
     glDeleteProgram(m_id);
@@ -46,6 +29,24 @@ void GLSLProgram::Bind(unsigned int slot) const
 void GLSLProgram::Unbind() const 
 {
     glUseProgram(0);
+}
+
+std::shared_ptr<Shader> GLSLProgram::LoadFile(const std::string& srcFile)
+{
+    m_srcFile = srcFile;
+    std::string sources = _ReadFile(srcFile);
+    std::unordered_map<Type, std::string> splitShaderSources = _SplitShaders(sources);
+    _Compile(splitShaderSources);
+    return shared_from_this();
+}
+
+std::shared_ptr<Shader> GLSLProgram::LoadSource(const std::string& srcVertex, const std::string& srcFragment)
+{
+    std::unordered_map<Type, std::string> splitShaderSources;
+    splitShaderSources[VERTEX] = srcVertex;
+    splitShaderSources[FRAGMENT] = srcFragment;
+    _Compile(splitShaderSources);
+    return shared_from_this();
 }
 
 unsigned int GLSLProgram::_ToOpenGLShaderType(Type type) const
@@ -90,7 +91,7 @@ void GLSLProgram::_Compile(const std::unordered_map<Type, std::string>& splitSha
             CORE_ASSERT(false, "Compile Shader Failed!");
             return;
         }
-        CORE_TRACE("CompileShader ({}) OK!", m_id);
+        CORE_TRACE("CompileShader ({}) OK!", shaderID);
         shaderIDs[i++] = shaderID;
     }
 
@@ -118,7 +119,7 @@ void GLSLProgram::_Compile(const std::unordered_map<Type, std::string>& splitSha
         CORE_ASSERT(false, "LinkProgram Failed!");
         return;
     }
-    CORE_TRACE("LinkProgram ({}) OK!", m_id);
+    CORE_TRACE("LinkProgram ({}) OK!", programID);
 
     for(auto shaderID : shaderIDs)
     {
@@ -144,7 +145,7 @@ void GLSLProgram::SetViewProjectionMatrix(const glm::mat4& vp)
     _Upload("u_ViewProjection", vp);
 }
 
-void GLSLProgram::SetTransform(const glm::mat4& trans)
+void GLSLProgram::SetTransformMatrix(const glm::mat4& trans)
 {
     _Upload("u_Transform", trans);
 }

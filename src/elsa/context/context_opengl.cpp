@@ -24,7 +24,7 @@ OpenGLContext::OpenGLContext(GLFWwindow* window)
 void OpenGLContext::Init()
 {
     glfwMakeContextCurrent(m_window);
-    int success = gladLoadGL(glfwGetProcAddress);
+    int success = gladLoadGL();
     CORE_ASSERT(success, "Failed to initialize GLAD!");
 
     CORE_INFO("OpenGL INFO:");

@@ -83,7 +83,7 @@ void X11Window::_CreateContext()
 
 void X11Window::_InitGlad()
 {
-    int success = gladLoadGL(glfwGetProcAddress);
+    int success = gladLoadGL();
     CORE_ASSERT(success, "Failed to initialized glad!");
 }
 

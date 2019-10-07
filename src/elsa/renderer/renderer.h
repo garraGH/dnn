@@ -10,13 +10,12 @@
 
 
 #pragma once
-#include "buffer/buffer.h"
-#include "shader/shader.h"
-#include "transform/transform.h"
 #include "camera/camera.h"
-#include "material/material.h"
+#include "transform/transform.h"
+#include "buffer/buffer.h"
 #include "mesh/mesh.h"
-
+#include "material/material.h"
+#include "shader/shader.h"
 
 class Renderer
 {
@@ -51,6 +50,18 @@ public:
         static inline void DrawIndexed(const std::shared_ptr<BufferArray>& bufferArray) { s_api->DrawIndexed(bufferArray); }
     };
 
+    class Object
+    {
+    public:
+        virtual ~Object() {}
+        virtual void Bind(unsigned int slot=0) const = 0;
+        virtual void Unbind() const = 0;
+        unsigned int  ID() const { return m_id; }
+
+    protected:
+        unsigned int  m_id = 0;
+    };
+
     class Element
     {
     public:
@@ -64,6 +75,23 @@ public:
     private:
         std::shared_ptr<Mesh> m_mesh = nullptr;
         std::shared_ptr<Material> m_material = nullptr;
+    };
+
+    template<typename T>
+    class Assets
+    {
+    public:
+        static Assets<T>& Instance() { return s_instance; }
+
+        bool Exist(const std::string& name) { return m_assets.find(name) != m_assets.end(); }
+        std::shared_ptr<T> Create(const std::string& name="unnamed") { std::shared_ptr<T> asset = T::Create(name); Add(asset); return asset; }
+        void Add(const std::shared_ptr<T>& asset) { const std::string& name = asset->GetName(); CORE_ASSERT(!Exist(name), "Assets::Add: asset already exist! "+name); m_assets[name] = asset; }
+        const std::shared_ptr<T>& Get(const std::string& name) { CORE_ASSERT(Exist(name), "Assets::Get: asset not found! "+name); return m_assets[name]; }
+
+    protected:
+    private:
+        static Assets<T> s_instance;
+        std::map<std::string, std::shared_ptr<T>> m_assets;
     };
 
 public:
@@ -80,4 +108,8 @@ public:
 private:
     static std::unique_ptr<API> s_api;
     static std::shared_ptr<Camera> s_camera;
+
 };
+
+template<typename T>
+Renderer::Assets<T> Renderer::Assets<T>::s_instance;

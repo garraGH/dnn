@@ -24,6 +24,14 @@ ExampleLayer::ExampleLayer()
     Renderer::SetAPIType(Renderer::API::OpenGL);
     m_camera = std::make_shared<OrthographicCamera>(-2, +2, -2, +2);
 
+    _PrepareAssets();
+
+    m_reTri = std::make_shared<Renderer::Element>(Renderer::Assets<Mesh>::Instance().Get("mesh_tri"), Renderer::Assets<Material>::Instance().Get("mtr_tri"));
+    m_reQuad = std::make_shared<Renderer::Element>(Renderer::Assets<Mesh>::Instance().Get("mesh_quad"), Renderer::Assets<Material>::Instance().Get("mtr_quad"));
+}
+
+void ExampleLayer::_PrepareAssets()
+{
     float vertices[3*7] = 
     {
         -0.5f, -0.5f, 0.0f, 255, 0, 0, 255,  
@@ -46,7 +54,6 @@ ExampleLayer::ExampleLayer()
     layoutIndex.Push(e);
     indexBuffer_tri->SetLayout(layoutIndex);
 
-    m_shader = Shader::Create("/home/garra/study/dnn/asset/shader/basic.glsl");
 
     unsigned short indices_quad[] = { 0, 1, 2, 0, 2, 3 };
     std::shared_ptr<Buffer> indexBuffer_quad = Buffer::CreateIndex(sizeof(indices_quad), indices_quad);
@@ -82,25 +89,32 @@ ExampleLayer::ExampleLayer()
         { Buffer::Element::DataType::Int4, "a_Color", true }
     };
 
+
     std::shared_ptr<Buffer> positionBuffer_quad = Buffer::CreateVertex(sizeof(position_quad), position_quad);
     std::shared_ptr<Buffer> colorBuffer_quad = Buffer::CreateVertex(sizeof(color_quad), color_quad);
     positionBuffer_quad->SetLayout(layoutPosition_quad);
     colorBuffer_quad->SetLayout(layoutColor_quad);
 
-    std::shared_ptr<Mesh> meshTri = Mesh::Create("mesh_tri");
-    std::shared_ptr<Mesh> meshQuad = Mesh::Create("mesh_quad");
-    std::shared_ptr<Material> materialTri = Material::Create("mtr_tri");
-    std::shared_ptr<Material> materialQuad = Material::Create("mtr_quad");
+    using MA = Material::Attribute;
+    Renderer::Assets<MA>::Instance().Add(std::make_shared<MA>("red", glm::value_ptr(glm::vec4(1, 0.1, 0.2, 1)), MA::Type::Float4));
+    Renderer::Assets<MA>::Instance().Add(std::make_shared<MA>("green", glm::value_ptr(glm::vec4(0.1, 1, 0.2, 1)), MA::Type::Float4));
+    Renderer::Assets<MA>::Instance().Add(std::make_shared<MA>("blue", glm::value_ptr(glm::vec4(0.1, 0.2, 1, 1)), MA::Type::Float4));
+
+    std::shared_ptr<Mesh> meshTri = Renderer::Assets<Mesh>::Instance().Create("mesh_tri");
+    std::shared_ptr<Mesh> meshQuad = Renderer::Assets<Mesh>::Instance().Create("mesh_quad");
+    std::shared_ptr<Material> materialTri = Renderer::Assets<Material>::Instance().Create("mtr_tri");
+    std::shared_ptr<Material> materialQuad = Renderer::Assets<Material>::Instance().Create("mtr_quad");
 
     meshTri->SetIndexBuffer(indexBuffer_tri);
     meshTri->AddVertexBuffer(vertexBuffer_tri);
     meshQuad->SetIndexBuffer(indexBuffer_quad);
     meshQuad->AddVertexBuffer(positionBuffer_quad);
     meshQuad->AddVertexBuffer(colorBuffer_quad);
-    materialTri->SetAttribute("u_Color", m_colorRed);
-    materialQuad->SetAttribute("u_Color", m_colorBlue);
-    m_reTri = std::make_shared<Renderer::Element>(meshTri, materialTri);
-    m_reQuad = std::make_shared<Renderer::Element>(meshQuad, materialQuad);
+
+    materialTri->SetAttribute("u_Color", Renderer::Assets<MA>::Instance().Get("green"));
+    materialQuad->SetAttribute("u_Color", Renderer::Assets<MA>::Instance().Get("red"));
+
+    Renderer::Assets<Shader>::Instance().Create("basic")->LoadFile("/home/garra/study/dnn/assets/shader/basic.glsl");
 }
     
 void ExampleLayer::OnEvent(Event& e)
@@ -186,13 +200,17 @@ void ExampleLayer::_UpdateQuads(float deltaTime)
         m_transformQuad->Rotate({0, 0, -degree});
     }
 
+    using MA = Material::Attribute;
+    std::shared_ptr<MA> red = Renderer::Assets<MA>::Instance().Get("red");
+    std::shared_ptr<MA> blue = Renderer::Assets<MA>::Instance().Get("blue");
+
     for(int i=0; i<5; i++)
     {
         for(int j=0; j<5; j++)
         {
             m_reQuad->SetTransform(m_transformQuad);
-            m_reQuad->SetMaterialAttribute("u_Color", (i+j)%2? m_colorRed : m_colorBlue);
-            Renderer::Submit(m_reQuad, m_shader);
+            m_reQuad->SetMaterialAttribute("u_Color", (i+j)%2? red : blue);
+            Renderer::Submit(m_reQuad, Renderer::Assets<Shader>::Instance().Get("basic"));
             m_transformQuad->Translate({ 0.15f, 0, 0 });
         }
         m_transformQuad->Translate({-0.15f*5, 0, 0});
@@ -204,8 +222,8 @@ void ExampleLayer::_UpdateQuads(float deltaTime)
 void ExampleLayer::_UpdateTri(float deltaTime)
 {
     m_reTri->SetTransform(m_transformTri);
-    m_reTri->SetMaterialAttribute("u_Color", m_colorGreen);
-    Renderer::Submit(m_reTri, m_shader);
+    m_reTri->SetMaterialAttribute("u_Color", Renderer::Assets<Material::Attribute>::Instance().Get("green"));
+    Renderer::Submit(m_reTri, Renderer::Assets<Shader>::Instance().Get("basic"));
 }
 
 void ExampleLayer::_UpdateScene(float deltaTime)
@@ -225,9 +243,13 @@ void ExampleLayer::OnUpdate(float deltaTime)
 
 void ExampleLayer::OnImGuiRender()
 {
+    using MA = Material::Attribute;
+    std::shared_ptr<MA> red = Renderer::Assets<MA>::Instance().Get("red");
+    std::shared_ptr<MA> green = Renderer::Assets<MA>::Instance().Get("green");
+
     ImGui::Begin("ExampleLayer");
     ImGui::Button("ExampleLayer");
-    ImGui::ColorPicker4("color_tri", (float*)m_colorGreen->GetData());
-    ImGui::ColorPicker4("color_quad", (float*)m_colorRed->GetData());
+    ImGui::ColorPicker4("color_tri", (float*)green->GetData());
+    ImGui::ColorPicker4("color_quad", (float*)red->GetData());
     ImGui::End();
 }

@@ -32,21 +32,14 @@ protected:
     void _UpdateCamera(float deltaTime);
     void _UpdateTri(float deltaTime);
     void _UpdateQuads(float deltaTime);
+    void _PrepareAssets();
 
 private:
-
     std::shared_ptr<Renderer::Element> m_reTri = nullptr;
     std::shared_ptr<Renderer::Element> m_reQuad = nullptr;
     std::shared_ptr<Camera> m_camera = nullptr;
-    std::shared_ptr<Shader> m_shader = nullptr;
-
-private:
     float m_speedTranslate = 0.5f;
     float m_speedRotate = 30.0f;
     std::shared_ptr<Transform> m_transformTri = std::make_shared<Transform>();
     std::shared_ptr<Transform> m_transformQuad = std::make_shared<Transform>(glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(0.1f));
-    using MA = Material::Attribute;
-    std::shared_ptr<MA> m_colorRed   = std::make_shared<MA>("red", glm::value_ptr(glm::vec4(1, 0.1, 0.2, 1)), MA::Type::Float4);
-    std::shared_ptr<MA> m_colorGreen = std::make_shared<MA>("green", glm::value_ptr(glm::vec4(0.1, 1, 0.2, 1)), MA::Type::Float4);
-    std::shared_ptr<MA> m_colorBlue  = std::make_shared<MA>("blue", glm::value_ptr(glm::vec4(0.1, 0.2, 1, 1)), MA::Type::Float4);
 };

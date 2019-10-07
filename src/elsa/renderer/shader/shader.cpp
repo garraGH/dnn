@@ -17,45 +17,15 @@
 #include <fstream>
 
 
-Shader::Shader(const std::string& srcFile)
-    : m_srcFile(srcFile)
-{
-}
-
-Shader::Shader(const std::string& srcVertex, const std::string& srcFragment)
-    : m_srcFile("Undefined")
-{
-
-}
-
-std::pair<std::string, std::string> Shader::_parseSrc(const std::string& srcFile)
-{
-    std::string srcVertex;
-    std::string srcFragment;
-
-    return { srcVertex, srcFragment };
-}
-
-
-std::shared_ptr<Shader> Shader::Create(const std::string& srcFile)
+std::shared_ptr<Shader> Shader::Create(const std::string& name)
 {
     switch(Renderer::GetAPIType())
     {
-        case Renderer::API::OpenGL: return std::make_shared<GLSLProgram>(srcFile);
+        case Renderer::API::OpenGL: return std::make_shared<GLSLProgram>(name);
         default: CORE_ASSERT(false, "API is currently unsupported."); return nullptr;
     }
 }
 
-
-std::shared_ptr<Shader> Shader::Create(const std::string& srcVertex, const std::string& srcFragment)
-{
-    
-    switch(Renderer::GetAPIType())
-    {
-        case Renderer::API::OpenGL: return std::make_shared<GLSLProgram>(srcVertex, srcFragment);
-        default: CORE_ASSERT(false, "API is currently unsupported."); return nullptr;
-    }
-}
 
 int Shader::GetLocation(const std::string& name)
 {

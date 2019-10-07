@@ -16,19 +16,19 @@
 class GLSLProgram : public Shader
 {
 public:
-    GLSLProgram(const std::string& srcFile);
-    GLSLProgram(const std::string& srcVertex, const std::string& srcFragment);
-
+    GLSLProgram(const std::string& name) : Shader(name) {}
     ~GLSLProgram(); 
 
     virtual void Bind(unsigned int slot=0) const override;
     virtual void Unbind() const override;
 
     virtual void SetViewProjectionMatrix(const glm::mat4& vp) override;
-    virtual void SetTransform(const glm::mat4& trans) override;
+    virtual void SetTransformMatrix(const glm::mat4& trans) override;
+
+    virtual std::shared_ptr<Shader> LoadFile(const std::string& filepath) override;
+    virtual std::shared_ptr<Shader> LoadSource(const std::string& srcVertex, const std::string& srcFragment) override;
 
 protected:
-//     virtual void _compile(const std::string& srcVertex, const std::string& srcFragment) override;
     virtual int _UpdateLocations(const std::string& name) override;
     virtual void _Compile(const std::unordered_map<Type, std::string>& splitShaderSources) override;
     

@@ -26,5 +26,5 @@ void OpenGLMesh::Bind(const std::shared_ptr<Shader>& shader)
     m_dirty = false;
     m_shader = shader;
 
-    m_shader->SetTransform(m_transform->GetTransformMatrx());
+    m_shader->SetTransformMatrix(m_transform->GetTransformMatrx());
 }
