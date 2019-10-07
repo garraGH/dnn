@@ -25,12 +25,14 @@ public:
     virtual void Unbind() const override;
 
     virtual void SetViewProjectionMatrix(const glm::mat4& vp) override;
-    virtual void SetTransform(const glm::mat4& transform) override;
+    virtual void SetTransform(const glm::mat4& trans) override;
 
 protected:
-    virtual void _compile(const std::string& srcVertex, const std::string& srcFragment) override;
+//     virtual void _compile(const std::string& srcVertex, const std::string& srcFragment) override;
     virtual int _UpdateLocations(const std::string& name) override;
+    virtual void _Compile(const std::unordered_map<Type, std::string>& splitShaderSources) override;
     
 private:
     void _Upload(const char* name, const glm::mat4& matrix);
+    unsigned int _ToOpenGLShaderType(Type type) const;
 };

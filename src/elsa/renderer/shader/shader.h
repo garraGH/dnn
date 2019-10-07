@@ -14,12 +14,25 @@
 #include <memory>
 #include <utility>
 #include <map>
+#include <unordered_map>
 #include "../rendererobject.h"
 #include "glm/glm.hpp"
 
 
 class Shader : public RenderObject
 {
+public:
+    enum Type
+    {
+        UNKNOWN = -1, 
+        VERTEX, 
+        FRAGMENT, 
+        GEOMETRY, 
+        COMPUTE, 
+        TESSCONTROL, 
+        TESSEVALUATION, 
+    };
+
 public:
     Shader(const std::string& srcFile);
     Shader(const std::string& srcVertex, const std::string& srcFragment);
@@ -34,10 +47,18 @@ public:
 
 protected:
     std::pair<std::string, std::string> _parseSrc(const std::string& srcFile);
-    virtual void _compile(const std::string& srcVertex, const std::string& srcFragment) = 0;
+//     virtual void _compile(const std::string& srcVertex, const std::string& srcFragment) = 0;
     virtual int _UpdateLocations(const std::string& name) = 0;
 
+    virtual void _Compile(const std::unordered_map<Type, std::string>& splitShaderSources) = 0;
+
+    std::string _ReadFile(const std::string& srcFile) const ;
+    std::unordered_map<Type, std::string> _SplitShaders(const std::string& sources) const;
+    Type _TypeFromString(const std::string& type) const;
+
+
 protected:
-    const std::string& m_srcFile;
+    std::string m_srcFile;
+    std::string m_name;
     std::map<const std::string, int> m_locations;
 };
