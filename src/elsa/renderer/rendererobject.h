@@ -15,17 +15,26 @@
 
 #define RenderObjectID unsigned int 
 
-class RenderObject
+class Asset
 {
 public:
-    RenderObject(const std::string& name="unnamed") : m_name(name) {}
+    Asset(const std::string& name = "unnamed") : m_name(name) {}
+    const std::string& GetName() const { return m_name; }
+    static std::shared_ptr<Asset> Create(const std::string& name) { return std::make_shared<Asset>(name); }
+
+private:
+    std::string m_name;
+};
+
+class RenderObject : public Asset
+{
+public:
+    RenderObject(const std::string& name="unnamed") : Asset(name) {}
     virtual ~RenderObject() {}
     virtual void Bind(unsigned int slot=0) const = 0;
     virtual void Unbind() const = 0;
-
     RenderObjectID ID() const { return m_id; }
-    const std::string& GetName() const { return m_name; }
+
 protected:
     RenderObjectID m_id = 0;
-    std::string m_name;
 };

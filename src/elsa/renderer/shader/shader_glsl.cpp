@@ -31,7 +31,7 @@ void GLSLProgram::Unbind() const
     glUseProgram(0);
 }
 
-std::shared_ptr<Shader> GLSLProgram::LoadFile(const std::string& srcFile)
+std::shared_ptr<Shader> GLSLProgram::LoadFromFile(const std::string& srcFile)
 {
     m_srcFile = srcFile;
     std::string sources = _ReadFile(srcFile);
@@ -40,7 +40,7 @@ std::shared_ptr<Shader> GLSLProgram::LoadFile(const std::string& srcFile)
     return shared_from_this();
 }
 
-std::shared_ptr<Shader> GLSLProgram::LoadSource(const std::string& srcVertex, const std::string& srcFragment)
+std::shared_ptr<Shader> GLSLProgram::LoadFromSource(const std::string& srcVertex, const std::string& srcFragment)
 {
     std::unordered_map<Type, std::string> splitShaderSources;
     splitShaderSources[VERTEX] = srcVertex;

@@ -31,13 +31,17 @@ void Renderer::SetAPIType(API::Type apiType)
     }
 }
 
+void Renderer::Submit(const std::string& nameOfElement, const std::string& nameOfShader)
+{
+    Resources::Get<Element>(nameOfElement)->RenderedBy(Resources::Get<Shader>(nameOfShader));
+}
 
 void Renderer::Submit(const std::shared_ptr<Renderer::Element>& rendererElement, const std::shared_ptr<Shader>& shader) 
 {
-    rendererElement->Draw(shader);
+    rendererElement->RenderedBy(shader);
 }
 
-void Renderer::Element::Draw(const std::shared_ptr<Shader>& shader)
+void Renderer::Element::RenderedBy(const std::shared_ptr<Shader>& shader)
 {
     if(s_camera->IsDirty())
     {

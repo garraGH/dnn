@@ -13,15 +13,18 @@
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtx/transform.hpp"
+#include "../rendererobject.h"
 
-class Transform
+class Transform : public Asset, public std::enable_shared_from_this<Transform>
 {
 public:
-    Transform(const glm::vec3& translation=glm::vec3(0.0f), const glm::vec3& rotation=glm::vec3(0.0f), const glm::vec3& scale=glm::vec3(1.0f));
+    Transform(const std::string& name="unnamed") : Asset(name) {}
+    static std::shared_ptr<Transform> Create(const std::string& name) { return std::make_shared<Transform>(name); }
+    std::shared_ptr<Transform> Set(const glm::vec3& translation, const glm::vec3& rotation, const glm::vec3& scale) { m_translation = translation; m_rotation = rotation; m_scale = scale; m_dirty = true; return shared_from_this(); }
 
-    void SetTranslation(const glm::vec3& translation) { m_translation = translation; m_dirty = true; }
-    void SetRotation(const glm::vec3& rotation) { m_rotation = rotation; m_dirty = true; }
-    void SetScale(const glm::vec3& scale) { m_scale = scale; m_dirty = true; }
+    std::shared_ptr<Transform> SetTranslation(const glm::vec3& translation) { m_translation = translation; m_dirty = true; return shared_from_this(); }
+    std::shared_ptr<Transform> SetRotation(const glm::vec3& rotation) { m_rotation = rotation; m_dirty = true; return shared_from_this(); }
+    std::shared_ptr<Transform> SetScale(const glm::vec3& scale) { m_scale = scale; m_dirty = true; return shared_from_this(); }
     const glm::vec3& GetTranslation() { return m_translation; }
     const glm::vec3& GetRotation() { return m_rotation; }
     const glm::vec3& GetScale() { return m_scale; }

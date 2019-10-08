@@ -25,8 +25,8 @@ public:
     virtual void SetViewProjectionMatrix(const glm::mat4& vp) override;
     virtual void SetTransformMatrix(const glm::mat4& trans) override;
 
-    virtual std::shared_ptr<Shader> LoadFile(const std::string& filepath) override;
-    virtual std::shared_ptr<Shader> LoadSource(const std::string& srcVertex, const std::string& srcFragment) override;
+    virtual std::shared_ptr<Shader> LoadFromFile(const std::string& filepath) override;
+    virtual std::shared_ptr<Shader> LoadFromSource(const std::string& srcVertex, const std::string& srcFragment) override;
 
 protected:
     virtual int _UpdateLocations(const std::string& name) override;

@@ -24,13 +24,10 @@ ExampleLayer::ExampleLayer()
     Renderer::SetAPIType(Renderer::API::OpenGL);
     m_camera = std::make_shared<OrthographicCamera>(-2, +2, -2, +2);
 
-    _PrepareAssets();
-
-    m_reTri = std::make_shared<Renderer::Element>(Renderer::Assets<Mesh>::Instance().Get("mesh_tri"), Renderer::Assets<Material>::Instance().Get("mtr_tri"));
-    m_reQuad = std::make_shared<Renderer::Element>(Renderer::Assets<Mesh>::Instance().Get("mesh_quad"), Renderer::Assets<Material>::Instance().Get("mtr_quad"));
+    _PrepareResources();
 }
 
-void ExampleLayer::_PrepareAssets()
+void ExampleLayer::_PrepareResources()
 {
     float vertices[3*7] = 
     {
@@ -95,26 +92,21 @@ void ExampleLayer::_PrepareAssets()
     positionBuffer_quad->SetLayout(layoutPosition_quad);
     colorBuffer_quad->SetLayout(layoutColor_quad);
 
+    Renderer::Resources::Create<Mesh>("mesh_tri")->Set(indexBuffer_tri, {vertexBuffer_tri});
+    Renderer::Resources::Create<Mesh>("mesh_quad")->Set(indexBuffer_quad, {positionBuffer_quad, colorBuffer_quad});
+
     using MA = Material::Attribute;
-    Renderer::Assets<MA>::Instance().Add(std::make_shared<MA>("red", glm::value_ptr(glm::vec4(1, 0.1, 0.2, 1)), MA::Type::Float4));
-    Renderer::Assets<MA>::Instance().Add(std::make_shared<MA>("green", glm::value_ptr(glm::vec4(0.1, 1, 0.2, 1)), MA::Type::Float4));
-    Renderer::Assets<MA>::Instance().Add(std::make_shared<MA>("blue", glm::value_ptr(glm::vec4(0.1, 0.2, 1, 1)), MA::Type::Float4));
+    Renderer::Resources::Create<MA>("red")->Set(MA::Type::Float4, glm::value_ptr(glm::vec4(1, 0.1, 0.2, 1)));
+    Renderer::Resources::Create<MA>("green")->Set(MA::Type::Float4, glm::value_ptr(glm::vec4(0.1, 1, 0.2, 1)));
+    Renderer::Resources::Create<MA>("blue")->Set(MA::Type::Float4, glm::value_ptr(glm::vec4(0.1, 0.2, 1, 1)));
+    Renderer::Resources::Create<Material>("mtr_tri")->Set("u_Color", Renderer::Resources::Get<MA>("green"));
+    Renderer::Resources::Create<Material>("mtr_quad")->Set("u_Color", Renderer::Resources::Get<MA>("red"));
+    Renderer::Resources::Create<Shader>("basic")->LoadFromFile("/home/garra/study/dnn/assets/shader/basic.glsl");
+    Renderer::Resources::Create<Renderer::Element>("ele_tri")->Set(Renderer::Resources::Get<Mesh>("mesh_tri"), Renderer::Resources::Get<Material>("mtr_tri"));
+    Renderer::Resources::Create<Renderer::Element>("ele_quad")->Set(Renderer::Resources::Get<Mesh>("mesh_quad"), Renderer::Resources::Get<Material>("mtr_quad"));
 
-    std::shared_ptr<Mesh> meshTri = Renderer::Assets<Mesh>::Instance().Create("mesh_tri");
-    std::shared_ptr<Mesh> meshQuad = Renderer::Assets<Mesh>::Instance().Create("mesh_quad");
-    std::shared_ptr<Material> materialTri = Renderer::Assets<Material>::Instance().Create("mtr_tri");
-    std::shared_ptr<Material> materialQuad = Renderer::Assets<Material>::Instance().Create("mtr_quad");
-
-    meshTri->SetIndexBuffer(indexBuffer_tri);
-    meshTri->AddVertexBuffer(vertexBuffer_tri);
-    meshQuad->SetIndexBuffer(indexBuffer_quad);
-    meshQuad->AddVertexBuffer(positionBuffer_quad);
-    meshQuad->AddVertexBuffer(colorBuffer_quad);
-
-    materialTri->SetAttribute("u_Color", Renderer::Assets<MA>::Instance().Get("green"));
-    materialQuad->SetAttribute("u_Color", Renderer::Assets<MA>::Instance().Get("red"));
-
-    Renderer::Assets<Shader>::Instance().Create("basic")->LoadFile("/home/garra/study/dnn/assets/shader/basic.glsl");
+    Renderer::Resources::Create<Transform>("tf_tri");
+    Renderer::Resources::Create<Transform>("tf_quad")->SetScale(glm::vec3(0.1f));
 }
     
 void ExampleLayer::OnEvent(Event& e)
@@ -157,9 +149,7 @@ void ExampleLayer::_UpdateCamera(float deltaTime)
     if(Input::IsKeyPressed(KEY_P))
     {
         m_camera->Revert();
-        m_transformQuad->SetTranslation(glm::vec3(0));
-        m_transformQuad->SetRotation(glm::vec3(0));
-        m_transformQuad->SetScale(glm::vec3(0.1f));
+        Renderer::Resources::Get<Transform>("tf_quad")->Set(glm::vec3(0), glm::vec3(0), glm::vec3(0.1f));
     }
 }
 
@@ -167,63 +157,68 @@ void ExampleLayer::_UpdateQuads(float deltaTime)
 {
     float displacement = m_speedTranslate*deltaTime;
     float degree = m_speedRotate*deltaTime;
+    std::shared_ptr<Transform> tf_quad = Renderer::Resources::Get<Transform>("tf_quad");
+
     if(Input::IsKeyPressed(KEY_Z))
     {
-        m_transformQuad->Translate({-displacement, 0, 0});
+        tf_quad->Translate({-displacement, 0, 0});
     }
     if(Input::IsKeyPressed(KEY_V))
     {
-        m_transformQuad->Translate({+displacement, 0, 0});
+        tf_quad->Translate({+displacement, 0, 0});
     }
     if(Input::IsKeyPressed(KEY_X))
     {
-        m_transformQuad->Translate({0, -displacement, 0});
+        tf_quad->Translate({0, -displacement, 0});
     }
     if(Input::IsKeyPressed(KEY_C))
     {
-        m_transformQuad->Translate({0, +displacement, 0});
+        tf_quad->Translate({0, +displacement, 0});
     }
     if(Input::IsKeyPressed(KEY_W))
     {
-        m_transformQuad->Scale(-glm::vec3(0.001f));
+        tf_quad->Scale(-glm::vec3(0.001f));
     }
     if(Input::IsKeyPressed(KEY_R))
     {
-        m_transformQuad->Scale(+glm::vec3(0.001f));
+        tf_quad->Scale(+glm::vec3(0.001f));
     }
     if(Input::IsKeyPressed(KEY_H))
     {
-        m_transformQuad->Rotate({0, 0, +degree});
+        tf_quad->Rotate({0, 0, +degree});
     }
     if(Input::IsKeyPressed(KEY_L))
     {
-        m_transformQuad->Rotate({0, 0, -degree});
+        tf_quad->Rotate({0, 0, -degree});
     }
 
     using MA = Material::Attribute;
-    std::shared_ptr<MA> red = Renderer::Assets<MA>::Instance().Get("red");
-    std::shared_ptr<MA> blue = Renderer::Assets<MA>::Instance().Get("blue");
+    std::shared_ptr<MA> red = Renderer::Resources::Get<MA>("red");
+    std::shared_ptr<MA> blue = Renderer::Resources::Get<MA>("blue");
+    std::shared_ptr<Material> mtr_quad = Renderer::Resources::Get<Material>("mtr_quad");
+    std::shared_ptr<Mesh> mesh_tri = Renderer::Resources::Get<Mesh>("mesh_tri");
+    std::shared_ptr<Mesh> mesh_quad = Renderer::Resources::Get<Mesh>("mesh_quad");
 
     for(int i=0; i<5; i++)
     {
         for(int j=0; j<5; j++)
         {
-            m_reQuad->SetTransform(m_transformQuad);
-            m_reQuad->SetMaterialAttribute("u_Color", (i+j)%2? red : blue);
-            Renderer::Submit(m_reQuad, Renderer::Assets<Shader>::Instance().Get("basic"));
-            m_transformQuad->Translate({ 0.15f, 0, 0 });
+            mesh_quad->SetTransform(tf_quad);
+            mtr_quad->Set("u_Color", (i+j)%2? red : blue);
+            Renderer::Submit("ele_quad", "basic");
+            tf_quad->Translate({ 0.15f, 0, 0 });
         }
-        m_transformQuad->Translate({-0.15f*5, 0, 0});
-        m_transformQuad->Translate({0, +0.15f, 0});
+        tf_quad->Translate({-0.15f*5, 0, 0});
+        tf_quad->Translate({0, +0.15f, 0});
     }
-    m_transformQuad->Translate({0, -0.15f*5, 0});
+    tf_quad->Translate({0, -0.15f*5, 0});
 }
 
 void ExampleLayer::_UpdateTri(float deltaTime)
 {
-    m_reTri->SetTransform(m_transformTri);
-    m_reTri->SetMaterialAttribute("u_Color", Renderer::Assets<Material::Attribute>::Instance().Get("green"));
-    Renderer::Submit(m_reTri, Renderer::Assets<Shader>::Instance().Get("basic"));
+    Renderer::Resources::Get<Mesh>("mesh_tri")->SetTransform(Renderer::Resources::Get<Transform>("tf_tri"));
+    Renderer::Resources::Get<Material>("mtr_tri")->Set("u_Color", Renderer::Resources::Get<Material::Attribute>("green"));
+    Renderer::Submit("ele_tri", "basic");
 }
 
 void ExampleLayer::_UpdateScene(float deltaTime)
@@ -244,8 +239,8 @@ void ExampleLayer::OnUpdate(float deltaTime)
 void ExampleLayer::OnImGuiRender()
 {
     using MA = Material::Attribute;
-    std::shared_ptr<MA> red = Renderer::Assets<MA>::Instance().Get("red");
-    std::shared_ptr<MA> green = Renderer::Assets<MA>::Instance().Get("green");
+    std::shared_ptr<MA> red = Renderer::Resources::Get<MA>("red");
+    std::shared_ptr<MA> green = Renderer::Resources::Get<MA>("green");
 
     ImGui::Begin("ExampleLayer");
     ImGui::Button("ExampleLayer");

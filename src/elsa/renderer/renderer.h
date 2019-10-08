@@ -50,27 +50,21 @@ public:
         static inline void DrawIndexed(const std::shared_ptr<BufferArray>& bufferArray) { s_api->DrawIndexed(bufferArray); }
     };
 
-    class Object
+    class Element : public Asset, public std::enable_shared_from_this<Element>
     {
     public:
-        virtual ~Object() {}
-        virtual void Bind(unsigned int slot=0) const = 0;
-        virtual void Unbind() const = 0;
-        unsigned int  ID() const { return m_id; }
+        Element(const std::string& name) : Asset(name) {}
+        static std::shared_ptr<Element> Create(const std::string& name) { return std::make_shared<Element>(name); }
+        std::shared_ptr<Element> Set(const std::shared_ptr<Mesh>& mesh, const std::shared_ptr<Material>& material)
+        {
+            m_mesh = mesh;
+            m_material = material;
+            return shared_from_this();
+        }
 
-    protected:
-        unsigned int  m_id = 0;
-    };
-
-    class Element
-    {
-    public:
-        Element(const std::shared_ptr<Mesh>& mesh, const std::shared_ptr<Material>& material) : m_mesh(mesh), m_material(material) {}
-        void SetMesh(const std::shared_ptr<Mesh>& mesh) { m_mesh = mesh; }
-        void SetMaterial(const std::shared_ptr<Material>& material) { m_material = material; }
-        void SetTransform(const std::shared_ptr<Transform>& transform) { m_mesh->SetTransform(transform); }
-        void SetMaterialAttribute(const std::string& name, const std::shared_ptr<Material::Attribute>& attribute) { m_material->SetAttribute(name, attribute); }
-        void Draw(const std::shared_ptr<Shader>& shader);
+        std::shared_ptr<Element> SetMesh(const std::shared_ptr<Mesh>& mesh) { m_mesh = mesh; return shared_from_this(); }
+        std::shared_ptr<Element> SetMaterial(const std::shared_ptr<Material>& material) { m_material = material; return shared_from_this(); }
+        void RenderedBy(const std::shared_ptr<Shader>& shader);
 
     private:
         std::shared_ptr<Mesh> m_mesh = nullptr;
@@ -86,23 +80,33 @@ public:
         bool Exist(const std::string& name) { return m_assets.find(name) != m_assets.end(); }
         std::shared_ptr<T> Create(const std::string& name="unnamed") { std::shared_ptr<T> asset = T::Create(name); Add(asset); return asset; }
         void Add(const std::shared_ptr<T>& asset) { const std::string& name = asset->GetName(); CORE_ASSERT(!Exist(name), "Assets::Add: asset already exist! "+name); m_assets[name] = asset; }
-        const std::shared_ptr<T>& Get(const std::string& name) { CORE_ASSERT(Exist(name), "Assets::Get: asset not found! "+name); return m_assets[name]; }
-
-    protected:
+        std::shared_ptr<T>& Get(const std::string& name) { CORE_ASSERT(Exist(name), "Assets::Get: asset not found! "+name); return m_assets[name]; }
     private:
         static Assets<T> s_instance;
         std::map<std::string, std::shared_ptr<T>> m_assets;
+    };
+
+    class Resources
+    {
+    public:
+        template<typename T>
+        static std::shared_ptr<T> Create(const std::string& name="unnamed") { return Assets<T>::Instance().Create(name); }
+        template<typename T>
+        static std::shared_ptr<T>& Get(const std::string& name) { return Assets<T>::Instance().Get(name); }
+        template<typename T>
+        static void Add(const std::shared_ptr<T>& asset) { Assets<T>::Instance().Add(asset); }
     };
 
 public:
 
     inline static API::Type GetAPIType() { return s_api->GetType(); }
     static void SetAPIType(API::Type apiType);
+    static void SetBackgroundColor(float r, float g, float b, float a) { Command::SetBackgroundColor(r, g, b, a); }
 
     static void BeginScene(std::shared_ptr<Camera>& camera) { s_camera = camera; }
-    static void EndScene() {}
-    static void SetBackgroundColor(float r, float g, float b, float a) { Command::SetBackgroundColor(r, g, b, a); }
     static void Submit(const std::shared_ptr<Element>& rendererElement, const std::shared_ptr<Shader>& shader);
+    static void Submit(const std::string& nameOfElement, const std::string& nameOfShader);
+    static void EndScene() {}
 
 
 private:
