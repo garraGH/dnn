@@ -103,7 +103,7 @@ public:
     static void SetAPIType(API::Type apiType);
     static void SetBackgroundColor(float r, float g, float b, float a) { Command::SetBackgroundColor(r, g, b, a); }
 
-    static void BeginScene(std::shared_ptr<Camera>& camera) { s_camera = camera; }
+    static void BeginScene(const std::shared_ptr<Camera>& camera) { s_camera = camera; }
     static void Submit(const std::shared_ptr<Element>& rendererElement, const std::shared_ptr<Shader>& shader);
     static void Submit(const std::string& nameOfElement, const std::string& nameOfShader);
     static void EndScene() {}

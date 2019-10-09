@@ -14,15 +14,16 @@
 #include "../renderer/buffer/buffer_opengl.h"
 #include "../renderer/camera/camera_orthographic.h"
 #include "../input/input.h"
-#include "glm/gtx/string_cast.hpp"
 #include "../renderer/mesh/mesh.h"
 #include "../renderer/material/material.h"
+#include "../core.h"
+#include "glm/gtc/type_ptr.hpp"
+#include "glm/gtx/string_cast.hpp"
 
 
 ExampleLayer::ExampleLayer()
 {
     Renderer::SetAPIType(Renderer::API::OpenGL);
-    m_camera = std::make_shared<OrthographicCamera>(-2, +2, -2, +2);
 
     _PrepareResources();
 }
@@ -112,48 +113,26 @@ void ExampleLayer::_PrepareResources()
 void ExampleLayer::OnEvent(Event& e)
 {
     TRACE("ExampleLayer: event {}", e);
+    EventDispatcher dispatcher(e);
+    dispatcher.Dispatch<KeyPressedEvent>(BIND_EVENT_CALLBACK(ExampleLayer, _OnKeyPressed));
+    m_cameraController->OnEvent(e);
 }
 
-void ExampleLayer::_UpdateCamera(float deltaTime)
+bool ExampleLayer::_OnKeyPressed(KeyPressedEvent& e)
 {
-    float distance = m_speedTranslate*deltaTime;
-    float angle = m_speedRotate*deltaTime;
-
-
-    if(Input::IsKeyPressed(KEY_LEFT) || Input::IsKeyPressed(KEY_S))
+    if(e.GetKeyCode() == KEY_p)
     {
-        CORE_INFO("KEY_LEFT");
-        m_camera->Translate({+distance, 0, 0});
-    }
-    if(Input::IsKeyPressed(KEY_RIGHT) || Input::IsKeyPressed(KEY_F))
-    {
-        m_camera->Translate({-distance, 0, 0});
-    }
-    if(Input::IsKeyPressed(KEY_UP) || Input::IsKeyPressed(KEY_E))
-    {
-        m_camera->Translate({0, -distance, 0});
-    }
-    if(Input::IsKeyPressed(KEY_DOWN) || Input::IsKeyPressed(KEY_D))
-    {
-        m_camera->Translate({0, +distance, 0});
-    }
-
-    if(Input::IsKeyPressed(KEY_J))
-    {
-        m_camera->Rotate({0, 0, +angle});
-    }
-    if(Input::IsKeyPressed(KEY_K))
-    {
-        m_camera->Rotate({0, 0, -angle});
-    }
-    if(Input::IsKeyPressed(KEY_P))
-    {
-        m_camera->Revert();
+        m_cameraController->Revert();
         Renderer::Resources::Get<Transform>("tf_quad")->Set(glm::vec3(0), glm::vec3(0), glm::vec3(0.1f));
     }
 }
 
-void ExampleLayer::_UpdateQuads(float deltaTime)
+void ExampleLayer::_UpdateCamera(float deltaTime)
+{
+    m_cameraController->OnUpdate(deltaTime);
+}
+
+void ExampleLayer::_TransformQuads(float deltaTime)
 {
     float displacement = m_speedTranslate*deltaTime;
     float degree = m_speedRotate*deltaTime;
@@ -175,11 +154,11 @@ void ExampleLayer::_UpdateQuads(float deltaTime)
     {
         tf_quad->Translate({0, +displacement, 0});
     }
-    if(Input::IsKeyPressed(KEY_W))
+    if(Input::IsKeyPressed(KEY_U))
     {
         tf_quad->Scale(-glm::vec3(0.001f));
     }
-    if(Input::IsKeyPressed(KEY_R))
+    if(Input::IsKeyPressed(KEY_I))
     {
         tf_quad->Scale(+glm::vec3(0.001f));
     }
@@ -191,6 +170,11 @@ void ExampleLayer::_UpdateQuads(float deltaTime)
     {
         tf_quad->Rotate({0, 0, -degree});
     }
+}
+
+void ExampleLayer::_UpdateQuads(float deltaTime)
+{
+    _TransformQuads(deltaTime);
 
     using MA = Material::Attribute;
     std::shared_ptr<MA> red = Renderer::Resources::Get<MA>("red");
@@ -199,6 +183,7 @@ void ExampleLayer::_UpdateQuads(float deltaTime)
     std::shared_ptr<Mesh> mesh_tri = Renderer::Resources::Get<Mesh>("mesh_tri");
     std::shared_ptr<Mesh> mesh_quad = Renderer::Resources::Get<Mesh>("mesh_quad");
 
+    std::shared_ptr<Transform> tf_quad = Renderer::Resources::Get<Transform>("tf_quad");
     for(int i=0; i<5; i++)
     {
         for(int j=0; j<5; j++)
@@ -223,7 +208,7 @@ void ExampleLayer::_UpdateTri(float deltaTime)
 
 void ExampleLayer::_UpdateScene(float deltaTime)
 {
-    Renderer::BeginScene(m_camera);
+    Renderer::BeginScene(m_cameraController->GetCamera());
     Renderer::SetBackgroundColor(0.1, 0.1, 0.1, 1);
     _UpdateTri(deltaTime);
     _UpdateQuads(deltaTime);

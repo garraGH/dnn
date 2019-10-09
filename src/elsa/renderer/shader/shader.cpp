@@ -31,7 +31,7 @@ int Shader::GetLocation(const std::string& name)
 {
     auto result = m_locations.find(name);
     int location =  result != m_locations.end()? result->second : _UpdateLocations(name);
-    INFO("Shader::GetLocation: {}, {}", name, location);
+//     INFO("Shader::GetLocation: {}, {}", name, location);
     return location;
 }
 

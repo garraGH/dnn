@@ -10,13 +10,28 @@
 
 
 #include "camera.h"
+#include "../../core.h"
 #include "glm/gtc/matrix_transform.hpp"
+#include "camera_orthographic.h"
+#include "camera_perspective.h"
+#include "../../input/input.h"
 // #include "glm/gtx/string_cast.hpp"
 // #include "logger.h"
 
-Camera::Camera()
+std::shared_ptr<Camera> Camera::Create(Type type)
 {
+    switch(type)
+    {
+        case Type::Orthographic: return std::make_shared<OrthographicCamera>();
+        case Type::Perspective: return std::make_shared<PerspectiveCamera>();
+        default: CORE_ASSERT(false, "Unknown Camera Type!"); return nullptr;
+    }
+}
 
+Camera::Camera()
+    : m_type(Type::Unknown)
+{
+    
 }
 
 Camera::~Camera()
@@ -24,24 +39,103 @@ Camera::~Camera()
 
 }
 
-void Camera::_UpdateViewMatrix()
+void Camera::_Update()
 {
-    if(!m_dirty)
+    if(_NotDirty())
     {
         return;
     }
-    m_dirty = false;
+
+    _UpdateAsp();
+    _UpdatePose();
+    _UpdateViewProjection();
+}
+
+void Camera::_UpdatePose()
+{
+    if(!m_poseDirty)
+    {
+        return;
+    }
 
     glm::mat4 transform = glm::rotate(glm::mat4(1.0f), glm::radians(m_rotation.x), glm::vec3(1, 0, 0)) 
                         * glm::rotate(glm::mat4(1.0f), glm::radians(m_rotation.y), glm::vec3(0, 1, 0)) 
                         * glm::rotate(glm::mat4(1.0f), glm::radians(m_rotation.z), glm::vec3(0, 0, -1))   // make positive rotate ccw
-                        * glm::translate(glm::mat4(1.0f), m_position);
-    
+                        * glm::translate(glm::mat4(1.0f), m_translation);
     m_matView = glm::inverse(transform);
+    m_poseDirty = false;
+}
+    
+void Camera::_UpdateViewProjection()
+{
     m_matViewProjection = m_matProjection*m_matView;
+}
 
-//     CORE_INFO("Camera::_UpdateViewMatrix");
-//     CORE_INFO("View: {}", glm::to_string(m_matView));
-//     CORE_INFO("Proj: {}", glm::to_string(m_matProjection));
-//     CORE_INFO("ViPr: {}", glm::to_string(m_matViewProjection));
+
+//////////////////////////////////////////
+//
+CameraContoller::CameraContoller(Camera::Type type)
+{
+    m_camera = Camera::Create(type);
+}
+
+void CameraContoller::OnUpdate(float deltaTime)
+{
+    if(Input::IsKeyPressed(KEY_S))
+    {
+        m_camera->Translate({+deltaTime*m_speedTrans, 0, 0});
+    }
+    if(Input::IsKeyPressed(KEY_F))
+    {
+        m_camera->Translate({-deltaTime*m_speedTrans, 0, 0});
+    }
+    if(Input::IsKeyPressed(KEY_W))
+    {
+        m_camera->Translate({0, +deltaTime*m_speedTrans, 0});
+    }
+    if(Input::IsKeyPressed(KEY_R))
+    {
+        m_camera->Translate({0, -deltaTime*m_speedTrans, 0});
+    }
+    if(Input::IsKeyPressed(KEY_E))
+    {
+        m_camera->Scale(-deltaTime*m_speedScale);
+    }
+    if(Input::IsKeyPressed(KEY_D))
+    {
+        m_camera->Scale(+deltaTime*m_speedScale);
+    }
+
+    if(m_rotationEnabled)
+    {
+        if(Input::IsKeyPressed(KEY_K))
+        {
+            m_camera->Rotate({0, 0, -deltaTime*m_speedRotat});
+        }
+        if(Input::IsKeyPressed(KEY_J))
+        {
+            m_camera->Rotate({0, 0, +deltaTime*m_speedRotat});
+        }
+    }
+}
+
+
+void CameraContoller::OnEvent(Event& e)
+{
+    EventDispatcher dispatcher(e);
+    dispatcher.Dispatch<MouseScrolledEvent>(BIND_EVENT_CALLBACK(CameraContoller, _OnMouseScrolled));
+    dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_CALLBACK(CameraContoller, _OnWindowResized));
+}
+
+bool CameraContoller::_OnMouseScrolled(MouseScrolledEvent& e)
+{
+    m_camera->Scale(-e.GetOffsetY()*m_speedScale);
+    return false;
+}
+
+
+bool CameraContoller::_OnWindowResized(WindowResizeEvent& e)
+{
+    m_camera->SetAspectRatio((float)e.GetWidth()/e.GetHeight());
+    return false;
 }

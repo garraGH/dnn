@@ -16,7 +16,6 @@
 #include "timer_cpu.h"
 #include "core.h"
 #include "../input/input.h"
-#define BIND_EVENT_CALLBACK(x) std::bind(&Application::x,  this, std::placeholders::_1)
 Application* Application::s_instance = nullptr;
 
 Application::Application()
@@ -27,7 +26,7 @@ Application::Application()
     s_instance = this;
 
     m_window = std::unique_ptr<Window>(Window::Create(WindowsProps("Elsa", 1000, 1000)));
-    m_window->SetEventCallback(BIND_EVENT_CALLBACK(OnEvent));
+    m_window->SetEventCallback(BIND_EVENT_CALLBACK(Application, OnEvent));
 
     m_layerImGui = new ImGuiLayer;
     PushOverlay(m_layerImGui);
@@ -52,7 +51,7 @@ void Application::OnEvent(Event& e)
 {
     CORE_TRACE("{0}", e);
     EventDispatcher ed(e);
-#define DISPATCH(event) ed.Dispatch<event>(BIND_EVENT_CALLBACK(_On##event))
+#define DISPATCH(event) ed.Dispatch<event>(BIND_EVENT_CALLBACK(Application, _On##event))
     DISPATCH(WindowCloseEvent);
     DISPATCH(KeyPressedEvent);
     DISPATCH(KeyReleasedEvent);

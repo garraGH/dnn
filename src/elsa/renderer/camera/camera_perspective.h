@@ -12,7 +12,7 @@
 #pragma once
 #include "camera.h"
 
-class PerspectiveCamera
+class PerspectiveCamera : public Camera
 {
 public:
     PerspectiveCamera();

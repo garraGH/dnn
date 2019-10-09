@@ -22,3 +22,5 @@
     #define ASSERT(x, ...)
     #define CORE_ASSERT(x, ...)
 #endif
+
+#define BIND_EVENT_CALLBACK(Class, Method) std::bind(&Class::Method, this, std::placeholders::_1)

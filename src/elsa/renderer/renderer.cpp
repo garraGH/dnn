@@ -13,7 +13,8 @@
 #include "api/api_opengl.h"
 
 std::shared_ptr<Camera> Renderer::s_camera = nullptr;
-std::unique_ptr<Renderer::API> Renderer::s_api = nullptr;
+std::unique_ptr<Renderer::API> Renderer::s_api = std::make_unique<OpenGLAPI>();
+
 Renderer::API::Type Renderer::API::s_type = API::Type::UNKOWN;
 
 
@@ -21,12 +22,12 @@ void Renderer::SetAPIType(API::Type apiType)
 {
     if(s_api && apiType==s_api->GetType())
     {
-        return ;
+        return;
     }
 
     switch(apiType)
     {
-        case API::OpenGL: s_api.reset(new OpenGLAPI()); break;
+        case API::OpenGL: s_api = std::make_unique<OpenGLAPI>(); break;
         default: CORE_ASSERT(false, "Renderer::SetAPIType: API is currently not supported!");
     }
 }

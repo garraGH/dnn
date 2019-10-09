@@ -29,6 +29,7 @@ public:
     const glm::vec3& GetRotation() { return m_rotation; }
     const glm::vec3& GetScale() { return m_scale; }
 
+    void Revert() { m_translation = glm::vec3(0.0f); m_rotation = glm::vec3(0.0f); m_scale = glm::vec3(1.0f); m_dirty = true; }
     void Translate(const glm::vec3& displacement) { m_translation += displacement; m_dirty = true; }
     void Rotate(const glm::vec3& degree) { m_rotation += degree; m_dirty = true; }
     void Scale(const glm::vec3& size) { m_scale += size; m_dirty = true; }
