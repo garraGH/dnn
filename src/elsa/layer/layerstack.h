@@ -20,15 +20,17 @@ public:
     LayerStack();
     ~LayerStack();
 
-    void PushLayer(Layer* layer);
-    void PopLayer(Layer* layer);
-    void PushOverlay(Layer* overlay);
-    void PopOverlay(Layer* overlay);
+    void PushLayer(const std::shared_ptr<Layer>& layer);
+    void PopLayer(const std::shared_ptr<Layer>& layer);
+    void PushOverlay(const std::shared_ptr<Layer>& overlay);
+    void PopOverlay(const std::shared_ptr<Layer>& overlay);
 
     auto begin() { return m_layers.begin(); }
     auto end() { return m_layers.end(); }
 
+    static std::unique_ptr<LayerStack> Create();
+
 private:
-    std::vector<Layer*> m_layers;
+    std::vector<std::shared_ptr<Layer>> m_layers;
     unsigned int m_layerInsertIndex = 0;
 };

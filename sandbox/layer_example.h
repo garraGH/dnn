@@ -21,6 +21,8 @@ public:
     void OnUpdate(float deltaTime) override;
     void OnImGuiRender() override;
  
+    static std::shared_ptr<ExampleLayer> Create();
+
 protected:
     bool _OnKeyPressed(KeyPressedEvent& e);
     void _UpdateScene(float deltaTime);

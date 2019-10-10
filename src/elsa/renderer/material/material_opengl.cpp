@@ -20,7 +20,7 @@ std::shared_ptr<Material> Material::Create(const std::string& name)
 
 void OpenGLMaterial::Bind(const std::shared_ptr<Shader>& shader)
 {
-    if(shader == m_shader && !m_dirty)
+    if( !shader || (shader == m_shader && !m_dirty))
     {
         return;
     }

@@ -18,6 +18,11 @@
 #include "../window/window_x11.h"
 #include "logger.h"
 
+std::shared_ptr<ImGuiLayer> ImGuiLayer::Create()
+{
+    return std::make_shared<ImGuiLayer>();
+}
+
 ImGuiLayer::ImGuiLayer()
     : Layer( "ImGuiLayer" )
 {

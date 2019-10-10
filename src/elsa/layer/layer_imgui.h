@@ -28,4 +28,6 @@ public:
     void Begin();
     void OnImGuiRender() override;
     void End();
+
+    static std::shared_ptr<ImGuiLayer> Create();
 };

@@ -44,12 +44,18 @@ void Renderer::Submit(const std::shared_ptr<Renderer::Element>& rendererElement,
 
 void Renderer::Element::RenderedBy(const std::shared_ptr<Shader>& shader)
 {
+    CORE_ASSERT(shader, "Renderer::Element::RenderedBy: Must Bind a shader to render.");
+
     if(s_camera->IsDirty())
     {
         shader->SetViewProjectionMatrix(s_camera->GetViewProjectionMatrix());
     }
 
-    m_material->Bind(shader);
+    if(m_material)
+    {
+        m_material->Bind(shader);
+    }
+
     m_mesh->Bind(shader);
     Renderer::Command::DrawIndexed(m_mesh->GetBufferArray());
 }

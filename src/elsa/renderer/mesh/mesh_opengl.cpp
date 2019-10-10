@@ -19,7 +19,7 @@ std::shared_ptr<Mesh> Mesh::Create(const std::string& name)
 void OpenGLMesh::Bind(const std::shared_ptr<Shader>& shader)
 {
     m_bufferArray->Bind(shader);
-    if(m_shader == shader && !m_dirty)
+    if(!shader || (m_shader == shader && !m_dirty))
     {
         return;
     }

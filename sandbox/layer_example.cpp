@@ -14,11 +14,14 @@
 #include "glm/gtx/string_cast.hpp"
 #include "imgui.h"
 
+std::shared_ptr<ExampleLayer> ExampleLayer::Create()
+{
+    return std::make_shared<ExampleLayer>();
+}
 
 ExampleLayer::ExampleLayer()
+    : Layer("ExampleLayer")
 {
-    Renderer::SetAPIType(Renderer::API::OpenGL);
-
     _PrepareResources();
 }
 

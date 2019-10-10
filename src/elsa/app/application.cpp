@@ -29,8 +29,10 @@ Application::Application()
     m_window = std::unique_ptr<Window>(Window::Create(WindowsProps("Elsa", 1000, 1000)));
     m_window->SetEventCallback(BIND_EVENT_CALLBACK(Application, OnEvent));
 
-    m_layerImGui = new ImGuiLayer;
+    m_layerStack = LayerStack::Create();
+    m_layerImGui = ImGuiLayer::Create();
     PushOverlay(m_layerImGui);
+
     
 
 #define REGISTER_KEY_PRESSED_FUNCTION(key) m_keyPressed[#key[0]] = std::bind(&Application::_OnKeyPressed_##key, this, std::placeholders::_1)
@@ -58,7 +60,7 @@ void Application::OnEvent(Event& e)
     DISPATCH(KeyPressedEvent);
     DISPATCH(KeyReleasedEvent);
 #undef DISPATCH
-    for(auto it = m_layerStack.end(); it != m_layerStack.begin();)
+    for(auto it = m_layerStack->end(); it != m_layerStack->begin();)
     {
         (*--it)->OnEvent(e);
         if(e.IsHandled())
@@ -80,6 +82,7 @@ _ON(WindowResizeEvent)
 {
     INFO("Resized: %d, %d", e.GetWidth(), e.GetHeight());
     Renderer::OnWindowResized(e.GetWidth(), e.GetHeight());
+    return false;
 }
 
 _ON(KeyPressedEvent)
@@ -111,13 +114,13 @@ void Application::Run()
 
     while(m_running)
     {
-        for(Layer* layer : m_layerStack)
+        for(auto& layer : *m_layerStack.get())
         {
             layer->OnUpdate(m_timer->GetDeltaTime());
         }
 
         m_layerImGui->Begin();
-        for(Layer* layer : m_layerStack)
+        for(auto& layer : *m_layerStack.get())
         {
             layer->OnImGuiRender();
         }
@@ -154,16 +157,16 @@ bool Application::_OnKeyReleased_Q()
     return true;
 }
 
-void Application::PushLayer(Layer* layer)
+void Application::PushLayer(const std::shared_ptr<Layer>& layer)
 {
     layer->OnAttach();
-    m_layerStack.PushLayer(layer);
+    m_layerStack->PushLayer(layer);
 }
 
-void Application::PushOverlay(Layer* layer)
+void Application::PushOverlay(const std::shared_ptr<Layer>& layer)
 {
     layer->OnAttach();
-    m_layerStack.PushOverlay(layer);
+    m_layerStack->PushOverlay(layer);
 }
 
 #undef BIND_EVENT_CALLBACK

@@ -148,7 +148,7 @@ void OpenGLBufferArray::SetIndexBuffer(const std::shared_ptr<Buffer>& buffer)
 void OpenGLBufferArray::Bind(const std::shared_ptr<Shader>& shader)
 {
     Bind();
-    if(shader == m_shader)
+    if(!shader || shader == m_shader)
     {
         return ;
     }

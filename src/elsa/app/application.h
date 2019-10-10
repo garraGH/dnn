@@ -30,8 +30,8 @@ public:
 
     virtual void Run();
 
-    void PushLayer(Layer* layer);
-    void PushOverlay(Layer* layer);
+    void PushLayer(const std::shared_ptr<Layer>& layer);
+    void PushOverlay(const std::shared_ptr<Layer>& layer);
 
     inline Window* GetWindow() const { return m_window.get(); }
     inline static Application* Get() { return s_instance; }
@@ -58,12 +58,12 @@ private:
     
     
 private:
-    std::unique_ptr<Window> m_window;
-    ImGuiLayer* m_layerImGui;
     bool m_running;
+    std::unique_ptr<Window> m_window;
+    std::shared_ptr<ImGuiLayer> m_layerImGui;
     std::map<int, std::function<bool(int)>> m_keyPressed;
     std::map<int, std::function<bool()>> m_keyReleased;
-    LayerStack m_layerStack;
+    std::unique_ptr<LayerStack> m_layerStack;
     std::unique_ptr<TimerCPU> m_timer;
 
 private:

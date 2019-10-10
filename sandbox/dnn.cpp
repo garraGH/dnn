@@ -12,6 +12,7 @@
 #define LOG_TRACE
 #include <stdio.h>
 #include "layer_example.h"
+#include "layer_shadertoy.h"
 #include "logger.h"
 
 
@@ -21,7 +22,10 @@ class DNN : public Application
 public:
     DNN()
     {
-        PushLayer(new ExampleLayer());
+        Renderer::SetAPIType(Renderer::API::OpenGL);
+
+//         PushLayer(ExampleLayer::Create());
+        PushLayer(ShaderToyLayer::Create());
     }
 
     ~DNN()
