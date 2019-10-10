@@ -33,6 +33,7 @@ public:
     
     inline const glm::vec3& GetTranslation() const { return m_translation; }
     inline const glm::vec3& GetRotation() const { return m_rotation; }
+    inline const float GetScale() const { return m_scale; }
     inline void SetTranslation(const glm::vec3& translation) { m_translation = translation; m_poseDirty = true; }
     inline virtual void SetRotation(const glm::vec3& rotation) { m_rotation = rotation; m_poseDirty = true; }
     inline virtual void SetRotationX(float rx) { m_rotation.x = rx; } 

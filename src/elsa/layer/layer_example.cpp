@@ -227,6 +227,8 @@ void ExampleLayer::OnImGuiRender()
     std::shared_ptr<MA> red = Renderer::Resources::Get<MA>("red");
     std::shared_ptr<MA> green = Renderer::Resources::Get<MA>("green");
 
+    m_cameraController->OnImGuiRender();
+
     ImGui::Begin("ExampleLayer");
     ImGui::Button("ExampleLayer");
     ImGui::ColorPicker4("color_tri", (float*)green->GetData());

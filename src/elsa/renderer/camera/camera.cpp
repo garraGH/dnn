@@ -10,13 +10,14 @@
 
 
 #include "camera.h"
-#include "../../core.h"
 #include "glm/gtc/matrix_transform.hpp"
 #include "camera_orthographic.h"
 #include "camera_perspective.h"
-#include "../../input/input.h"
-// #include "glm/gtx/string_cast.hpp"
+#include "imgui.h"
+#include "glm/gtx/string_cast.hpp"
 // #include "logger.h"
+#include "../../core.h"
+#include "../../input/input.h"
 
 std::shared_ptr<Camera> Camera::Create(Type type)
 {
@@ -138,4 +139,23 @@ bool CameraContoller::_OnWindowResized(WindowResizeEvent& e)
 {
     m_camera->SetAspectRatio((float)e.GetWidth()/e.GetHeight());
     return false;
+}
+
+void CameraContoller::OnImGuiRender()
+{
+    ImGui::Begin("CameraContoller");
+
+    ImGui::DragFloat("speed of translation", &m_speedTrans,  0.05f,  0.01f,  2.0f);
+    ImGui::DragFloat("speed of rotation", &m_speedRotat,  1.0f,  1.0f,  180.0f);
+    ImGui::DragFloat("speed of scale", &m_speedScale,  0.02f,  0.01f,  20.0f);
+    ImGui::Checkbox("enable rotation", &m_rotationEnabled);
+    if(ImGui::Button("revert"))
+    {
+        Revert();
+    }
+    ImGui::Text("translation: %s",  glm::to_string(m_camera->GetTranslation()).c_str());
+    ImGui::Text("   rotation: %s",  glm::to_string(m_camera->GetRotation()).c_str());
+    ImGui::Text("      scale: %6.3f",  m_camera->GetScale());
+
+    ImGui::End();
 }
