@@ -16,6 +16,7 @@
 #include "timer_cpu.h"
 #include "core.h"
 #include "../input/input.h"
+#include "../renderer/renderer.h"
 Application* Application::s_instance = nullptr;
 
 Application::Application()
@@ -53,6 +54,7 @@ void Application::OnEvent(Event& e)
     EventDispatcher ed(e);
 #define DISPATCH(event) ed.Dispatch<event>(BIND_EVENT_CALLBACK(Application, _On##event))
     DISPATCH(WindowCloseEvent);
+    DISPATCH(WindowResizeEvent);
     DISPATCH(KeyPressedEvent);
     DISPATCH(KeyReleasedEvent);
 #undef DISPATCH
@@ -72,6 +74,12 @@ _ON(WindowCloseEvent)
     INFO("CLOSED");
     m_running = false;
     return true;
+}
+
+_ON(WindowResizeEvent)
+{
+    INFO("Resized: %d, %d", e.GetWidth(), e.GetHeight());
+    Renderer::OnWindowResized(e.GetWidth(), e.GetHeight());
 }
 
 _ON(KeyPressedEvent)

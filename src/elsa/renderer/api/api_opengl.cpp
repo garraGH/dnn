@@ -17,6 +17,11 @@ OpenGLAPI::OpenGLAPI()
     s_type = OpenGL;
 }
 
+void OpenGLAPI::ResizeWindow(unsigned int width, unsigned int height)
+{
+    glad_glViewport(0, 0, width, height);
+}
+
 void OpenGLAPI::SetBackgroundColor(float r, float g, float b, float a)
 {
     glad_glClearColor(r, g, b, a);

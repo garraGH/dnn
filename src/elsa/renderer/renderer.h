@@ -35,6 +35,7 @@ public:
         };
 
         virtual void SetBackgroundColor(float r, float g, float b, float a) = 0;
+        virtual void ResizeWindow(unsigned int width, unsigned int height) = 0;
         virtual void DrawIndexed(const std::shared_ptr<BufferArray>& bufferArray) = 0;
 
         static inline Type GetType() { return s_type; }
@@ -47,6 +48,7 @@ public:
     {
     public:
         static inline void SetBackgroundColor(float r, float g, float b, float a) { s_api->SetBackgroundColor(r, g, b, a); }
+        static inline void ResizeWindow(unsigned int width, unsigned int height) { s_api->ResizeWindow(width, height); }
         static inline void DrawIndexed(const std::shared_ptr<BufferArray>& bufferArray) { s_api->DrawIndexed(bufferArray); }
     };
 
@@ -102,6 +104,7 @@ public:
     inline static API::Type GetAPIType() { return s_api->GetType(); }
     static void SetAPIType(API::Type apiType);
     static void SetBackgroundColor(float r, float g, float b, float a) { Command::SetBackgroundColor(r, g, b, a); }
+    static void OnWindowResized(unsigned int width, unsigned int height) { Command::ResizeWindow(width, height); }
 
     static void BeginScene(const std::shared_ptr<Camera>& camera) { s_camera = camera; }
     static void Submit(const std::shared_ptr<Element>& rendererElement, const std::shared_ptr<Shader>& shader);
