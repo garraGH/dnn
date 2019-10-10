@@ -10,15 +10,9 @@
 
 
 #include "layer_example.h"
-#include "../renderer/shader/shader_glsl.h"
-#include "../renderer/buffer/buffer_opengl.h"
-#include "../renderer/camera/camera_orthographic.h"
-#include "../input/input.h"
-#include "../renderer/mesh/mesh.h"
-#include "../renderer/material/material.h"
-#include "../core.h"
 #include "glm/gtc/type_ptr.hpp"
 #include "glm/gtx/string_cast.hpp"
+#include "imgui.h"
 
 
 ExampleLayer::ExampleLayer()

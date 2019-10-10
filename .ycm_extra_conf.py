@@ -56,6 +56,7 @@ flags = [
         '-isystem/usr/include/', 
         '-isystem/usr/local/cuda/include/',
         '-ISUBdeps/',
+        '-I./src/elsa',
         '-I./src/utils/',
         '-I./deps/modules/glm/',
         '-I./deps/modules/spdlog/include/',

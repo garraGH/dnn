@@ -1,6 +1,0 @@
-set_languages("c++17")
-includes("../pkg_src/elsa/xmake_cpu.lua")
-target("sandbox")
-    set_kind("binary")
-    add_files("*.cpp")
-    add_deps("elsa")

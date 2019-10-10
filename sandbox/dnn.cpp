@@ -11,7 +11,7 @@
 
 #define LOG_TRACE
 #include <stdio.h>
-#include "elsa.h"
+#include "layer_example.h"
 #include "logger.h"
 
 

@@ -10,9 +10,9 @@
 
 
 #pragma once
+#include "core.h"
 #include "app/application.h"
 #include "layer/layer.h"
-#include "layer/layer_example.h"
 #include "layer/layer_imgui.h"
 
 #include "window/window.h"

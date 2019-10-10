@@ -10,12 +10,7 @@
 
 
 #pragma once
-#include "layer.h"
-#include "logger.h"
-#include "imgui.h"
-#include "../renderer/renderer.h"
-
-
+#include "elsa.h"
 
 class ExampleLayer : public Layer
 {
