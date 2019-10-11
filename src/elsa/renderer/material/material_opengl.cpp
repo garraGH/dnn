@@ -20,10 +20,12 @@ std::shared_ptr<Material> Material::Create(const std::string& name)
 
 void OpenGLMaterial::Bind(const std::shared_ptr<Shader>& shader)
 {
-    if( !shader || (shader == m_shader && !m_dirty))
-    {
-        return;
-    }
+//     if( !shader || (shader == m_shader && !m_dirty))
+//     {
+//         return;
+//     }
+
+//     INFO("OpenGLMaterial::Bind: ShaderChanged");
 
     m_shader = shader;
     m_dirty = false;
@@ -43,29 +45,29 @@ void OpenGLMaterial::Bind(const std::shared_ptr<Shader>& shader)
 
         switch(a.second->GetType())
         {
-            case MAT::Float1: return glUniform1fv (location, count, (GLfloat*)data);
-            case MAT::Float2: return glUniform2fv (location, count, (GLfloat*)data);
-            case MAT::Float3: return glUniform3fv (location, count, (GLfloat*)data);
-            case MAT::Float4: return glUniform4fv (location, count, (GLfloat*)data);
-            case MAT::Int1:   return glUniform1iv (location, count, (GLint*  )data);
-            case MAT::Int2:   return glUniform2iv (location, count, (GLint*  )data);
-            case MAT::Int3:   return glUniform3iv (location, count, (GLint*  )data);
-            case MAT::Int4:   return glUniform4iv (location, count, (GLint*  )data);
-            case MAT::UInt1:  return glUniform1uiv(location, count, (GLuint* )data);
-            case MAT::UInt2:  return glUniform2uiv(location, count, (GLuint* )data);
-            case MAT::UInt3:  return glUniform3uiv(location, count, (GLuint* )data);
-            case MAT::UInt4:  return glUniform4uiv(location, count, (GLuint* )data);
-            case MAT::Mat2x2: return glUniformMatrix2fv  (location, count, transpose, (GLfloat*)data);
-            case MAT::Mat2x3: return glUniformMatrix2x3fv(location, count, transpose, (GLfloat*)data);
-            case MAT::Mat2x4: return glUniformMatrix2x4fv(location, count, transpose, (GLfloat*)data);
-            case MAT::Mat3x2: return glUniformMatrix3x2fv(location, count, transpose, (GLfloat*)data);
-            case MAT::Mat3x3: return glUniformMatrix3fv  (location, count, transpose, (GLfloat*)data);
-            case MAT::Mat3x4: return glUniformMatrix3x4fv(location, count, transpose, (GLfloat*)data);
-            case MAT::Mat4x2: return glUniformMatrix4x2fv(location, count, transpose, (GLfloat*)data);
-            case MAT::Mat4x3: return glUniformMatrix4x3fv(location, count, transpose, (GLfloat*)data);
-            case MAT::Mat4x4: return glUniformMatrix4fv  (location, count, transpose, (GLfloat*)data);
-
-            default: CORE_ASSERT(false, "Unkown MaterialAttributeType!");
-        }
+            case MAT::Float1: glUniform1fv (location, count, (GLfloat*)data); break; 
+            case MAT::Float2: glUniform2fv (location, count, (GLfloat*)data); break;
+            case MAT::Float3: glUniform3fv (location, count, (GLfloat*)data); break;
+            case MAT::Float4: glUniform4fv (location, count, (GLfloat*)data); break;
+            case MAT::Int1:   glUniform1iv (location, count, (GLint*  )data); break;
+            case MAT::Int2:   glUniform2iv (location, count, (GLint*  )data); break;
+            case MAT::Int3:   glUniform3iv (location, count, (GLint*  )data); break;
+            case MAT::Int4:   glUniform4iv (location, count, (GLint*  )data); break;
+            case MAT::UInt1:  glUniform1uiv(location, count, (GLuint* )data); break;
+            case MAT::UInt2:  glUniform2uiv(location, count, (GLuint* )data); break;
+            case MAT::UInt3:  glUniform3uiv(location, count, (GLuint* )data); break;
+            case MAT::UInt4:  glUniform4uiv(location, count, (GLuint* )data); break;
+            case MAT::Mat2x2: glUniformMatrix2fv  (location, count, transpose, (GLfloat*)data); break;
+            case MAT::Mat2x3: glUniformMatrix2x3fv(location, count, transpose, (GLfloat*)data); break;
+            case MAT::Mat2x4: glUniformMatrix2x4fv(location, count, transpose, (GLfloat*)data); break;
+            case MAT::Mat3x2: glUniformMatrix3x2fv(location, count, transpose, (GLfloat*)data); break;
+            case MAT::Mat3x3: glUniformMatrix3fv  (location, count, transpose, (GLfloat*)data); break;
+            case MAT::Mat3x4: glUniformMatrix3x4fv(location, count, transpose, (GLfloat*)data); break;
+            case MAT::Mat4x2: glUniformMatrix4x2fv(location, count, transpose, (GLfloat*)data); break;
+            case MAT::Mat4x3: glUniformMatrix4x3fv(location, count, transpose, (GLfloat*)data); break;
+            case MAT::Mat4x4: glUniformMatrix4fv  (location, count, transpose, (GLfloat*)data); break;
+                                                                                              
+            default: CORE_ASSERT(false, "Unkown MaterialAttributeType!");                     
+        }                                                                                     
     }
 }

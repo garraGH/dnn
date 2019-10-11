@@ -99,7 +99,7 @@ void ExampleLayer::_PrepareResources()
     Renderer::Resources::Create<MA>("blue")->Set(MA::Type::Float4, glm::value_ptr(glm::vec4(0.1, 0.2, 1, 1)));
     Renderer::Resources::Create<Material>("mtr_tri")->Set("u_Color", Renderer::Resources::Get<MA>("green"));
     Renderer::Resources::Create<Material>("mtr_quad")->Set("u_Color", Renderer::Resources::Get<MA>("red"));
-    Renderer::Resources::Create<Shader>("basic")->LoadFromFile("/home/garra/study/dnn/assets/shader/basic.glsl");
+    Renderer::Resources::Create<Shader>("Basic")->LoadFromFile("/home/garra/study/dnn/assets/shader/Basic.glsl");
     Renderer::Resources::Create<Renderer::Element>("ele_tri")->Set(Renderer::Resources::Get<Mesh>("mesh_tri"), Renderer::Resources::Get<Material>("mtr_tri"));
     Renderer::Resources::Create<Renderer::Element>("ele_quad")->Set(Renderer::Resources::Get<Mesh>("mesh_quad"), Renderer::Resources::Get<Material>("mtr_quad"));
 
@@ -187,7 +187,7 @@ void ExampleLayer::_UpdateQuads(float deltaTime)
         {
             mesh_quad->SetTransform(tf_quad);
             mtr_quad->Set("u_Color", (i+j)%2? red : blue);
-            Renderer::Submit("ele_quad", "basic");
+            Renderer::Submit("ele_quad", "Basic");
             tf_quad->Translate({ 0.15f, 0, 0 });
         }
         tf_quad->Translate({-0.15f*5, 0, 0});
@@ -200,7 +200,7 @@ void ExampleLayer::_UpdateTri(float deltaTime)
 {
     Renderer::Resources::Get<Mesh>("mesh_tri")->SetTransform(Renderer::Resources::Get<Transform>("tf_tri"));
     Renderer::Resources::Get<Material>("mtr_tri")->Set("u_Color", Renderer::Resources::Get<Material::Attribute>("green"));
-    Renderer::Submit("ele_tri", "basic");
+    Renderer::Submit("ele_tri", "Basic");
 }
 
 void ExampleLayer::_UpdateScene(float deltaTime)

@@ -34,9 +34,10 @@ public:
         std::shared_ptr<Attribute> SetData(const void* data) { _Save(data); return shared_from_this(); }
         std::shared_ptr<Attribute> SetCount(int cnt) { m_count = cnt; return shared_from_this(); }
         std::shared_ptr<Attribute> SetTranspose(bool transpose) { m_transpose = transpose; return shared_from_this(); }
+        void UpdateData(const void* data);
 
         Type GetType() const { return m_type; }
-        const void* GetData() const { return m_data.get(); }
+        void* GetData() const { return m_data.get(); }
         int GetCount() const { return m_count; }
         bool NeedTranspose() const { return m_transpose; }
 

@@ -46,3 +46,10 @@ void Material::Attribute::_Save(const void* data)
     m_data = std::shared_ptr<char>(new char[size], [](char* p) { delete[] p; });
     memcpy(m_data.get(), data, size);
 }                                  
+
+void Material::Attribute::UpdateData(const void* data)
+{
+    CORE_ASSERT(m_data&&data, "Material::Attribute::UpdateData: nullptr!");
+    int size = m_count*_TypeSize();
+    memcpy(m_data.get(), data, size);
+}
