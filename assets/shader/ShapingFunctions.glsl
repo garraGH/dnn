@@ -11,31 +11,36 @@ void main()
 
 #type fragment
 #version 460 core
+#pragma optimize(off)
 uniform vec4 u_Color;
+uniform vec4 u_Coefficient = {1, 1, 1, 1};
+
 uniform vec2 u_Resolution;
 // uniform float u_Time;
 uniform int u_ShapingFunction;
+uniform int u_Order;
 
 out vec4 color;
 
-float Linear(float x)
+float Linear(float x, in float a, in float b)
 {
-    return x;
+    float y = a*x+b;
+    return clamp(y, 0, 1);
 }
 
-float Step(float x, float threshold)
+float Step(float x, in float a)
 {
-    return step(threshold, x);
+    return step(a, x);
 }
 
-float SmoothStep(float x, float beg, float end)
+float SmoothStep(float x, in float a, in float b)
 {
-    return smoothstep(beg, end, x);
+    return smoothstep(a, b, x);
 }
 
-float Power(float x, float p)
+float Power(float x, in float a)
 {
-    return pow(x, p);
+    return pow(x, a);
 }
 
 #define PI 3.141593
@@ -59,7 +64,7 @@ float BlinnWyvillCosineApproximation(float x)
     return (4*x6-17*x4+22*x2)/9.0;
 }
 
-vec2 Clamp(float a, float b)
+vec2 Clamp(in float a, in float b)
 {
     float epsilon = 0.00001;
     float min_a = 0.0+epsilon;
@@ -72,36 +77,36 @@ vec2 Clamp(float a, float b)
     return f;
 }
 
-float DoubleCubicSeat(float x, float a, float b)
+float DoubleCubicSeat(float x, in float a, in float b)
 {
     vec2 f = Clamp(a, b);
     return x <= f.x? (f.y-f.y*pow(1-x/f.x, 3.0)) : (f.y+(1-f.y)*pow((x-f.x)/(1-f.x), 3));
 }
 
-float DoubleCubicSeatWidthLinearBlend(float x, float a, float b)
+float DoubleCubicSeatWidthLinearBlend(float x, in float a, in float b)
 {
     vec2 f = Clamp(a, b);
     f.y = 1.0-f.y;
     return x <= f.x? (f.y*x+(1-f.y)*f.x*(1-pow(1-x/f.x, 3.0))) : (f.y*x+(1-f.y)*(f.x+(1-f.x)*pow((x-f.x)/(1-f.x), 3.0)));
 }
 
-float DoubleOddPolynomialSeat(float x, float a, float b, int n)
+float DoubleOddPolynomialSeat(float x, in float a, in float b, in int n)
 {
     vec2 f = Clamp(a, b);
     int p = 2*n+1;
     return x <= a? f.y-f.y*pow(1-x/f.x, p) : f.y+(1-f.y)*pow((x-f.x)/(1-f.x), p);
 }
 
-float SymmetricDoublePolynomialSigmoids(float x, float a, float b, int n)
+float SymmetricDoublePolynomialSigmoids(float x, in int n)
 {
     if(n%2 == 0)
     {
-        return x <= 0.5? pow(2*x, 2*n)/2.0 : 1.0-pow(2*(x-1), 2*n)/2.0;
+        return x <= 0.5? pow(2*x, 2*n)/2.0 : 1.0-pow(2*(1-x), 2*n)/2.0;
     }
-    return x <= 0.5? pow(2*x, 2*n+1)/2.0 : 1.0+pow(2*(x-1), 2*n+1)/2.0;
+    return x <= 0.5? pow(2*x, 2*n+1)/2.0 : 1.0-pow(2*(1-x), 2*n+1)/2.0;
 }
 
-float QuadraticThroughGivenPoint(float x, float a, float b)
+float QuadraticThroughGivenPoint(float x, in float a, in float b)
 {
     vec2 f = Clamp(a, b);
     float A = (1-f.y)/(1-f.x)-(f.y/f.x);
@@ -111,7 +116,7 @@ float QuadraticThroughGivenPoint(float x, float a, float b)
     return y;
 }
 
-float Clamp(float a)
+float Clamp(in float a)
 {
     float epsilon = 0.00001;
     float min_a = 0.0+epsilon;
@@ -119,36 +124,36 @@ float Clamp(float a)
     return min(max_a, max(min_a, a));
 }
 
-float ExponentialEaseIn(float x, float a)
+float ExponentialEaseIn(float x, in float a)
 {
     return pow(x, 1/Clamp(a));
 }
 
-float ExponentialEaseOut(float x, float a)
+float ExponentialEaseOut(float x, in float a)
 {
 
     return pow(x, Clamp(a));
 }
 
-float ExponentialEasing(float x, float a)
+float ExponentialEasing(float x, in float a)
 {
     a = Clamp(a);
     return a<0.5? pow(x, 2*a) : pow(x, 1/(1-(2*(a-0.5))));
 }
 
-float DoubleExponentialSeat(float x, float a)
+float DoubleExponentialSeat(float x, in float a)
 {
     a = Clamp(a);
     return x <= 0.5? pow(2*x, 1-a)/2.0 : 1.0-pow(2*(1-x), 1-a)/2.0;
 }
 
-float DoubleExponentialSigmoid(float x, float a)
+float DoubleExponentialSigmoid(float x, in float a)
 {
     a = 1-Clamp(a);
     return x <= 0.5? pow(2*x, 1/a)/2.0 : 1.0-pow(2*(1-x), 1/a)/2.0;
 }
 
-float LogisticSigmoid(float x, float a)
+float LogisticSigmoid(float x, in float a)
 {
     a = Clamp(a);
     a = 1.0/(1.0-a)-1.0;
@@ -168,19 +173,19 @@ float CircularEaseOut(float x)
     return sqrt(1-(1-x)*(1-x));
 }
 
-float DoubleCircelSeat(float x, float a)
+float DoubleCircleSeat(float x, in float a)
 {
     a = clamp(a, 0, 1);
     return x <= a? sqrt(a*a-(x-a)*(x-a)) : 1-sqrt((1-a)*(1-a)-(x-a)*(x-a));
 }
 
-float DoubleCircleSigmoid(float x, float a)
+float DoubleCircleSigmoid(float x, in float a)
 {
     a = clamp(a, 0, 1);
     return x <= a? a-sqrt(a*a-x*x) : a+sqrt((1-a)*(1-a)-(x-1)*(x-1));
 }
 
-float DoubleEllipticSeat(float x, float a, float b)
+float DoubleEllipticSeat(float x, in float a, in float b)
 {
     float epsilon = 0.00001;
     a = clamp(a, epsilon, 1-epsilon);
@@ -188,7 +193,7 @@ float DoubleEllipticSeat(float x, float a, float b)
     return x <= a? (b/a)*sqrt(a*a-(x-a)*(x-a)): 1-((1-b)/(1-a))*sqrt((1-a)*(1-a)-(x-a)*(x-a));
 }
 
-float DoubleEllipticSigmoid(float x, float a, float b)
+float DoubleEllipticSigmoid(float x, in float a, in float b)
 {
     float epsilon = 0.00001;
     a = clamp(a, epsilon, 1-epsilon);
@@ -199,7 +204,7 @@ float DoubleEllipticSigmoid(float x, float a, float b)
 float arcStartAngle;
 float arcEndAngle;
 float arcStartX, arcStartY;
-float arcEndx, arcEndY;
+float arcEndX, arcEndY;
 float arcCenterX, arcCenterY;
 float arcRadius;
 
@@ -299,11 +304,11 @@ void _ComputeFilletParameters(float p1x, float p1y, float p2x, float p2y, float 
     arcRadius = r;
     arcStartX = arcCenterX+arcRadius*cos(arcStartAngle);
     arcStartY = arcCenterY+arcRadius*sin(arcStartAngle);
-    arcEndx = arcCenterX+arcRadius*cos(arcEndAngle);
+    arcEndX = arcCenterX+arcRadius*cos(arcEndAngle);
     arcEndY = arcCenterY+arcRadius*sin(arcEndAngle);
 }
 
-float DoubleLinearWidthCircularFillet(float x, float a, float b, float r)
+float DoubleLinearWidthCircularFillet(float x, in float a, in float b, in float r)
 {
     float epsilon = 0.00001;
     a = clamp(a, epsilon, 1-epsilon);
@@ -318,9 +323,9 @@ float DoubleLinearWidthCircularFillet(float x, float a, float b, float r)
         t = x/arcStartX;
         y = t*arcStartY;
     }
-    else if(x >= arcEndx)
+    else if(x >= arcEndX)
     {
-        t = (x-arcEndx)/(1-arcEndx);
+        t = (x-arcEndX)/(1-arcEndX);
         y = arcEndY+t*(1-arcEndY);
     }
     else
@@ -401,7 +406,7 @@ void _CalcCircleFrom3Points(float pt1x, float pt1y, float pt2x, float pt2y, floa
     m_dRadius = sqrt((m_Centerx-pt1x)*(m_Centerx-pt1x)+(m_Centery-pt1y)*(m_Centery-pt1y));
 }
 
-float CircularArcThroughGivenPoint(float x, float a, float b)
+float CircularArcThroughGivenPoint(float x, in float a, in float b)
 {
     float epsilon = 0.00001;
     a = min(1-epsilon, max(epsilon, a));
@@ -473,7 +478,7 @@ float CircularArcThroughGivenPoint(float x, float a, float b)
     return y;
 }
 
-float QuadraticBezier(float x, float a, float b)
+float QuadraticBezier(float x, in float a, in float b)
 {
     float epsilon = 0.00001;
     a = clamp(a, 0, 1);
@@ -486,17 +491,17 @@ float QuadraticBezier(float x, float a, float b)
     return om2b*t*t + 2*b*t;
 }
 
-float _SlopeFromT(float t, float a, float b, float c)
+float _SlopeFromT(float t, in float a, in float b, in float c)
 {
     return 1.0/(3.0*a*t*t+2.0*b*t+c);
 }
 
-float _VFromT(float t, float a, float b, float c, float d)
+float _VFromT(float t, in float a, in float b, in float c, in float d)
 {
     return a*t*t*t+b*t*t+c*t+d;
 }
 
-float CubicBezier(float x, float a, float b, float c, float d)
+float CubicBezier(float x, in float a, in float b, in float c, in float d)
 {
     float x0a = 0.00;
     float y0a = 0.00;
@@ -549,7 +554,7 @@ float _B3(float t)
     return t*t*t;
 }
 
-float CubicBezierThroughTwoGivenPoints(float x, float a, float b, float c, float d)
+float CubicBezierThroughTwoGivenPoints(float x, in float a, in float b, in float c, in float d)
 {
     float y = 0;
     float epsilon = 0.00001;
@@ -597,13 +602,13 @@ float CubicBezierThroughTwoGivenPoints(float x, float a, float b, float c, float
     return clamp(y, 0, 1);
 }
 
-float Impulse(float x, float a)
+float Impulse(float x, in float a)
 {
     float h = a*x;
     return h*exp(1.0-h);
 }
 
-float CubicPulse(float x, float center, float width)
+float CubicPulse(float x, in float center, in float width)
 {
     x = abs(x-center);
     if(x>width)
@@ -614,17 +619,17 @@ float CubicPulse(float x, float center, float width)
     return 1.0-x*x*(3.0-2.0*x);
 }
 
-float ExponentialStep(float x, float k, float n)
+float ExponentialStep(float x, in float k, in float n)
 {
     return exp(-k*pow(x, n));
 }
 
-float Parabola(float x, float k)
+float Parabola(float x, in float k)
 {
-    return pow(4.0*x*(1.0-x), k);
+    return k>0? pow(4.0*x*(1.0-x), k) : 1-pow(4.0*x*(1.0-x), -k);
 }
 
-float PowerCurve(float x, float a, float b)
+float PowerCurve(float x, in float a, in float b)
 {
     float k = pow(a+b, a+b)/pow(a, a)/pow(b, b);
     return k*pow(x, a)*pow(1.0-x, b);
@@ -637,49 +642,55 @@ float LineBrightness(float y0, float y)
 
 void main()
 {
+    float a = u_Coefficient.x;
+    float b = u_Coefficient.y;
+    float c = u_Coefficient.z;
+    float d = u_Coefficient.w;
+    int n = u_Order;
+
     vec4 green = vec4(0.1, 1, 0.2, 1);
     vec2 nc = gl_FragCoord.xy/u_Resolution; // NormalizedCoordinate
     float x = nc.x;
-    float y = Linear(nc.x);
+    float y = Linear(x, a, b);
     switch(u_ShapingFunction)
     {
-        case  1: y = Step(x, 0.5); break;
-        case  2: y = SmoothStep(x, 0, 1); break;
-        case  3: y = Power(x, 2); break; 
+        case  1: y = Step(x, a); break;
+        case  2: y = SmoothStep(x, a, b); break;
+        case  3: y = Power(x, a); break; 
         case  4: y = Sine(x); break;
         case  5: y = Cosine(x); break;
         case  6: y = BlinnWyvillCosineApproximation(x); break;
-        case  7: y = DoubleCubicSeat(x, 0.3, 0.5); break;
-        case  8: y = DoubleCubicSeatWidthLinearBlend(x, 0.3, 0.5); break;
-        case  9: y = DoubleOddPolynomialSeat(x, 0.3, 0.5, 1); break;
-        case 10: y = SymmetricDoublePolynomialSigmoids(x, 0.3, 0.5, 1); break;
-        case 11: y = QuadraticThroughGivenPoint(x, 0.3, 0.5); break;
-        case 12: y = ExponentialEaseIn(x, 0.2); break;
-        case 13: y = ExponentialEaseOut(x, 0.2); break;
-        case 14: y = ExponentialEasing(x, 0.2); break;
-        case 15: y = DoubleExponentialSeat(x, 0.2); break;
-        case 16: y = DoubleExponentialSigmoid(x, 0.2); break;
-        case 17: y = LogisticSigmoid(x, 0.8); break;
+        case  7: y = DoubleCubicSeat(x, a, b); break;
+        case  8: y = DoubleCubicSeatWidthLinearBlend(x, a, b); break;
+        case  9: y = DoubleOddPolynomialSeat(x, a, b, n); break;
+        case 10: y = SymmetricDoublePolynomialSigmoids(x, n); break;
+        case 11: y = QuadraticThroughGivenPoint(x, a, b); break;
+        case 12: y = ExponentialEaseIn(x, a); break;
+        case 13: y = ExponentialEaseOut(x, a); break;
+        case 14: y = ExponentialEasing(x, a); break;
+        case 15: y = DoubleExponentialSeat(x, a); break;
+        case 16: y = DoubleExponentialSigmoid(x, a); break;
+        case 17: y = LogisticSigmoid(x, a); break;
         case 18: y = CircularEaseIn(x); break;
         case 19: y = CircularEaseOut(x); break;
-        case 20: y = DoubleCircelSeat(x, 0.5); break;
-        case 21: y = DoubleCircleSigmoid(x, 0.5); break;
-        case 22: y = DoubleEllipticSeat(x, 0.2, 0.8); break;
-        case 23: y = DoubleEllipticSigmoid(x, 0.2, 0.8); break;
-        case 24: y = DoubleLinearWidthCircularFillet(x, 0.713, 0.267, 0.25); break;
-        case 25: y = CircularArcThroughGivenPoint(x, 0.553, 0.840); break;
-        case 26: y = QuadraticBezier(x, 0.94, 0.28); break;
-        case 27: y = CubicBezier(x, 0.253, 0.72, 0.75, 0.25); break;
-        case 28: y = CubicBezierThroughTwoGivenPoints(x, 0.293, 0.667, 0.75, 0.25); break;
-        case 29: y = Impulse(x, 12); break;
-        case 30: y = CubicPulse(x, 0.5, 0.1); break;
-        case 31: y = ExponentialStep(x, 10.0, 1.0); break;
-        case 32: y = Parabola(x, 1.0); break;
-        case 33: y = PowerCurve(x, 3.0, 1.0); break;
+        case 20: y = DoubleCircleSeat(x, a); break;
+        case 21: y = DoubleCircleSigmoid(x, a); break;
+        case 22: y = DoubleEllipticSeat(x, a, b); break;
+        case 23: y = DoubleEllipticSigmoid(x, a, b); break;
+        case 24: y = DoubleLinearWidthCircularFillet(x, a, b, c); break;
+        case 25: y = CircularArcThroughGivenPoint(x, a, b); break;
+        case 26: y = QuadraticBezier(x, a, b); break;
+        case 27: y = CubicBezier(x, a, b, c, d); break;
+        case 28: y = CubicBezierThroughTwoGivenPoints(x, a, b, c, d); break;
+        case 29: y = Impulse(x, a); break;
+        case 30: y = CubicPulse(x, a, b); break;
+        case 31: y = ExponentialStep(x, a, b); break;
+        case 32: y = Parabola(x, a); break;
+        case 33: y = PowerCurve(x, a, b); break;
 
-        default: y = Linear(nc.x);
+        default: y = Linear(x, a, b);
     }
-    vec4 bgColor = vec4(y);
+    vec4 bgcolor = vec4(y);
     float brightness = LineBrightness(nc.y, y);
-    color = (1-brightness)*bgColor+brightness*green;
+    color = (1-brightness)*bgcolor+brightness*u_Color;
 }

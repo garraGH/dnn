@@ -46,6 +46,7 @@ void Renderer::Element::RenderedBy(const std::shared_ptr<Shader>& shader)
 {
     CORE_ASSERT(shader, "Renderer::Element::RenderedBy: Must Bind a shader to render.");
 
+    shader->Bind();
 //     if(s_camera->IsDirty())
     {
         shader->SetViewProjectionMatrix(s_camera->GetViewProjectionMatrix());
