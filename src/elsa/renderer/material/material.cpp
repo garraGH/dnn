@@ -92,7 +92,7 @@ void* Material::Attribute::GetData()
 
 void Material::Attribute::UpdateData(const void* data)
 {
-    CORE_ASSERT(m_data&&data, "Material::Attribute::UpdateData: nullptr!");
+    CORE_ASSERT(data, "Material::Attribute::UpdateData: nullptr!");
     int size = m_count*_TypeSize();
-    memcpy(m_data.get(), data, size);
+    memcpy(GetData(), data, size);
 }

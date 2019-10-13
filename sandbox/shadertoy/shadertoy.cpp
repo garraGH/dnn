@@ -13,6 +13,7 @@
 #include "shapes.h"
 #include "shaping_functions.h"
 #include "flatcolor.h"
+#include "colors.h"
 
 std::shared_ptr<ShaderToy> ShaderToy::Create(Type type)
 {
@@ -22,6 +23,7 @@ std::shared_ptr<ShaderToy> ShaderToy::Create(Type type)
         CASE(ShapingFunctions);
         CASE(FlatColor);
         CASE(Shapes);
+        CASE(Colors);
         default: return nullptr;
     }
 }
