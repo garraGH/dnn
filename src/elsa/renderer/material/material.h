@@ -41,6 +41,8 @@ public:
         int GetCount() const { return m_count; }
         bool NeedTranspose() const { return m_transpose; }
 
+        virtual std::string GetTypeName() const { return "Material::Atrribute"; }
+
     protected:
         int _TypeSize() const;
         void _AllocateData();
@@ -58,6 +60,7 @@ public:
     std::shared_ptr<Material> Set(const std::string& name, const std::shared_ptr<Attribute>& attribute) { m_attributes[name] = attribute; m_dirty = true; return shared_from_this(); }
     
     virtual void Bind(const std::shared_ptr<Shader>& shader) = 0;
+    virtual std::string GetTypeName() const { return "Material"; }
     static std::shared_ptr<Material> Create(const std::string& name);
 
 protected:

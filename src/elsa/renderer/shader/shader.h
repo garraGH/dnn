@@ -42,6 +42,8 @@ public:
     virtual std::shared_ptr<Shader> LoadFromFile(const std::string& srcFile) = 0;
     virtual std::shared_ptr<Shader> LoadFromSource(const std::string& srcVertex, const std::string& srcFragment) = 0;
 
+    virtual std::string GetTypeName() const { return "Shader"; }
+
     int GetLocation(const std::string& name);
 
     static std::shared_ptr<Shader> Create(const std::string& name);

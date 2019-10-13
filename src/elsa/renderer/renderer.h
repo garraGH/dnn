@@ -64,6 +64,7 @@ public:
             return shared_from_this();
         }
 
+        virtual std::string GetTypeName() const { return "Renderer::Element"; }
         std::shared_ptr<Element> SetMesh(const std::shared_ptr<Mesh>& mesh) { m_mesh = mesh; return shared_from_this(); }
         std::shared_ptr<Element> SetMaterial(const std::shared_ptr<Material>& material) { m_material = material; return shared_from_this(); }
         void RenderedBy(const std::shared_ptr<Shader>& shader);
@@ -81,7 +82,8 @@ public:
 
         bool Exist(const std::string& name) { return m_assets.find(name) != m_assets.end(); }
         std::shared_ptr<T> Create(const std::string& name="unnamed") { std::shared_ptr<T> asset = T::Create(name); Add(asset); return asset; }
-        void Add(const std::shared_ptr<T>& asset) { const std::string& name = asset->GetName(); CORE_WARN("Assets::Add: asset already exist! "+name); m_assets[name] = asset; }
+        void Add(const std::shared_ptr<T>& asset) { const std::string& name = asset->GetName(); if(Exist(name)){CORE_WARN("Assets::Add: asset already exist! "+asset->GetTypeName()+" - "+name);} m_assets[name] = asset; }
+
         std::shared_ptr<T>& Get(const std::string& name) { CORE_ASSERT(Exist(name), "Assets::Get: asset not found! "+name); return m_assets[name]; }
     private:
         static Assets<T> s_instance;

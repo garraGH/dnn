@@ -27,6 +27,7 @@ ShapingFunctions::ShapingFunctions()
 
 void ShapingFunctions::_PrepareResources()
 {
+
     using MA = Material::Attribute;
     Renderer::Resources::Create<Shader>("ShapingFunctions")->LoadFromFile("/home/garra/study/dnn/assets/shader/ShapingFunctions.glsl");
     std::shared_ptr<MA> maResolution = Renderer::Resources::Create<MA>("Resolution")->Set(MA::Type::Float2, glm::value_ptr(glm::vec2(1000, 1000)));
