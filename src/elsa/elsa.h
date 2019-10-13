@@ -12,6 +12,9 @@
 #pragma once
 #include "imgui.h"
 #include "core.h"
+#include "logger.h"
+#include "timer.h"
+
 #include "app/application.h"
 #include "layer/layer.h"
 #include "layer/layer_imgui.h"

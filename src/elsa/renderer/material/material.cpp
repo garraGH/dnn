@@ -40,12 +40,55 @@ int Material::Attribute::_TypeSize() const
     }
 }
 
-void Material::Attribute::_Save(const void* data)
+void Material::Attribute::_AllocateData()
 {
     int size = m_count*_TypeSize();
     m_data = std::shared_ptr<char>(new char[size], [](char* p) { delete[] p; });
-    memcpy(m_data.get(), data, size);
-}                                  
+}
+
+std::shared_ptr<Material::Attribute> Material::Attribute::Set(Type type, const void* data, int cnt, bool transpose)
+{ 
+    m_type = type;
+    m_count = cnt;
+    m_transpose = transpose;
+    return SetData(data);
+}
+
+std::shared_ptr<Material::Attribute> Material::Attribute::SetType(Type type)
+{
+    m_type = type;
+    return shared_from_this();
+}
+
+std::shared_ptr<Material::Attribute> Material::Attribute::SetData(const void* data)
+{
+    _AllocateData();
+    UpdateData(data);
+    return shared_from_this();
+}
+
+std::shared_ptr<Material::Attribute> Material::Attribute::SetCount(int cnt)
+{
+    m_count = cnt;
+    return shared_from_this();
+}
+
+std::shared_ptr<Material::Attribute> Material::Attribute::SetTranspose(bool transpose)
+{ 
+    m_transpose = transpose;
+    return shared_from_this();
+}
+
+void* Material::Attribute::GetData() 
+{ 
+    if(!m_data)
+    {
+        CORE_ASSERT(m_type != Type::Unknown, "You should tell me the datatype first!");
+        _AllocateData();
+    }
+    
+    return m_data.get();
+}
 
 void Material::Attribute::UpdateData(const void* data)
 {

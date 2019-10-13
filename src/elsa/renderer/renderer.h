@@ -81,7 +81,7 @@ public:
 
         bool Exist(const std::string& name) { return m_assets.find(name) != m_assets.end(); }
         std::shared_ptr<T> Create(const std::string& name="unnamed") { std::shared_ptr<T> asset = T::Create(name); Add(asset); return asset; }
-        void Add(const std::shared_ptr<T>& asset) { const std::string& name = asset->GetName(); CORE_ASSERT(!Exist(name), "Assets::Add: asset already exist! "+name); m_assets[name] = asset; }
+        void Add(const std::shared_ptr<T>& asset) { const std::string& name = asset->GetName(); CORE_WARN("Assets::Add: asset already exist! "+name); m_assets[name] = asset; }
         std::shared_ptr<T>& Get(const std::string& name) { CORE_ASSERT(Exist(name), "Assets::Get: asset not found! "+name); return m_assets[name]; }
     private:
         static Assets<T> s_instance;

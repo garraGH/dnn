@@ -12,13 +12,10 @@ void main()
 #type fragment
 #version 460 core
 #pragma optimize(off)
-uniform vec4 u_Color;
-uniform vec4 u_Coefficient = {1, 1, 1, 1};
-
-uniform vec2 u_Resolution;
-// uniform float u_Time;
-uniform int u_ShapingFunction;
+uniform int u_Function;
 uniform int u_Order;
+uniform vec2 u_Resolution;
+uniform vec4 u_Coefficient = {1, 1, 1, 1};
 
 out vec4 color;
 
@@ -652,7 +649,7 @@ void main()
     vec2 nc = gl_FragCoord.xy/u_Resolution; // NormalizedCoordinate
     float x = nc.x;
     float y = Linear(x, a, b);
-    switch(u_ShapingFunction)
+    switch(u_Function)
     {
         case  1: y = Step(x, a); break;
         case  2: y = SmoothStep(x, a, b); break;
@@ -692,5 +689,5 @@ void main()
     }
     vec4 bgcolor = vec4(y);
     float brightness = LineBrightness(nc.y, y);
-    color = (1-brightness)*bgcolor+brightness*u_Color;
+    color = (1-brightness)*bgcolor+brightness*green;
 }

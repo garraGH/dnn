@@ -29,25 +29,26 @@ public:
         Attribute(const std::string& name) : Asset(name) {}
         static std::shared_ptr<Attribute> Create(const std::string& name) { return std::make_shared<Attribute>(name); }
 
-        std::shared_ptr<Attribute> Set(Type type, const void* data, int cnt=1, bool transpose=false) { m_type = type; m_count = cnt; m_transpose = transpose; _Save(data); return shared_from_this(); }
-        std::shared_ptr<Attribute> SetType(Type type) { m_type = type; return shared_from_this(); }
-        std::shared_ptr<Attribute> SetData(const void* data) { _Save(data); return shared_from_this(); }
-        std::shared_ptr<Attribute> SetCount(int cnt) { m_count = cnt; return shared_from_this(); }
-        std::shared_ptr<Attribute> SetTranspose(bool transpose) { m_transpose = transpose; return shared_from_this(); }
+        std::shared_ptr<Attribute> Set(Type type, const void* data, int cnt=1, bool transpose=false);
+        std::shared_ptr<Attribute> SetType(Type type);
+        std::shared_ptr<Attribute> SetData(const void* data);
+        std::shared_ptr<Attribute> SetCount(int cnt);
+        std::shared_ptr<Attribute> SetTranspose(bool transpose);
         void UpdateData(const void* data);
 
+        void* GetData();
         Type GetType() const { return m_type; }
-        void* GetData() const { return m_data.get(); }
         int GetCount() const { return m_count; }
         bool NeedTranspose() const { return m_transpose; }
 
     protected:
         int _TypeSize() const;
+        void _AllocateData();
         void _Save(const void* data);
 
     private:
-        std::shared_ptr<void> m_data; // auto delete (void*)data
-        Type m_type;
+        std::shared_ptr<void> m_data = nullptr; // auto delete (void*)data
+        Type m_type = Type::Unknown;
         int m_count = 1;
         bool m_transpose = false;
     };
