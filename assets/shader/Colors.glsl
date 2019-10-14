@@ -1,12 +1,16 @@
 #type vertex
 #version 460 core
 layout(location = 0) in vec3 a_Position;
+layout(location = 1) in vec2 a_TexCoord;
 uniform mat4 u_ViewProjection;
 uniform mat4 u_Transform;
+
+out vec2 v_TexCoord;
 
 void main()
 {
     gl_Position = u_ViewProjection*u_Transform*vec4(a_Position, 1.0f);
+    v_TexCoord = a_TexCoord;
 }
 
 #type fragment
@@ -16,6 +20,10 @@ uniform vec4 u_ColorSnd;
 uniform float u_Time;
 uniform float u_Speed;
 uniform int u_EasingFunction;
+
+in vec2 v_TexCoord;
+uniform sampler2D u_Texture2D_fst;
+uniform sampler2D u_Texture2D_snd;
 
 out vec4 color;
 
@@ -227,5 +235,6 @@ void main() {
         case 30: pct = backInOut(t); break;
         default: pct = linear(t);
     }
-    color = mix(u_ColorFst, u_ColorSnd, pct);
+//     color = (texture(u_Texture2D_fst, v_TexCoord)+texture(u_Texture2D_snd, v_TexCoord))*0.5*mix(u_ColorFst, u_ColorSnd, pct);
+    color = mix(texture(u_Texture2D_fst, v_TexCoord),texture(u_Texture2D_snd, v_TexCoord), pct);
 }

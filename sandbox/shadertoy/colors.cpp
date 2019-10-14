@@ -33,11 +33,15 @@ void Colors::_PrepareResources()
     std::shared_ptr<MA> maSpeed = Renderer::Resources::Create<MA>("Speed")->SetType(MA::Type::Float1);
     std::shared_ptr<MA> maEasingFunction = Renderer::Resources::Create<MA>("EasingFunction")->SetType(MA::Type::Int1);
     std::shared_ptr<Material> mtr = Renderer::Resources::Create<Material>("Colors");
+    std::shared_ptr<Texture> texSunset = Renderer::Resources::Create<Texture2D>("Sunset")->LoadFromFile("/home/garra/study/dnn/assets/texture/turner_sunset.jpg");
+    std::shared_ptr<Texture> texNoza = Renderer::Resources::Create<Texture2D>("Noza")->LoadFromFile("/home/garra/study/dnn/assets/texture/noza.png");
     mtr->Set("u_ColorFst", maColorFst);
     mtr->Set("u_ColorSnd", maColorSnd);
     mtr->Set("u_Time", maTime);
     mtr->Set("u_Speed", maSpeed);
     mtr->Set("u_EasingFunction", maEasingFunction);
+    mtr->AddTexture("u_Texture2D_fst", texSunset);
+    mtr->AddTexture("u_Texture2D_snd", texNoza);
 
     m_speed = (float*)maSpeed->GetData();
     m_easingFunction = (EasingFunction*)maEasingFunction->GetData();

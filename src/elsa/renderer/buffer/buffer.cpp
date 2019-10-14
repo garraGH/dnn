@@ -68,12 +68,6 @@ void Buffer::SetLayout(const Layout& layout)
     m_layout = layout;
 }
 
-void Buffer::Bind(const std::shared_ptr<Shader>& shader) const
-{
-
-}
-
-
 unsigned int Buffer::GetCount() const 
 {
     return m_size/m_layout.Stride();

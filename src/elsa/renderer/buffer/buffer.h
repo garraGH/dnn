@@ -63,15 +63,12 @@ public:
     Buffer(unsigned int size, const void* data);
     virtual ~Buffer();
 
-    virtual void Bind(unsigned int slot=0) const override {}
+    virtual void Bind(unsigned int slot=0) override {}
     virtual void Unbind() const override {}
 
     unsigned int GetCount() const;
     void SetLayout(const Layout& layout);
-    virtual void Bind(const std::shared_ptr<Shader>& shader) const;
-
-//     static Buffer* CreateVertex(unsigned int size, const void* data);
-//     static Buffer* CreateIndex(unsigned int size, const void* data);
+    virtual void Bind(const std::shared_ptr<Shader>& shader){}
 
     static std::shared_ptr<Buffer> CreateVertex(unsigned int size, const void* data);
     static std::shared_ptr<Buffer> CreateIndex(unsigned int size, const void* data);

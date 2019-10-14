@@ -17,4 +17,9 @@ class OpenGLMaterial : public Material
 public:
     OpenGLMaterial(const std::string& name) : Material(name) {}
     virtual void Bind(const std::shared_ptr<Shader>& shader) override;
+    static std::shared_ptr<Material> Create(const std::string& name);
+
+private:
+    void _BindAttribute(const std::shared_ptr<Shader>& shader);
+    void _BindTexture(const std::shared_ptr<Shader>& shader);
 };

@@ -15,6 +15,7 @@
 #include <memory>
 #include <map>
 #include "../shader/shader.h"
+#include "../texture/texture.h"
 #include "logger.h"
 #include "../../core.h"
 
@@ -58,6 +59,7 @@ public:
 public:
     Material(const std::string& name="unnamed") : Asset(name) {}
     std::shared_ptr<Material> Set(const std::string& name, const std::shared_ptr<Attribute>& attribute) { m_attributes[name] = attribute; m_dirty = true; return shared_from_this(); }
+    std::shared_ptr<Material> AddTexture(const std::string& name, const std::shared_ptr<Texture>& tex) { m_textures[name] = tex; m_dirty = true; return shared_from_this(); }
     
     virtual void Bind(const std::shared_ptr<Shader>& shader) = 0;
     virtual std::string GetTypeName() const { return "Material"; }
@@ -66,5 +68,6 @@ public:
 protected:
     std::shared_ptr<Shader> m_shader = nullptr;
     std::map< const std::string, std::shared_ptr<Attribute> > m_attributes;
+    std::map< const std::string, std::shared_ptr<Texture> > m_textures;
     bool m_dirty = true;
 };

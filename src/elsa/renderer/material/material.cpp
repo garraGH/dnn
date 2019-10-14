@@ -9,7 +9,19 @@
 ============================================*/
 
 
+#include "../renderer.h"
 #include "material.h"
+#include "material_opengl.h"
+
+std::shared_ptr<Material> Material::Create(const std::string& name)
+{
+    switch(Renderer::GetAPIType())
+    {
+        case Renderer::API::OpenGL: return OpenGLMaterial::Create(name);
+//         default: CORE_ASSERT(false, "Material::Create: API is currently not supportted!");
+        default: return nullptr;
+    }
+}
 
 int Material::Attribute::_TypeSize() const
 {

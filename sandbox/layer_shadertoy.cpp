@@ -40,14 +40,14 @@ void ShaderToyLayer::_PrepareResources()
     indexBuffer->SetLayout(layoutIndex);
 
 
-    float vertices[4*3] = 
+    float vertices[4*5] = 
     {
-        -1.0f, -1.0f, 0.0f,
-        +1.0f, -1.0f, 0.0f,
-        +1.0f, +1.0f, 0.0f,
-        -1.0f, +1.0f, 0.0f
+        -1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 
+        +1.0f, -1.0f, 0.0f, 1.0f, 0.0f, 
+        +1.0f, +1.0f, 0.0f, 1.0f, 1.0f, 
+        -1.0f, +1.0f, 0.0f, 0.0f, 1.0f
     };
-    Buffer::Layout layoutVertex = { { Buffer::Element::DataType::Float3, "a_Position", false }, };
+    Buffer::Layout layoutVertex = { { Buffer::Element::DataType::Float3, "a_Position", false }, { Buffer::Element::DataType::Float2, "a_TexCoord" }};
     std::shared_ptr<Buffer> vertexBuffer = Buffer::CreateVertex(sizeof(vertices), vertices);
     vertexBuffer->SetLayout(layoutVertex);
 

@@ -21,7 +21,7 @@ GLSLProgram::~GLSLProgram()
     glDeleteProgram(m_id);
 }
 
-void GLSLProgram::Bind(unsigned int slot) const 
+void GLSLProgram::Bind(unsigned int slot) 
 {
     glUseProgram(m_id);
 }

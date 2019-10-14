@@ -54,7 +54,7 @@ OpenGLVertexBuffer::OpenGLVertexBuffer(unsigned int size, const void* data)
     glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
 }
 
-void OpenGLVertexBuffer::Bind(const std::shared_ptr<Shader>& shader) const
+void OpenGLVertexBuffer::Bind(const std::shared_ptr<Shader>& shader)
 {
     Bind();
     int location = 0;
@@ -71,7 +71,7 @@ void OpenGLVertexBuffer::Bind(const std::shared_ptr<Shader>& shader) const
     }
 }
 
-void OpenGLVertexBuffer::Bind(unsigned int slot) const
+void OpenGLVertexBuffer::Bind(unsigned int slot)
 {
     glBindBuffer(GL_ARRAY_BUFFER, m_id);
 }
@@ -89,7 +89,7 @@ OpenGLIndexBuffer::OpenGLIndexBuffer(unsigned int size, const void* data)
 }
 
 
-void OpenGLIndexBuffer::Bind(unsigned int slot) const
+void OpenGLIndexBuffer::Bind(unsigned int slot)
 {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_id);
 }
@@ -115,7 +115,7 @@ OpenGLBufferArray::~OpenGLBufferArray()
     glDeleteVertexArrays(1, &m_id);
 }
 
-void OpenGLBufferArray::Bind(unsigned int slot) const
+void OpenGLBufferArray::Bind(unsigned int slot)
 {
     CORE_ASSERT(m_vertexBuffers.size()&&m_indexBuffer, "OpenGLBufferArray::Bind: Must have at least one VertexBuffer&&IndexBuffer to be Drawn!");
     glBindVertexArray(m_id);

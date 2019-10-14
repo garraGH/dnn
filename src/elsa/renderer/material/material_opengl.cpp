@@ -13,7 +13,7 @@
 #include "../../core.h"
 #include "glad/gl.h"
 
-std::shared_ptr<Material> Material::Create(const std::string& name)
+std::shared_ptr<Material> OpenGLMaterial::Create(const std::string& name)
 {
     return std::make_shared<OpenGLMaterial>(name);
 }
@@ -30,6 +30,12 @@ void OpenGLMaterial::Bind(const std::shared_ptr<Shader>& shader)
     m_shader = shader;
     m_dirty = false;
 
+    _BindAttribute(shader);
+    _BindTexture(shader);
+}
+
+void OpenGLMaterial::_BindAttribute(const std::shared_ptr<Shader>& shader)
+{
     using MAT = Material::Attribute::Type;
     for(auto& a : m_attributes)
     {
@@ -72,3 +78,22 @@ void OpenGLMaterial::Bind(const std::shared_ptr<Shader>& shader)
         }                                                                                     
     }
 }
+
+void OpenGLMaterial::_BindTexture(const std::shared_ptr<Shader>& shader)
+{
+    int slot = 0;
+    for(auto& tex : m_textures)
+    {
+        int location = m_shader->GetLocation(tex.first);
+        if(location == -1)
+        {
+            continue;
+        }
+
+        tex.second->Bind(slot);
+        glUniform1i(location, slot);
+        slot++;
+    }
+}
+
+

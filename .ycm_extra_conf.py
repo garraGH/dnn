@@ -62,7 +62,8 @@ flags = [
         '-I./deps/modules/spdlog/include/',
         '-I./deps/modules/imgui/',
         '-I./deps/modules/imgui/examples/',
-        '-I./deps/modules/glfw/deps/'
+        '-I./deps/modules/glfw/deps/',
+        '-I./deps/modules/stb/'
         ]
 
 flags = IncludeFlagsOfSubdirectory(flags, "./" )

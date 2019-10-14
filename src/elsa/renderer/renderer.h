@@ -16,6 +16,7 @@
 #include "mesh/mesh.h"
 #include "material/material.h"
 #include "shader/shader.h"
+#include "texture/texture2d.h"
 
 class Renderer
 {

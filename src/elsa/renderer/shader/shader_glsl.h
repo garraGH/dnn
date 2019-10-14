@@ -19,7 +19,7 @@ public:
     GLSLProgram(const std::string& name) : Shader(name) {}
     ~GLSLProgram(); 
 
-    virtual void Bind(unsigned int slot=0) const override;
+    virtual void Bind(unsigned int slot=0) override;
     virtual void Unbind() const override;
 
     virtual void SetViewProjectionMatrix(const glm::mat4& vp) override;
