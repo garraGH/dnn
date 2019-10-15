@@ -15,6 +15,29 @@
 class Colors : public ShaderToy
 {
 public:
+    enum class Direction
+    {
+        Clockwise = 1, 
+        CounterClockwise = -1, 
+    };
+
+    enum class Test
+    {
+        ColorTransition, 
+        TextureTransition, 
+        TextureMixEachChannel, 
+        ColorFlagsAnimation,
+        ColorFlagsShrink, 
+    };
+
+    enum class FlagLayout
+    {
+        Vertical, 
+        Horizontal, 
+        Circle, 
+        Rainbow, 
+    };
+
     enum class EasingFunction
     {
          Linear,
@@ -63,9 +86,20 @@ public:
 
 private:
     void _PrepareResources();
+    void _CreateColorTransitionGUI();
+    void _CreateTextureTransitionGUI();
+    void _CreateTextureMixEachChannelGUI();
+    void _CreateColorFlagsAnimationGUI();
+    void _CreateColorFlagsShrink();
+    void _CreateEasingFunctionsGUI();
 
 private:
     std::unique_ptr<TimerCPU> m_timer = std::make_unique<TimerCPU>("ColorAnimation");
     float* m_speed = nullptr;
     EasingFunction* m_easingFunction = nullptr;
+    Test* m_test = nullptr;
+    float* m_lineWidth = nullptr;
+    int* m_nFlags = nullptr;
+    FlagLayout* m_flagLayout = nullptr;
+    Direction* m_direction = nullptr;
 };

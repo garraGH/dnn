@@ -25,7 +25,7 @@ public:
     static std::shared_ptr<Texture2D> Create(const std::string& name);
 
 protected:
-    virtual void _LoadImage() override;
+    virtual std::shared_ptr<Texture> _LoadImage() override;
 
 private:
     unsigned int m_slot = 0;

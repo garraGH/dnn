@@ -10,4 +10,13 @@
 
 
 #include "texture.h"
+#include "logger.h"
+
+std::shared_ptr<Texture> Texture::LoadFromFile(const std::string& imagePath)
+{
+    m_imagePath = imagePath;
+    return _LoadImage();
+}
+
+
 

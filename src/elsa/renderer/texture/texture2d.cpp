@@ -20,14 +20,3 @@ std::shared_ptr<Texture2D> Texture2D::Create(const std::string& name)
         default: return nullptr;
     }
 }
-
-
-std::shared_ptr<Texture2D> Texture2D::LoadFromFile(const std::string& imagePath)
-{
-    m_imagePath = imagePath;
-    _LoadImage();
-    return shared_from_this();
-}
-
-
-

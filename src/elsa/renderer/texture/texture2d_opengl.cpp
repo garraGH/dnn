@@ -29,19 +29,21 @@ OpenGLTexture2D::~OpenGLTexture2D()
     glDeleteTextures(1, &m_id);
 }
 
-void OpenGLTexture2D::_LoadImage()
+std::shared_ptr<Texture> OpenGLTexture2D::_LoadImage()
 {
     stbi_set_flip_vertically_on_load(true);
     stbi_uc* data = stbi_load(m_imagePath.c_str(), &m_width, &m_height, &m_channel, 0);
     CORE_ASSERT(data, "OpenGLTexture2D::LoadFromFile: Failed to load image: "+m_imagePath);
-    INFO("OpenGLTexture2D::_LoadImage: {}, {}x{}x{}", m_imagePath, m_width, m_height, m_channel);
 
-    glTextureStorage2D(m_id, 1, GL_RGB8, m_width, m_height);
     glTextureParameteri(m_id, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTextureParameteri(m_id, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTextureStorage2D(m_id, 1, m_channel == 3? GL_RGB8 : GL_RGBA8, m_width, m_height);
     glTextureSubImage2D(m_id, 0, 0, 0, m_width, m_height, m_channel == 3? GL_RGB : GL_RGBA, GL_UNSIGNED_BYTE, data);
 
     stbi_image_free(data);
+
+    INFO("OpenGLTexture2D::_LoadImage: {}, {}x{}x{}", m_imagePath, m_width, m_height, m_channel);
+    return shared_from_this();
 }
 
 void OpenGLTexture2D::Bind(unsigned int slot)
