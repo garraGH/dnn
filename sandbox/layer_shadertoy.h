@@ -40,6 +40,6 @@ private:
     std::unique_ptr<CameraContoller> m_cameraController = std::make_unique<CameraContoller>(Camera::Type::Orthographic);
     std::shared_ptr<Renderer::Element> m_canvas = nullptr;
 
-    ShaderToy::Type m_toyType = ShaderToy::Type::Colors;
+    ShaderToy::Type m_toyType = ShaderToy::Type::Shapes;
     std::map<ShaderToy::Type, std::shared_ptr<ShaderToy>> m_shaderToys;
 };

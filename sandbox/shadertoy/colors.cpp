@@ -27,13 +27,13 @@ Colors::Colors()
 void Colors::_PrepareResources()
 {
     using MA = Material::Attribute;
-    std::shared_ptr<MA> maColorFst = Renderer::Resources::Create<MA>("ColorFst")->Set(MA::Type::Float4, glm::value_ptr(glm::vec4(0.8, 0.1, 0.2, 1.0)));
-    std::shared_ptr<MA> maColorSnd = Renderer::Resources::Create<MA>("ColorSnd")->Set(MA::Type::Float4, glm::value_ptr(glm::vec4(0.1, 0.8, 0.8, 1.0)));
+    std::shared_ptr<MA> maColorFst = Renderer::Resources::Create<MA>("ColorFst")->Set(MA::Type::Float4, 1, glm::value_ptr(glm::vec4(0.8, 0.1, 0.2, 1.0)));
+    std::shared_ptr<MA> maColorSnd = Renderer::Resources::Create<MA>("ColorSnd")->Set(MA::Type::Float4, 1, glm::value_ptr(glm::vec4(0.1, 0.8, 0.8, 1.0)));
     std::shared_ptr<MA> maTime = Renderer::Resources::Create<MA>("Time")->SetType(MA::Type::Float1);
     std::shared_ptr<MA> maSpeed = Renderer::Resources::Create<MA>("Speed")->SetType(MA::Type::Float1);
     std::shared_ptr<MA> maTest = Renderer::Resources::Create<MA>("Test")->SetType(MA::Type::Int1);
     std::shared_ptr<MA> maEasingFunction = Renderer::Resources::Create<MA>("EasingFunction")->SetType(MA::Type::Int1);
-    std::shared_ptr<MA> maResolution = Renderer::Resources::Create<MA>("Resolution")->Set(MA::Type::Float2, glm::value_ptr(glm::vec2(1000, 1000)));
+    std::shared_ptr<MA> maResolution = Renderer::Resources::Create<MA>("Resolution")->Set(MA::Type::Float2, 1, glm::value_ptr(glm::vec2(1000, 1000)));
     std::shared_ptr<MA> maLineWidth = Renderer::Resources::Create<MA>("LineWidth")->SetType(MA::Type::Float1);
     std::shared_ptr<MA> maNumFlags = Renderer::Resources::Create<MA>("NumFlags")->SetType(MA::Type::Int1);
     std::shared_ptr<MA> maFlagLayout = Renderer::Resources::Create<MA>("FlagLayout")->SetType(MA::Type::Int1);

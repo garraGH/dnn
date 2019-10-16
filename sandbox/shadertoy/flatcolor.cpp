@@ -27,7 +27,7 @@ FlatColor::FlatColor()
 void FlatColor::_PrepareResources()
 {
     using MA = Material::Attribute;
-    std::shared_ptr<MA> maColor = Renderer::Resources::Create<MA>("Color")->Set(MA::Type::Float4, glm::value_ptr(glm::vec4(1, 0, 0, 0)));
+    std::shared_ptr<MA> maColor = Renderer::Resources::Create<MA>("Color")->Set(MA::Type::Float4, 1, glm::value_ptr(glm::vec4(1, 0, 0, 0)));
     Renderer::Resources::Create<Shader>("FlatColor")->LoadFromFile("/home/garra/study/dnn/assets/shader/FlatColor.glsl");
     Renderer::Resources::Create<Material>("FlatColor")->Set("u_Color", maColor);
 }

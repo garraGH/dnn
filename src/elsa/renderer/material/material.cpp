@@ -58,7 +58,7 @@ void Material::Attribute::_AllocateData()
     m_data = std::shared_ptr<char>(new char[size], [](char* p) { delete[] p; });
 }
 
-std::shared_ptr<Material::Attribute> Material::Attribute::Set(Type type, const void* data, int cnt, bool transpose)
+std::shared_ptr<Material::Attribute> Material::Attribute::Set(Type type, int cnt, const void* data, bool transpose)
 { 
     m_type = type;
     m_count = cnt;
@@ -74,8 +74,11 @@ std::shared_ptr<Material::Attribute> Material::Attribute::SetType(Type type)
 
 std::shared_ptr<Material::Attribute> Material::Attribute::SetData(const void* data)
 {
-    _AllocateData();
-    UpdateData(data);
+    if(data != nullptr)
+    {
+        _AllocateData();
+        UpdateData(data);
+    }
     return shared_from_this();
 }
 

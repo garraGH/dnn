@@ -94,9 +94,9 @@ void ExampleLayer::_PrepareResources()
     Renderer::Resources::Create<Mesh>("mesh_quad")->Set(indexBuffer_quad, {positionBuffer_quad, colorBuffer_quad});
 
     using MA = Material::Attribute;
-    Renderer::Resources::Create<MA>("red")->Set(MA::Type::Float4, glm::value_ptr(glm::vec4(1, 0.1, 0.2, 1)));
-    Renderer::Resources::Create<MA>("green")->Set(MA::Type::Float4, glm::value_ptr(glm::vec4(0.1, 1, 0.2, 1)));
-    Renderer::Resources::Create<MA>("blue")->Set(MA::Type::Float4, glm::value_ptr(glm::vec4(0.1, 0.2, 1, 1)));
+    Renderer::Resources::Create<MA>("red")->Set(MA::Type::Float4, 1, glm::value_ptr(glm::vec4(1, 0.1, 0.2, 1)));
+    Renderer::Resources::Create<MA>("green")->Set(MA::Type::Float4, 1, glm::value_ptr(glm::vec4(0.1, 1, 0.2, 1)));
+    Renderer::Resources::Create<MA>("blue")->Set(MA::Type::Float4, 1, glm::value_ptr(glm::vec4(0.1, 0.2, 1, 1)));
     Renderer::Resources::Create<Material>("mtr_tri")->Set("u_Color", Renderer::Resources::Get<MA>("green"));
     Renderer::Resources::Create<Material>("mtr_quad")->Set("u_Color", Renderer::Resources::Get<MA>("red"));
     Renderer::Resources::Create<Shader>("Basic")->LoadFromFile("/home/garra/study/dnn/assets/shader/Basic.glsl");
@@ -122,6 +122,7 @@ bool ExampleLayer::_OnKeyPressed(KeyPressedEvent& e)
         m_cameraController->Revert();
         Renderer::Resources::Get<Transform>("tf_quad")->Set(glm::vec3(0), glm::vec3(0), glm::vec3(0.1f));
     }
+    return false;
 }
 
 void ExampleLayer::_UpdateCamera(float deltaTime)

@@ -30,7 +30,7 @@ public:
         Attribute(const std::string& name) : Asset(name) {}
         static std::shared_ptr<Attribute> Create(const std::string& name) { return std::make_shared<Attribute>(name); }
 
-        std::shared_ptr<Attribute> Set(Type type, const void* data, int cnt=1, bool transpose=false);
+        std::shared_ptr<Attribute> Set(Type type, int cnt=1, const void* data=nullptr, bool transpose=false);
         std::shared_ptr<Attribute> SetType(Type type);
         std::shared_ptr<Attribute> SetData(const void* data);
         std::shared_ptr<Attribute> SetCount(int cnt);

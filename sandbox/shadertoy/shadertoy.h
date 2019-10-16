@@ -34,6 +34,7 @@ public:
     virtual std::shared_ptr<Shader> GetShader() const = 0;
 
     virtual void OnUpdate(){}
+    virtual void OnEvent(Event& e) {}
     virtual void OnImGuiRender(){}
 
     static std::shared_ptr<ShaderToy> Create(Type type);

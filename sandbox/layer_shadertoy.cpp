@@ -67,12 +67,11 @@ void ShaderToyLayer::OnUpdate(float deltaTime)
 
 void ShaderToyLayer::OnEvent(Event& e)
 {
-
+    m_shaderToys[m_toyType]->OnEvent(e);
 }
 
 void ShaderToyLayer::OnImGuiRender()
 {
-
     ImGui::Begin("ShaderToyLayer");
     {
         for(auto& toy : m_shaderToys)
@@ -81,6 +80,7 @@ void ShaderToyLayer::OnImGuiRender()
             _CreateRadioButtonOf(toy.second);
         }
 
+        ImGui::Separator();
         m_shaderToys[m_toyType]->OnImGuiRender();
     }
     ImGui::End();

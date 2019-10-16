@@ -30,8 +30,8 @@ void ShapingFunctions::_PrepareResources()
 
     using MA = Material::Attribute;
     Renderer::Resources::Create<Shader>("ShapingFunctions")->LoadFromFile("/home/garra/study/dnn/assets/shader/ShapingFunctions.glsl");
-    std::shared_ptr<MA> maResolution = Renderer::Resources::Create<MA>("Resolution")->Set(MA::Type::Float2, glm::value_ptr(glm::vec2(1000, 1000)));
-    std::shared_ptr<MA> maCoefficient = Renderer::Resources::Create<MA>("Coefficient")->Set(MA::Type::Float4, glm::value_ptr(glm::vec4(1, 0, 0, 0)));
+    std::shared_ptr<MA> maResolution = Renderer::Resources::Create<MA>("Resolution")->Set(MA::Type::Float2, 1, glm::value_ptr(glm::vec2(1000, 1000)));
+    std::shared_ptr<MA> maCoefficient = Renderer::Resources::Create<MA>("Coefficient")->Set(MA::Type::Float4, 1, glm::value_ptr(glm::vec4(1, 0, 0, 0)));
     std::shared_ptr<MA> maFunction = Renderer::Resources::Create<MA>("Function")->SetType(MA::Type::Int1);
     std::shared_ptr<MA> maOrder = Renderer::Resources::Create<MA>("Order")->SetType(MA::Type::Int1);
 
