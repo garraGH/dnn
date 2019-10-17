@@ -21,7 +21,8 @@ public:
         FlatColor, 
         ShapingFunctions, 
         Shapes, 
-        Colors
+        Colors, 
+        Matrix, 
     };
 
     ShaderToy() = default;

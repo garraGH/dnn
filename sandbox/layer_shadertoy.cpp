@@ -24,6 +24,7 @@ ShaderToyLayer::ShaderToyLayer()
     _Register(ShaderToy::Type::ShapingFunctions);
     _Register(ShaderToy::Type::Shapes);
     _Register(ShaderToy::Type::Colors);
+    _Register(ShaderToy::Type::Matrix);
     _PrepareResources();
 }
 

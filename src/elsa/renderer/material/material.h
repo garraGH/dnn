@@ -25,7 +25,7 @@ public:
     class Attribute : public Asset, public std::enable_shared_from_this<Attribute>
     {
     public:
-        enum class Type { Unknown = -1, Float1, Float2, Float3, Float4, Int1, Int2, Int3, Int4, UInt1, UInt2, UInt3, UInt4,   Mat2x2, Mat2x3, Mat2x4, Mat3x2, Mat3x3, Mat3x4, Mat4x2, Mat4x3, Mat4x4 };
+        enum class Type { Unknown = -1, Float1, Float2, Float3, Float4, Int1, Int2, Int3, Int4, UInt1, UInt2, UInt3, UInt4, Mat2x2, Mat2x3, Mat2x4, Mat3x2, Mat3x3, Mat3x4, Mat4x2, Mat4x3, Mat4x4 };
 
         Attribute(const std::string& name) : Asset(name) {}
         static std::shared_ptr<Attribute> Create(const std::string& name) { return std::make_shared<Attribute>(name); }

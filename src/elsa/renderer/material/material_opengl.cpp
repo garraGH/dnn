@@ -74,7 +74,7 @@ void OpenGLMaterial::_BindAttribute(const std::shared_ptr<Shader>& shader)
             case MAT::Mat4x3: glUniformMatrix4x3fv(location, count, transpose, (GLfloat*)data); break;
             case MAT::Mat4x4: glUniformMatrix4fv  (location, count, transpose, (GLfloat*)data); break;
                                                                                               
-            default: CORE_ASSERT(false, "Unkown MaterialAttributeType!");                     
+            default: CORE_ASSERT(false, "OpenGLMaterial::_BindAttribute: Unknown MaterialAttributeType!");                     
         }                                                                                     
     }
 }

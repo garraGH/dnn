@@ -16,13 +16,6 @@
 class ShaderToyLayer : public Layer
 {
 public:
-    enum class TestShader
-    {
-        FlatColor, 
-        ShapingFunctions, 
-        Shapes, 
-    };
-public:
     ShaderToyLayer();
 
     virtual void OnEvent(Event& e) override;
@@ -40,6 +33,6 @@ private:
     std::unique_ptr<CameraContoller> m_cameraController = std::make_unique<CameraContoller>(Camera::Type::Orthographic);
     std::shared_ptr<Renderer::Element> m_canvas = nullptr;
 
-    ShaderToy::Type m_toyType = ShaderToy::Type::Shapes;
+    ShaderToy::Type m_toyType = ShaderToy::Type::Matrix;
     std::map<ShaderToy::Type, std::shared_ptr<ShaderToy>> m_shaderToys;
 };
