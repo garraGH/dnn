@@ -13,12 +13,21 @@ void main()
 #type fragment
 #version 460 core
 uniform vec2 u_Resolution;
-uniform int u_Style;
-uniform int u_Mode;
+uniform int u_Style = 1;
+uniform int u_Mode = 0;
 uniform float u_LineWidth = 2;
 uniform vec4 u_Colors[2];
-uniform vec2 u_Points[3];
+uniform vec2 u_Points[2];
+uniform float u_TorusWidth = 0.1;
+uniform float u_Number = 3;
+uniform float u_RoundRadius = 0.1;
+uniform float u_SawTooth = 0.5;
+
+
 out vec4 color;
+
+#define PI 3.14159265
+#define TWO_PI 6.28318530
 
 float rect_inner(const vec2 lb, const vec2 rt, float n)
 {
@@ -97,9 +106,8 @@ float circle_outline(const vec2 center, float radius, float n)
 // 
 //
 
-float line(const vec2 beg, const vec2 end, float n)
+float sdf_segment(vec2 pixel, const vec2 beg, const vec2 end, float n)
 {
-    vec2 pixel = gl_FragCoord.xy/u_Resolution;
     float width = 0.25*n/u_Resolution.x;
 
     float a = distance(pixel, u_Points[0]);
@@ -108,13 +116,21 @@ float line(const vec2 beg, const vec2 end, float n)
 
     if(a>=c || b>=c)
     {
-        return 0;
+        return 1;
     }
 
     float p = (a+b+c)*0.5;
     float h = 2.0/c*sqrt(p*(p-a)*(p-b)*(p-c));
-    return mix(1.0, 0.0, smoothstep(0.5*width, 1.5*width, h));
+    return mix(0.0, 1.0, smoothstep(0.5*width, 1.5*width, h));
 }
+
+float sdf_line(vec2 pixel, vec2 beg, vec2 end, float width)
+{
+    float a = beg.y-end.y;
+    float b = end.x-beg.x;
+    return abs(a*pixel.x+b*pixel.y+beg.x*end.y-end.x*beg.y)/sqrt(a*a+b*b);
+}
+
 
 float sdf_torus(vec2 pixel, vec2 center, float radius, float width)
 {
@@ -148,6 +164,24 @@ float sdf_roundbox(vec2 pixel, vec2 center, float width, float height, float rad
     return sdf_box(pixel, center, width, height)-radius;
 }
 
+float sdf_polygon(vec2 pixel, vec2 center, float diameter, float N, float sawtooth)
+{
+    pixel = 2*pixel-1;
+    center = 2*center-1;
+    pixel -= center;
+    float a = atan(pixel.x, pixel.y)+PI;
+    float r = TWO_PI/N;
+    return cos(floor(sawtooth+a/r)*r-a)*length(pixel)-diameter;
+}
+
+float sdf_petal(vec2 pixel, vec2 center, float radius, float N, float sawtooth)
+{
+    pixel -= center;
+    float r = length(pixel);
+    float a = atan(pixel.y, pixel.x);
+    float f =  radius*(abs(cos(a*N)*sawtooth+(1-sawtooth)));
+    return r-f;
+}
 
 vec4 render_fill(float d, vec4 c, float width)
 {
@@ -167,11 +201,6 @@ vec4 render_both(float d, vec4 cf, vec4 cl, float width)
     vec4 cLine = render_line(d, cl, width);
 
     return mix(cFill, cLine, step(0.01, cLine));
-}
-
-vec4 Line()
-{
-    return line(u_Points[0], u_Points[1], u_LineWidth)*u_Colors[1];
 }
 
 void Rectangle()
@@ -206,35 +235,45 @@ vec4 render(float d)
     }
 }
 
-vec4 Circle()
+vec4 Line(const vec2 pixel)
 {
-    vec2 pixel = gl_FragCoord.xy/u_Resolution;
+    float d = sdf_line(pixel, u_Points[0], u_Points[1], u_LineWidth);
+    return render(d);
+}
+
+vec4 Segment(const vec2 pixel)
+{
+    float d = sdf_segment(pixel, u_Points[0], u_Points[1], u_LineWidth);
+    return render(d);
+}
+
+vec4 Circle(const vec2 pixel)
+{
     float radius = distance(u_Points[1], u_Points[0]);
     float d = sdf_circle(pixel, u_Points[0], radius);
     return render(d);
 }
 
-vec4 Box()
+vec4 Box(const vec2 pixel)
 {
-    vec2 pixel = gl_FragCoord.xy/u_Resolution;
     vec2 center = (u_Points[0]+u_Points[1])*0.5;
     vec2 size = abs(u_Points[0]-u_Points[1])/2;
     float d = sdf_box(pixel, center, size.x, size.y);
     return render(d);
 }
 
-// vec4 RoundBox()
-// {
-//     vec2 pixel = gl_FragCoord.xy/u_Resolution;
-//     vec2 center = (u_Points[0]+u_Points[1])*0.5;
-//     vec2 size = abs(u_Points[0]-u_Points[1])/2;
-//     float d = sdf_roundbox(pixel, center, size.x, size.y, size.x/10);
-//     return render(d);
-// }
-
-vec4 Elipse()
+vec4 RoundBox(const vec2 pixel)
 {
-    vec2 pixel = gl_FragCoord.xy/u_Resolution;
+    vec2 center = (u_Points[0]+u_Points[1])*0.5;
+    vec2 size = abs(u_Points[0]-u_Points[1])/2;
+    float radius = u_RoundRadius*min(size.x, size.y);
+    size -= radius;
+    float d = sdf_roundbox(pixel, center, size.x, size.y, radius);
+    return render(d);
+}
+
+vec4 Elipse(const vec2 pixel)
+{
     vec2 center = u_Points[0];
     float a = abs(u_Points[1].x-center.x);
     float b = abs(u_Points[1].y-center.y);
@@ -242,36 +281,50 @@ vec4 Elipse()
     return render(d);
 }
 
-vec4 Torus()
+vec4 Torus(const vec2 pixel)
 {
-    vec2 pixel = gl_FragCoord.xy/u_Resolution;
     vec2 center = u_Points[0];
     float radius = distance(u_Points[1], center);
-    float width = radius*0.2;
-    float d = sdf_torus(pixel, center, radius, width);
+    float d = sdf_torus(pixel, center, radius, u_TorusWidth*radius);
     return render(d);
 }
 
-void Ring()
+vec4 Polygon(const vec2 pixel)
+{
+    float diameter = 2.0*distance(u_Points[0], u_Points[1]);
+    float d = sdf_polygon(pixel, u_Points[0], diameter, u_Number, u_SawTooth);
+    return render(d);
+}
+
+vec4 Petal(const vec2 pixel)
+{
+    float radius = distance(u_Points[0], u_Points[1]);
+    float d = sdf_petal(pixel, u_Points[0], radius, u_Number, u_SawTooth);
+    return render(d);
+}
+
+void Default(const vec2 pixel)
 {
     color = u_Colors[0];
 }
 
-void Default()
-{
-//     color = vec4(1);
-    color = u_Colors[0];
-}
 
 void main()
 {
+    vec2 pixel = gl_FragCoord.xy/u_Resolution;
+
     switch(u_Style)
     {
-        case 0: color = Line();         break;
-        case 1: color = Box();          break;
-        case 2: color = Circle();       break;
-        case 3: color = Elipse();       break;
-        case 4: color = Torus();        break;
-        default: Default();     
+        case 0: color = Line(pixel);         break;
+        case 1: color = Segment(pixel);      break;
+        case 2: color = Box(pixel);          break;
+        case 3: color = RoundBox(pixel);     break;
+        case 4: color = Circle(pixel);       break;
+        case 5: color = Elipse(pixel);       break;
+        case 6: color = Torus(pixel);        break;
+        case 7: color = Polygon(pixel);      break;
+        case 8: color = Petal(pixel);      break;
+
+        default: Default(pixel);     
     }
 }

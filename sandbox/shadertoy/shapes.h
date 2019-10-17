@@ -18,10 +18,14 @@ public:
     enum class Style
     {
         Line = 0, 
-        Rectangle, 
+        Segment, 
+        Box, 
+        RoundBox, 
         Circle, 
         Elipse, 
-        Ring, 
+        Torus, 
+        Polygon, 
+        Petal, 
     };
 
     enum class Mode
@@ -41,7 +45,6 @@ public:
     {
         glm::vec2 pnt1;
         glm::vec2 pnt2;
-        glm::vec2 pnt3;
     };
 
 
@@ -63,6 +66,7 @@ protected:
     ON(MouseButtonPressedEvent);
     ON(MouseMovedEvent);
     ON(MouseButtonReleasedEvent);
+    ON(MouseScrolledEvent);
 #undef ON
 
 private:
@@ -73,6 +77,10 @@ private:
     Colors* m_colors = nullptr;
     Points* m_points = nullptr;
     float* m_lineWidth = nullptr;
+    float* m_torusWidth = nullptr;
+    float* m_number = nullptr;
+    float* m_roundRadius = nullptr;
+    float* m_sawTooth = nullptr;
 
     bool m_bPressed = false;
 };

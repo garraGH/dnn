@@ -30,12 +30,17 @@ void Shapes::_PrepareResources()
     std::shared_ptr<MA> maStyle = Renderer::Resources::Create<MA>("Style")->Set(MA::Type::Int1);
     std::shared_ptr<MA> maMode = Renderer::Resources::Create<MA>("Mode")->Set(MA::Type::Int1);
     std::shared_ptr<MA> maLineWidth = Renderer::Resources::Create<MA>("LineWidth")->Set(MA::Type::Float1);
+    std::shared_ptr<MA> maTorusWidth = Renderer::Resources::Create<MA>("TorusWidth")->Set(MA::Type::Float1);
+    std::shared_ptr<MA> maNumber = Renderer::Resources::Create<MA>("Number")->Set(MA::Type::Float1);
+    std::shared_ptr<MA> maRoundRadius = Renderer::Resources::Create<MA>("RoundRadius")->Set(MA::Type::Float1);
+    std::shared_ptr<MA> maSawTooth = Renderer::Resources::Create<MA>("SawTooth")->Set(MA::Type::Float1);
 
-    std::shared_ptr<MA> maPoints = Renderer::Resources::Create<MA>("Points")->Set(MA::Type::Float2, 3);
+
+    std::shared_ptr<MA> maPoints = Renderer::Resources::Create<MA>("Points")->Set(MA::Type::Float2, 2);
     std::shared_ptr<MA> maColors = Renderer::Resources::Create<MA>("Colors")->Set(MA::Type::Float4, 2);
 
     m_style = (Style*)maStyle->GetData();
-    *m_style = Style::Rectangle;
+    *m_style = Style::Box;
 
     m_mode = (Mode*)maMode->GetData();
     *m_mode = Mode::Fill;
@@ -44,14 +49,24 @@ void Shapes::_PrepareResources()
     *m_lineWidth = 2;
 
     m_points = (Points*)maPoints->GetData();
-    m_points->pnt1 = glm::vec2(0);
-    m_points->pnt2 = glm::vec2(0.5);
-    m_points->pnt3 = glm::vec2(1);
+    m_points->pnt1 = glm::vec2(0.4);
+    m_points->pnt2 = glm::vec2(0.6);
     
     m_colors = (Colors*)maColors->GetData();
     m_colors->cFilled = glm::vec4(0.2, 0.3, 0.5, 1.0);
     m_colors->cOutline = glm::vec4(0.5, 0.3, 0.2, 1.0);
 
+    m_torusWidth = (float*)maTorusWidth->GetData();
+    *m_torusWidth = 0.1;
+
+    m_number = (float*)maNumber->GetData();
+    *m_number = 3.0;
+
+    m_roundRadius = (float*)maRoundRadius->GetData();
+    *m_roundRadius = 0.1;
+
+    m_sawTooth = (float*)maSawTooth->GetData();
+    *m_sawTooth = 0.5;
 
     Renderer::Resources::Create<Shader>("Shapes")->LoadFromFile("/home/garra/study/dnn/assets/shader/Shapes.glsl");
     std::shared_ptr<Material> mtrShapes = Renderer::Resources::Create<Material>("Shapes");
@@ -61,6 +76,10 @@ void Shapes::_PrepareResources()
     mtrShapes->Set("u_Points", maPoints);
     mtrShapes->Set("u_Colors", maColors);
     mtrShapes->Set("u_LineWidth", maLineWidth);
+    mtrShapes->Set("u_TorusWidth", maTorusWidth);
+    mtrShapes->Set("u_Number", maNumber);
+    mtrShapes->Set("u_RoundRadius", maRoundRadius);
+    mtrShapes->Set("u_SawTooth", maSawTooth);
 }
 
 std::shared_ptr<Material> Shapes::GetMaterial() const
@@ -83,13 +102,22 @@ void Shapes::OnImGuiRender()
 
     RadioButton(style, Style, Line)
     ImGui::SameLine();
-    RadioButton(style, Style, Rectangle)
+    RadioButton(style, Style, Segment)
+    ImGui::SameLine();
+    RadioButton(style, Style, Box)
+    ImGui::SameLine();
+    RadioButton(style, Style, RoundBox)
     ImGui::SameLine();
     RadioButton(style, Style, Circle)
     ImGui::SameLine();
     RadioButton(style, Style, Elipse)
     ImGui::SameLine();
-    RadioButton(style, Style, Ring)
+    RadioButton(style, Style, Torus)
+    ImGui::SameLine();
+    RadioButton(style, Style, Polygon)
+    ImGui::SameLine();
+    RadioButton(style, Style, Petal)
+        
     ImGui::Separator();
 
     RadioButton(mode, Mode, Fill)
@@ -109,7 +137,22 @@ void Shapes::OnImGuiRender()
     ImGui::SliderFloat("LineWidth", m_lineWidth, 1, 32);
     ImGui::DragFloat2("Point1", (float*)&m_points->pnt1, 0.01, 0, 1);
     ImGui::DragFloat2("Point2", (float*)&m_points->pnt2, 0.01, 0, 1);
-    ImGui::DragFloat2("Point3", (float*)&m_points->pnt3, 0.01, 0, 1);
+
+    
+    if(*m_style == Style::RoundBox)
+    {
+        ImGui::DragFloat("RoundRadius", m_roundRadius,  0.01,  0,  1);
+    }
+    if(*m_style == Style::Torus)
+    {
+        ImGui::DragFloat("Width", m_torusWidth,  0.01,  0,  1);
+    }
+    if(*m_style == Style::Polygon || *m_style == Style::Petal)
+    {
+        ImGui::DragFloat("Number", m_number,  0.05, 1, 20);
+        ImGui::DragFloat("SawTooth", m_sawTooth,  0.01, 0, 1);
+    }
+    ImGui::Separator();
 }
 
 void Shapes::OnEvent(Event& e)
@@ -119,6 +162,7 @@ void Shapes::OnEvent(Event& e)
     DISPATCH(MouseButtonPressedEvent);
     DISPATCH(MouseButtonReleasedEvent);
     DISPATCH(MouseMovedEvent);
+    DISPATCH(MouseScrolledEvent);
 #undef DISPATCH
 }
 
@@ -144,6 +188,32 @@ bool Shapes::_OnMouseMovedEvent(MouseMovedEvent& e)
     {
         m_points->pnt2.x = e.GetX()/1000.0;
         m_points->pnt2.y = 1.0-e.GetY()/1000.0;
+    }
+    return false;
+}
+
+bool Shapes::_OnMouseScrolledEvent(MouseScrolledEvent& e)
+{
+    switch(*m_style)
+    {
+        case Style::Torus: 
+            *m_torusWidth += e.GetOffsetY()*0.01;
+            break;
+        case Style::RoundBox:
+            *m_roundRadius += e.GetOffsetY()*0.05;
+            break;
+        case Style::Polygon:
+        case Style::Petal:
+            if(Input::IsKeyPressed(KEY_LEFT_CONTROL))
+            {
+                *m_sawTooth += e.GetOffsetY()*0.01;
+            }
+            else
+            {
+                *m_number += e.GetOffsetY()*0.1;
+            }
+            break;
+        default: break;
     }
     return false;
 }
