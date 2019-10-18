@@ -60,3 +60,5 @@ void Renderer::Element::RenderedBy(const std::shared_ptr<Shader>& shader)
     m_mesh->Bind(shader);
     Renderer::Command::DrawIndexed(m_mesh->GetBufferArray());
 }
+
+

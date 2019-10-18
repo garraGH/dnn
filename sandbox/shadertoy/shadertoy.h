@@ -23,6 +23,7 @@ public:
         Shapes, 
         Colors, 
         Matrix, 
+        HUD, 
     };
 
     ShaderToy() = default;
@@ -34,7 +35,7 @@ public:
     virtual std::shared_ptr<Material> GetMaterial() const = 0;
     virtual std::shared_ptr<Shader> GetShader() const = 0;
 
-    virtual void OnUpdate(){}
+    virtual void OnUpdate(float deltaTime){}
     virtual void OnEvent(Event& e) {}
     virtual void OnImGuiRender(){}
 

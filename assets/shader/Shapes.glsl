@@ -110,9 +110,9 @@ float sdf_segment(vec2 pixel, const vec2 beg, const vec2 end, float n)
 {
     float width = 0.25*n/u_Resolution.x;
 
-    float a = distance(pixel, u_Points[0]);
-    float b = distance(pixel, u_Points[1]);
-    float c = distance(u_Points[0], u_Points[1]);
+    float a = distance(pixel, beg);
+    float b = distance(pixel, end);
+    float c = distance(beg, end);
 
     if(a>=c || b>=c)
     {

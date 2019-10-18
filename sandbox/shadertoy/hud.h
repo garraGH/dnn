@@ -1,43 +1,30 @@
 /*============================================
 * Copyright(C)2019 Garra. All rights reserved.
 * 
-* file        : /home/garra/study/dnn/sandbox/shadertoy/matrix.h
+* file        : /home/garra/study/dnn/sandbox/shadertoy/hud.h
 * author      : Garra
-* time        : 2019-10-17 16:11:06
+* time        : 2019-10-17 21:19:18
 * description : 
 *
 ============================================*/
 
+
 #pragma once
 #include "shadertoy.h"
 
-class Matrix : public ShaderToy
+class HUD : public ShaderToy
 {
 public:
-    enum class Style
-    {
-        T = 0,     // Translate
-        R,         // Rotate
-        S,         // Scale
-        TR, 
-        TS, 
-        RS, 
-        TRS, 
-    };
+    HUD();
 
-
-public:
-    Matrix();
-
-    virtual std::string GetName() const { return "Matrix"; }
+    virtual std::string GetName() const { return "HUD"; }
     virtual void OnUpdate(float deltaTime) override;
+    virtual void OnEvent(Event& e) override;
     virtual void OnImGuiRender() override;
     virtual std::shared_ptr<Material> GetMaterial() const override;
     virtual std::shared_ptr<Shader> GetShader() const override;
 
-    virtual void OnEvent(Event& e) override;
-
-    static std::shared_ptr<Matrix> Create();
+    static std::shared_ptr<HUD> Create();
 
 protected:
 #define ON(event) bool _On##event(event& e)
@@ -50,9 +37,15 @@ protected:
 private:
     void _PrepareResources();
 
-    std::unique_ptr<TimerCPU> m_timer = std::make_unique<TimerCPU>("MatrixTransform");
-    float* m_radius = nullptr;
-    Style* m_style = nullptr;
-    float* m_speed = nullptr;
-    int m_showSDF = 0;
+private:
+    float m_speed = 1.0;
+    float m_radRotated = 0;
+    float* m_radarRange = nullptr;
+    float* m_circleRadius = nullptr;
+    float* m_circleCenter = nullptr;
+    float* m_circleColor = nullptr;
+    float* m_time = nullptr;
+
+    std::unique_ptr<TimerCPU> m_timer = std::make_unique<TimerCPU>("HUD");
 };
+

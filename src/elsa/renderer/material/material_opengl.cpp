@@ -40,7 +40,7 @@ void OpenGLMaterial::_BindAttribute(const std::shared_ptr<Shader>& shader)
     for(auto& a : m_attributes)
     {
         int location = m_shader->GetLocation(a.first);
-//         INFO("OpenGLMaterial::Bind: {}, {}", a.first, location);
+        INFO("OpenGLMaterial::Bind: {}, {}", a.first, location);
         if(location == -1)
         {
             continue;

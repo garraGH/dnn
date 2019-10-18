@@ -82,8 +82,27 @@ public:
         static Assets<T>& Instance() { return s_instance; }
 
         bool Exist(const std::string& name) { return m_assets.find(name) != m_assets.end(); }
-        std::shared_ptr<T> Create(const std::string& name="unnamed") { std::shared_ptr<T> asset = T::Create(name); Add(asset); return asset; }
-        void Add(const std::shared_ptr<T>& asset) { const std::string& name = asset->GetName(); if(Exist(name)){CORE_WARN("Assets::Add: asset already exist! "+asset->GetTypeName()+" - "+name);} m_assets[name] = asset; }
+        std::shared_ptr<T> Create(const std::string& name="unnamed") 
+        {
+            if(Exist(name))
+            {
+                CORE_WARN("Assets::Add: asset already exist! "+m_assets[name]->GetTypeName()+" - "+name);
+                return m_assets[name];
+            }
+            std::shared_ptr<T> asset = T::Create(name);
+            m_assets[name] = asset;
+            return asset;
+        }
+
+        void Add(const std::shared_ptr<T>& asset) 
+        {
+            const std::string& name = asset->GetName();
+            if(Exist(name))
+            {
+                CORE_WARN("Assets::Add: asset already exist! "+asset->GetTypeName()+" - "+name);
+            }
+            m_assets[name] = asset;
+        }
 
         std::shared_ptr<T>& Get(const std::string& name) { CORE_ASSERT(Exist(name), "Assets::Get: asset not found! "+name); return m_assets[name]; }
     private:

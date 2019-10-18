@@ -90,7 +90,7 @@ std::shared_ptr<Shader> Colors::GetShader() const
     return Renderer::Resources::Get<Shader>("Colors");
 }
 
-void Colors::OnUpdate()
+void Colors::OnUpdate(float deltaTime)
 {
     float t = m_timer->GetElapsedTime();
     Renderer::Resources::Get<Material::Attribute>("Time")->UpdateData((void*)&t);
@@ -105,14 +105,20 @@ void Colors::OnImGuiRender()
         *m_test = Test::x;                           \
     }
 
+
     RadioButton(ColorTransition)
+    ImGui::SameLine();
     RadioButton(TextureTransition)
+    ImGui::SameLine();
     RadioButton(TextureMixEachChannel)
+    ImGui::SameLine();
     RadioButton(ColorFlagsAnimation)
+    ImGui::SameLine();
     RadioButton(ColorFlagsShrink)
 
 #undef RadioButton
 
+    ImGui::Separator();
 
     switch(*m_test)
     {
@@ -131,6 +137,7 @@ void Colors::OnImGuiRender()
         default:
             _CreateTextureMixEachChannelGUI();
     }
+    ImGui::Separator();
 }
 
 void Colors::_CreateColorTransitionGUI()

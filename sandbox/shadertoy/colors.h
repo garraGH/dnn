@@ -79,7 +79,7 @@ public:
     virtual std::string GetName() const override { return "Colors"; }
     virtual std::shared_ptr<Material> GetMaterial() const override;
     virtual std::shared_ptr<Shader> GetShader() const override;
-    virtual void OnUpdate() override;
+    virtual void OnUpdate(float deltaTime) override;
     virtual void OnImGuiRender() override;
 
     static std::shared_ptr<Colors> Create();

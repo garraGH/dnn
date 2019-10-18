@@ -64,7 +64,7 @@ std::shared_ptr<Shader> Matrix::GetShader() const
     return Renderer::Resources::Get<Shader>("Matrix");
 }
 
-void Matrix::OnUpdate()
+void Matrix::OnUpdate(float deltaTime)
 {
     float t = m_timer->GetElapsedTime();
     Renderer::Resources::Get<Material::Attribute>("Time")->UpdateData(&t);
@@ -78,9 +78,9 @@ void Matrix::OnImGuiRender()
         *m_style = Style::x;                         \
     }                                                \
 
-    RadioButton(R);
-    ImGui::SameLine();
     RadioButton(T);
+    ImGui::SameLine();
+    RadioButton(R);
     ImGui::SameLine();
     RadioButton(S);
     ImGui::SameLine();

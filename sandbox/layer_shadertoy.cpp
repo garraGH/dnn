@@ -25,6 +25,7 @@ ShaderToyLayer::ShaderToyLayer()
     _Register(ShaderToy::Type::Shapes);
     _Register(ShaderToy::Type::Colors);
     _Register(ShaderToy::Type::Matrix);
+    _Register(ShaderToy::Type::HUD);
     _PrepareResources();
 }
 
@@ -62,7 +63,7 @@ void ShaderToyLayer::OnUpdate(float deltaTime)
 {
     Renderer::BeginScene(m_cameraController->GetCamera());
     Renderer::Submit(m_canvas, m_shaderToys[m_toyType]->GetShader());
-    m_shaderToys[m_toyType]->OnUpdate();
+    m_shaderToys[m_toyType]->OnUpdate(deltaTime);
     Renderer::EndScene();
 }
 
