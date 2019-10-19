@@ -16,14 +16,17 @@
 class ShaderToy
 {
 public:
-    enum class Type
+    enum Type
     {
+        Unknown = -1, 
         FlatColor, 
         ShapingFunctions, 
         Shapes, 
         Colors, 
         Matrix, 
         HUD, 
+        Pattern,
+        Last, 
     };
 
     ShaderToy() = default;

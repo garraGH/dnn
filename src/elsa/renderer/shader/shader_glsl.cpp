@@ -64,6 +64,22 @@ unsigned int GLSLProgram::_ToOpenGLShaderType(Type type) const
 
 }
 
+std::string GLSLProgram::_GetStringType(Type type) const
+{
+#define CASE(x) case x: return #x;
+    switch(type)
+    {
+        CASE(VERTEX);
+        CASE(FRAGMENT);
+        CASE(TESSCONTROL);
+        CASE(TESSEVALUATION);
+        CASE(COMPUTE);
+        CASE(GEOMETRY);
+        default: CORE_ASSERT(false, "UnKnown ShaderType!"); return "";
+    }
+#undef CASE
+}
+
 void GLSLProgram::_Compile(const std::unordered_map<Type, std::string>& splitShaderSources)
 {
     std::vector<unsigned int> shaderIDs;
@@ -88,10 +104,10 @@ void GLSLProgram::_Compile(const std::unordered_map<Type, std::string>& splitSha
                 glDeleteShader(id);
             }
             CORE_ERROR(infoLog.data());
-            CORE_ASSERT(false, "Compile Shader Failed!");
+            CORE_ASSERT(false, "GLSLProgram::_Compile: Compile " + _GetStringType(type)+" Shader Failed! "+m_srcFile);
             return;
         }
-        CORE_TRACE("CompileShader ({}) OK!", shaderID);
+        CORE_TRACE("GLSLProgram::_Compile: Compile {} Shader ({}, {}) OK!", _GetStringType(type), m_srcFile, shaderID);
         shaderIDs[i++] = shaderID;
     }
 
@@ -116,10 +132,10 @@ void GLSLProgram::_Compile(const std::unordered_map<Type, std::string>& splitSha
             glDeleteShader(id);
         }
         CORE_ERROR(infoLog.data());
-        CORE_ASSERT(false, "LinkProgram Failed!");
+        CORE_ASSERT(false, "GLSLProgram::_Compile: LinkProgram Failed! "+m_srcFile);
         return;
     }
-    CORE_TRACE("LinkProgram ({}) OK!", programID);
+    CORE_TRACE("GLSLProgram::_Compile: LinkProgram ({}, {}) OK!", m_srcFile, programID);
 
     for(auto shaderID : shaderIDs)
     {

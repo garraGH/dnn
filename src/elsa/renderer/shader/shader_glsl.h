@@ -32,6 +32,7 @@ protected:
     virtual int _UpdateLocations(const std::string& name) override;
     virtual void _Compile(const std::unordered_map<Type, std::string>& splitShaderSources) override;
     
+    std::string _GetStringType(Type type) const ;
 private:
     void _Upload(const char* name, const glm::mat4& matrix);
     unsigned int _ToOpenGLShaderType(Type type) const;

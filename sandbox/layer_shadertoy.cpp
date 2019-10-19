@@ -20,12 +20,18 @@ std::shared_ptr<ShaderToyLayer> ShaderToyLayer::Create()
 ShaderToyLayer::ShaderToyLayer()
     : Layer("ShaderToyLayer")
 {
-    _Register(ShaderToy::Type::FlatColor);
-    _Register(ShaderToy::Type::ShapingFunctions);
-    _Register(ShaderToy::Type::Shapes);
-    _Register(ShaderToy::Type::Colors);
-    _Register(ShaderToy::Type::Matrix);
-    _Register(ShaderToy::Type::HUD);
+    for(int i=ShaderToy::Type::Unknown+1; i<ShaderToy::Type::Last; i++)
+    {
+        _Register(ShaderToy::Type(i));
+    }
+// 
+//     _Register(ShaderToy::Type::FlatColor);
+//     _Register(ShaderToy::Type::ShapingFunctions);
+//     _Register(ShaderToy::Type::Shapes);
+//     _Register(ShaderToy::Type::Colors);
+//     _Register(ShaderToy::Type::Matrix);
+//     _Register(ShaderToy::Type::HUD);
+//     _Register(ShaderToy::Type::Pattern);
     _PrepareResources();
 }
 

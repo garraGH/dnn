@@ -16,6 +16,7 @@
 #include "colors.h"
 #include "matrix.h"
 #include "hud.h"
+#include "pattern.h"
 
 std::shared_ptr<ShaderToy> ShaderToy::Create(Type type)
 {
@@ -28,6 +29,8 @@ std::shared_ptr<ShaderToy> ShaderToy::Create(Type type)
         CASE(Colors);
         CASE(Matrix);
         CASE(HUD);
+        CASE(Pattern);
         default: return nullptr;
     }
+#undef CASE
 }
