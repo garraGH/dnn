@@ -15,8 +15,8 @@
 struct WindowsProps
 {
     std::string title;
-    unsigned int width;
-    unsigned int height;
+    int width;
+    int height;
     WindowsProps(const std::string& t = "Elsa Engine", unsigned int w = 1280, unsigned int h = 720)
         : title(t)
         , width(w)
@@ -34,12 +34,14 @@ public:
     virtual ~Window() {}
     
     virtual void OnUpdate() = 0;
-    virtual unsigned int GetWidth() const = 0;
-    virtual unsigned int GetHeight() const = 0;
+    virtual int* GetPos() = 0;
+    virtual int* GetSize() = 0;
+    virtual void UpdatePos() = 0;
+    virtual void UpdateSize() = 0;
     
     virtual void SetEventCallback(const EventCallback& ecb) = 0;
-    virtual void SetVSync(bool enabled) = 0;
-    virtual void SetFullscreen(bool enabled) = 0;
+    virtual void SwitchVSync() = 0;
+    virtual void SwitchFullscreen() = 0;
     virtual bool IsVSync() const = 0;
     virtual bool IsFullscreen() const = 0;
 

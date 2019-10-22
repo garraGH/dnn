@@ -24,8 +24,8 @@ public:
     {
         Renderer::SetAPIType(Renderer::API::OpenGL);
 
-//         PushLayer(ExampleLayer::Create());
-        PushLayer(ShaderToyLayer::Create());
+        PushLayer(ExampleLayer::Create());
+//         PushLayer(ShaderToyLayer::Create());
     }
 
     ~DNN()

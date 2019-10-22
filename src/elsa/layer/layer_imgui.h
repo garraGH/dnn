@@ -16,6 +16,7 @@
 #include "../event/event_application.h"
 
 
+class Window;
 class ImGuiLayer : public Layer
 {
 public:
@@ -30,4 +31,6 @@ public:
     void End();
 
     static std::shared_ptr<ImGuiLayer> Create();
+private:
+    Window* m_window = nullptr;
 };

@@ -34,13 +34,15 @@ Application::Application()
     PushOverlay(m_layerImGui);
 
     
-
-#define REGISTER_KEY_PRESSED_FUNCTION(key) m_keyPressed[#key[0]] = std::bind(&Application::_OnKeyPressed_##key, this, std::placeholders::_1)
-#define REGISTER_KEY_RELEASED_FUNCTION(key) m_keyReleased[#key[0]] = std::bind(&Application::_OnKeyReleased_##key, this)
-    REGISTER_KEY_PRESSED_FUNCTION(a);
-    REGISTER_KEY_PRESSED_FUNCTION(R);
+#define REGISTER_KEY_PRESSED_FUNCTION(key) m_keyPressed[KEY_##key] = std::bind(&Application::_OnKeyPressed_##key, this, std::placeholders::_1)
+#define REGISTER_KEY_RELEASED_FUNCTION(key) m_keyReleased[KEY_##key] = std::bind(&Application::_OnKeyReleased_##key, this)
+//     REGISTER_KEY_PRESSED_FUNCTION(a);
+//     REGISTER_KEY_PRESSED_FUNCTION(R);
+//     REGISTER_KEY_RELEASED_FUNCTION(Q);
     REGISTER_KEY_RELEASED_FUNCTION(q);
-    REGISTER_KEY_RELEASED_FUNCTION(Q);
+    REGISTER_KEY_PRESSED_FUNCTION(ESCAPE);
+    REGISTER_KEY_PRESSED_FUNCTION(SPACE);
+    REGISTER_KEY_PRESSED_FUNCTION(V);
 #undef REGISTER_KEY_PRESSED_FUNCTION
 #undef REGISTER_KEY_RELEASED_FUNCTION
 }
@@ -154,6 +156,24 @@ bool Application::_OnKeyReleased_Q()
 {
     INFO("Q released");
     m_running = false;
+    return true;
+}
+
+bool Application::_OnKeyPressed_V(int repeatCount)
+{
+    m_window->SwitchVSync();
+    return true;
+}
+
+bool Application::_OnKeyPressed_ESCAPE(int repeatCount)
+{
+    m_running = false;
+    return true;
+}
+
+bool Application::_OnKeyPressed_SPACE(int repeatCount)
+{
+    m_window->SwitchFullscreen();
     return true;
 }
 

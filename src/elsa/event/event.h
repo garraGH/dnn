@@ -19,6 +19,7 @@ enum class EventType
 {
     ET_UnKnown = 0, 
     ET_WindowClose, 
+    ET_WindowRelocation, 
     ET_WindowResize, 
     ET_WindowFocus, 
     ET_WindowLostFocus, 

@@ -54,8 +54,8 @@ void ImGuiLayer::OnAttach()
     }
 
     Application* app = Application::Get();
-    GLFWwindow* window = static_cast<GLFWwindow*>(app->GetWindow()->GetNativeWindow());
-    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    m_window = app->GetWindow();
+    ImGui_ImplGlfw_InitForOpenGL(static_cast<GLFWwindow*>(m_window->GetNativeWindow()), true);
     ImGui_ImplOpenGL3_Init("#version 460");
 }
 
@@ -74,8 +74,8 @@ void ImGuiLayer::Begin()
 void ImGuiLayer::End()
 {
     ImGuiIO& io = ImGui::GetIO();
-    Application* app = Application::Get();
-    io.DisplaySize = ImVec2(app->GetWindow()->GetWidth(), app->GetWindow()->GetHeight());
+    int* size = m_window->GetSize();
+    io.DisplaySize = ImVec2(size[0], size[1]);
 
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -94,8 +94,28 @@ void ImGuiLayer::OnImGuiRender()
     static bool show = true;
     ImGui::ShowDemoWindow(&show);
 
-    ImGui::Begin("IMGUI");
-    ImGui::Button("Hello Dear ImGui");
+    ImGui::Begin("Application");
+    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+    ImGui::Separator();
+    if(ImGui::RadioButton("VerticalSync", m_window->IsVSync()))
+    {
+        m_window->SwitchVSync();
+    }
+    ImGui::SameLine();
+    if(ImGui::RadioButton("Fullscreen", m_window->IsFullscreen()))
+    {
+        m_window->SwitchFullscreen();
+    }
+    ImGui::Separator();
+    ImGui::PushItemWidth(200);
+    if(ImGui::InputInt2("Pos", m_window->GetPos(), ImGuiInputTextFlags_EnterReturnsTrue))
+    {
+        m_window->UpdatePos();
+    }
+    if(ImGui::InputInt2("Size", m_window->GetSize(), ImGuiInputTextFlags_EnterReturnsTrue))
+    {
+        m_window->UpdateSize();
+    }
     ImGui::End();
 }
 

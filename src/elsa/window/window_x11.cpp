@@ -48,15 +48,14 @@ void X11Window::_Init(const WindowsProps& props)
 //     _InitGl3w();
     _InitGlad();
     _SetEventCallback();
-    SetVSync(true);
 }
 
 void X11Window::_SaveProps(const WindowsProps& props)
 {
     m_data.title = props.title;
-    m_data.width = props.width;
-    m_data.height = props.height;
-    CORE_INFO("Creating X11Window {} ({}, {})", m_data.title, m_data.width, m_data.height);
+    m_data.size[0] = props.width;
+    m_data.size[1] = props.height;
+    CORE_INFO("Creating X11Window {} ({}, {})", m_data.title, m_data.size[0], m_data.size[1]);
 }
 
 void X11Window::_InitGLFW()
@@ -75,7 +74,9 @@ void X11Window::_InitGLFW()
 
 void X11Window::_CreateContext()
 {
-    m_window = glfwCreateWindow(m_data.width, m_data.height, m_data.title.c_str(), nullptr, nullptr);
+    m_window = glfwCreateWindow(m_data.size[0], m_data.size[1], m_data.title.c_str(), nullptr, nullptr);
+    m_moniter = glfwGetPrimaryMonitor();
+    glfwGetWindowPos(m_window, &m_data.pos[0], &m_data.pos[1]);
     m_context = new OpenGLContext(m_window);
     m_context->Init();
     glfwSetWindowUserPointer(m_window, &m_data);
@@ -96,6 +97,7 @@ void X11Window::_InitGl3w()
 void X11Window::_SetEventCallback()
 {
     _SetEventCallback_WindowResize();
+    _SetEventCallback_WindowRelocation();
     _SetEventCallback_WindowClose();
     _SetEventCallback_Key();
     _SetEventCallback_Char();
@@ -111,10 +113,26 @@ void X11Window::_SetEventCallback_WindowResize()
        WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
        WindowResizeEvent event(width, height);
        data.eventCallback(event);
-       data.width = width;
-       data.height = height;
+       if(glfwGetPrimaryMonitor() == nullptr)
+       {
+           data.size[0] = width;
+           data.size[1] = height;
+       }
     });
 }
+
+void X11Window::_SetEventCallback_WindowRelocation()
+{
+    glfwSetWindowPosCallback(m_window, [](GLFWwindow* window, int xpos, int ypos)
+    {
+        WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+        WindowRelocationEvent event(xpos, ypos);
+        data.eventCallback(event);
+        data.pos[0] = xpos;
+        data.pos[1] = ypos;
+    });
+}
+
 
 void X11Window::_SetEventCallback_WindowClose()
 {
@@ -218,26 +236,36 @@ void X11Window::_Shutdown()
 }
 
 
-void X11Window::SetVSync(bool enabled)
+void X11Window::SwitchVSync()
 {
-    if(m_data.bVSync == enabled)
-    {
-        return ;
-    }
-
-    m_data.bVSync = enabled;
-    glfwSwapInterval(enabled);
+    m_data.bVSync = !m_data.bVSync;
+    glfwSwapInterval(m_data.bVSync);
 }
 
-void X11Window::SetFullscreen(bool enabled)
+void X11Window::SwitchFullscreen()
 {
-    if(m_data.bFullscreen == enabled)
+    m_data.bFullscreen = !m_data.bFullscreen;
+
+    if(m_data.bFullscreen)
     {
-        return ;
+        const GLFWvidmode* mode = glfwGetVideoMode(m_moniter);
+        glfwSetWindowMonitor(m_window, m_moniter, 0, 0, mode->width, mode->height, 0);
     }
-    m_data.bFullscreen = enabled;
+    else
+    {
+        glfwSetWindowMonitor(m_window, nullptr, m_data.pos[0], m_data.pos[1], m_data.size[0], m_data.size[1], 0);
+    }
 }
 
+void X11Window::UpdatePos()
+{
+    glfwSetWindowPos(m_window, m_data.pos[0], m_data.pos[1]);
+}
+
+void X11Window::UpdateSize()
+{
+    glfwSetWindowSize(m_window, m_data.size[0], m_data.size[1]);
+}
 
 void X11Window::OnUpdate()
 {

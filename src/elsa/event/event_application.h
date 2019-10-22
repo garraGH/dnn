@@ -35,6 +35,29 @@ private:
     unsigned int m_width, m_height;
 };
 
+class WindowRelocationEvent : public Event
+{
+public:
+    WindowRelocationEvent(int xpos, int ypos) : m_xpos(xpos), m_ypos(ypos) {  }
+
+    inline int GetPosX() const { return m_xpos; }
+    inline int GetPosY() const { return m_ypos; }
+
+    std::string ToString() const override
+    {
+        std::stringstream ss;
+        ss << GetName() << ": " << m_xpos << ", " << m_ypos;
+        return ss.str();
+    }
+    
+    EVENT_CLASS_CATEGORY(EC_Application)
+    EVENT_CLASS_TYPE(ET_WindowRelocation)
+
+private:
+    int m_xpos, m_ypos;
+};
+
+
 class WindowMoveEvent : public Event
 {
 public:
