@@ -28,6 +28,7 @@ void Shapes::_PrepareResources()
     using MA = Material::Attribute;
     std::shared_ptr<MA> maResolution = Renderer::Resources::Create<MA>("Resolution")->Set(MA::Type::Float2, 1, glm::value_ptr(glm::vec2(1000, 1000)));
     std::shared_ptr<MA> maStyle = Renderer::Resources::Create<MA>("Style")->Set(MA::Type::Int1);
+    std::shared_ptr<MA> maOperator = Renderer::Resources::Create<MA>("Operator")->Set(MA::Type::Int1);
     std::shared_ptr<MA> maMode = Renderer::Resources::Create<MA>("Mode")->Set(MA::Type::Int1);
     std::shared_ptr<MA> maLineWidth = Renderer::Resources::Create<MA>("LineWidth")->Set(MA::Type::Float1);
     std::shared_ptr<MA> maTorusWidth = Renderer::Resources::Create<MA>("TorusWidth")->Set(MA::Type::Float1);
@@ -41,6 +42,9 @@ void Shapes::_PrepareResources()
 
     m_style = (Style*)maStyle->GetData();
     *m_style = Style::Box;
+
+    m_operator = (Operator*)maOperator->GetData();
+    *m_operator = Operator::Union;
 
     m_mode = (Mode*)maMode->GetData();
     *m_mode = Mode::Fill;
@@ -72,6 +76,7 @@ void Shapes::_PrepareResources()
     std::shared_ptr<Material> mtrShapes = Renderer::Resources::Create<Material>("Shapes");
     mtrShapes->Set("u_Resolution", maResolution);
     mtrShapes->Set("u_Style", maStyle);
+    mtrShapes->Set("u_Operator", maOperator);
     mtrShapes->Set("u_Mode", maMode);
     mtrShapes->Set("u_Points", maPoints);
     mtrShapes->Set("u_Colors", maColors);
@@ -117,6 +122,8 @@ void Shapes::OnImGuiRender()
     RadioButton(style, Style, Polygon)
     ImGui::SameLine();
     RadioButton(style, Style, Petal)
+    ImGui::SameLine();
+    RadioButton(style, Style, Topology)
         
     ImGui::Separator();
 
@@ -126,7 +133,6 @@ void Shapes::OnImGuiRender()
     ImGui::SameLine();
     RadioButton(mode, Mode, Both)
     ImGui::Separator();
-#undef RadioButton
 
 
     ImGui::PushItemWidth(200);
@@ -152,7 +158,18 @@ void Shapes::OnImGuiRender()
         ImGui::DragFloat("Number", m_number,  0.05, 1, 20);
         ImGui::DragFloat("SawTooth", m_sawTooth,  0.01, 0, 1);
     }
+
     ImGui::Separator();
+    if(*m_style == Style::Topology)
+    {
+        RadioButton(operator, Operator, Union);
+        ImGui::SameLine();
+        RadioButton(operator, Operator, Intersect);
+        ImGui::SameLine();
+        RadioButton(operator, Operator, Diffrence);
+    }
+    ImGui::Separator();
+#undef RadioButton
 }
 
 void Shapes::OnEvent(Event& e)

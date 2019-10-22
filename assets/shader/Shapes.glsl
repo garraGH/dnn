@@ -15,6 +15,7 @@ void main()
 uniform vec2 u_Resolution;
 uniform int u_Style = 1;
 uniform int u_Mode = 0;
+uniform int u_Operator = 0;
 uniform float u_LineWidth = 2;
 uniform vec4 u_Colors[2];
 uniform vec2 u_Points[2];
@@ -303,6 +304,27 @@ vec4 Petal(const vec2 pixel)
     return render(d);
 }
 
+vec4 Topology(const vec2 pixel)
+{
+    vec2 center = u_Points[0];
+    float radius = distance(u_Points[0], u_Points[1])*0.8;
+    float dCircle = sdf_circle(pixel, center, radius);
+
+    center = (u_Points[0]+u_Points[1])*0.5;
+    vec2 size = abs(u_Points[0]-u_Points[1])/2;
+    float dBox = sdf_box(pixel, center, size.x, size.y);
+
+    float d = 0;
+    switch(u_Operator)
+    {
+        case 0: d = min(dCircle, +dBox); break;
+        case 1: d = max(dCircle, +dBox); break;
+        case 2: d = max(dCircle, -dBox); break;
+    }
+
+    return render(d);
+}
+
 void Default(const vec2 pixel)
 {
     color = u_Colors[0];
@@ -315,15 +337,16 @@ void main()
 
     switch(u_Style)
     {
-        case 0: color = Line(pixel);         break;
-        case 1: color = Segment(pixel);      break;
-        case 2: color = Box(pixel);          break;
-        case 3: color = RoundBox(pixel);     break;
-        case 4: color = Circle(pixel);       break;
-        case 5: color = Elipse(pixel);       break;
-        case 6: color = Torus(pixel);        break;
-        case 7: color = Polygon(pixel);      break;
-        case 8: color = Petal(pixel);      break;
+        case 0:  color = Line(pixel);         break;
+        case 1:  color = Segment(pixel);      break;
+        case 2:  color = Box(pixel);          break;
+        case 3:  color = RoundBox(pixel);     break;
+        case 4:  color = Circle(pixel);       break;
+        case 5:  color = Elipse(pixel);       break;
+        case 6:  color = Torus(pixel);        break;
+        case 7:  color = Polygon(pixel);      break;
+        case 8:  color = Petal(pixel);        break;
+        case 9:  color = Topology(pixel);     break;
 
         default: Default(pixel);     
     }

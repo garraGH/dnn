@@ -26,6 +26,14 @@ public:
         Torus, 
         Polygon, 
         Petal, 
+        Topology, 
+    };
+
+    enum class Operator
+    {
+        Union, 
+        Intersect, 
+        Diffrence, 
     };
 
     enum class Mode
@@ -74,6 +82,7 @@ private:
 
     Style* m_style = nullptr;
     Mode* m_mode = nullptr;
+    Operator* m_operator = nullptr;
     Colors* m_colors = nullptr;
     Points* m_points = nullptr;
     float* m_lineWidth = nullptr;
