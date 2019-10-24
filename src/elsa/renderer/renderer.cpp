@@ -9,6 +9,7 @@
 ============================================*/
 
 
+#include <array>
 #include "renderer.h"
 #include "api/api_opengl.h"
 
@@ -30,6 +31,13 @@ void Renderer::SetAPIType(API::Type apiType)
         case API::OpenGL: s_api = std::make_unique<OpenGLAPI>(); break;
         default: CORE_ASSERT(false, "Renderer::SetAPIType: API is currently not supported!");
     }
+}
+
+void Renderer::BeginScene(const std::shared_ptr<Viewport>& viewport)
+{
+    std::array<float, 4> range = viewport->GetRange();
+    Command::SetViewport(range[0], range[1], range[2], range[3]);
+    s_camera = viewport->GetCamera();
 }
 
 void Renderer::Submit(const std::string& nameOfElement, const std::string& nameOfShader)
@@ -60,5 +68,3 @@ void Renderer::Element::RenderedBy(const std::shared_ptr<Shader>& shader)
     m_mesh->Bind(shader);
     Renderer::Command::DrawIndexed(m_mesh->GetBufferArray());
 }
-
-

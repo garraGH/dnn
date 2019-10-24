@@ -45,5 +45,4 @@
 #include "renderer/shader/shader.h"
 #include "renderer/shader/shader_glsl.h"
 #include "renderer/camera/camera.h"
-#include "renderer/camera/camera_orthographic.h"
-#include "renderer/camera/camera_perspective.h"
+#include "renderer/viewport/viewport.h"

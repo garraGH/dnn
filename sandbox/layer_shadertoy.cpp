@@ -67,15 +67,17 @@ void ShaderToyLayer::_PrepareResources()
 
 void ShaderToyLayer::OnUpdate(float deltaTime)
 {
-    Renderer::BeginScene(m_cameraController->GetCamera());
+    Renderer::BeginScene(m_viewport);
     Renderer::Submit(m_canvas, m_shaderToys[m_toyType]->GetShader());
     m_shaderToys[m_toyType]->OnUpdate(deltaTime);
+    m_viewport->OnUpdate(deltaTime);
     Renderer::EndScene();
 }
 
 void ShaderToyLayer::OnEvent(Event& e)
 {
     m_shaderToys[m_toyType]->OnEvent(e);
+    m_viewport->OnEvent(e);
 }
 
 void ShaderToyLayer::OnImGuiRender()
@@ -92,6 +94,8 @@ void ShaderToyLayer::OnImGuiRender()
         m_shaderToys[m_toyType]->OnImGuiRender();
     }
     ImGui::End();
+
+    m_viewport->OnImGuiRender();
 }
 
 void ShaderToyLayer::_CreateRadioButtonOf(const std::shared_ptr<ShaderToy>& toy)

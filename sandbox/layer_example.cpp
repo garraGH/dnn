@@ -29,9 +29,9 @@ void ExampleLayer::_PrepareResources()
 {
     float vertices[3*7] = 
     {
-        -0.5f, -0.5f, 0.0f, 255, 0, 0, 255,  
-        +0.5f, -0.5f, 0.0f, 0, 255, 0, 255, 
-        +0.0f, +0.8f, 0.0f, 0, 0, 255, 255
+        -0.5f, -0.5f, -1.0f, 255, 0, 0, 255,  
+        +0.5f, -0.5f, -1.0f, 0, 255, 0, 255, 
+        +0.0f, +0.5f, -1.0f, 0, 0, 255, 255
     };
 
     Buffer::Layout layoutVextex = 
@@ -61,10 +61,10 @@ void ExampleLayer::_PrepareResources()
 
     float position_quad[4*3] = 
     {
-        -0.5f, -0.5f, 0.0f,
-        +0.5f, -0.5f, 0.0f,
-        +0.5f, +0.5f, 0.0f,
-        -0.5f, +0.5f, 0.0f
+        -0.5f, -0.5f, -1.0f,
+        +0.5f, -0.5f, -1.0f,
+        +0.5f, +0.5f, -1.0f,
+        -0.5f, +0.5f, -1.0f
     };
 
     float color_quad[4*4] = 
@@ -109,25 +109,12 @@ void ExampleLayer::_PrepareResources()
     
 void ExampleLayer::OnEvent(Event& e)
 {
-    TRACE("ExampleLayer: event {}", e);
-    EventDispatcher dispatcher(e);
-    dispatcher.Dispatch<KeyPressedEvent>(BIND_EVENT_CALLBACK(ExampleLayer, _OnKeyPressed));
-    m_cameraController->OnEvent(e);
+    m_viewport->OnEvent(e);
 }
 
-bool ExampleLayer::_OnKeyPressed(KeyPressedEvent& e)
+void ExampleLayer::_UpdateViewport(float deltaTime)
 {
-    if(e.GetKeyCode() == KEY_p)
-    {
-        m_cameraController->Revert();
-        Renderer::Resources::Get<Transform>("tf_quad")->Set(glm::vec3(0), glm::vec3(0), glm::vec3(0.1f));
-    }
-    return false;
-}
-
-void ExampleLayer::_UpdateCamera(float deltaTime)
-{
-    m_cameraController->OnUpdate(deltaTime);
+    m_viewport->OnUpdate(deltaTime);
 }
 
 void ExampleLayer::_TransformQuads(float deltaTime)
@@ -136,37 +123,51 @@ void ExampleLayer::_TransformQuads(float deltaTime)
     float degree = m_speedRotate*deltaTime;
     std::shared_ptr<Transform> tf_quad = Renderer::Resources::Get<Transform>("tf_quad");
 
-    if(Input::IsKeyPressed(KEY_Z))
+    if(Input::IsKeyPressed(KEY_j))
     {
         tf_quad->Translate({-displacement, 0, 0});
     }
-    if(Input::IsKeyPressed(KEY_V))
+    if(Input::IsKeyPressed(KEY_J))
     {
         tf_quad->Translate({+displacement, 0, 0});
     }
-    if(Input::IsKeyPressed(KEY_X))
+    if(Input::IsKeyPressed(KEY_k))
     {
         tf_quad->Translate({0, -displacement, 0});
     }
-    if(Input::IsKeyPressed(KEY_C))
+    if(Input::IsKeyPressed(KEY_K))
     {
         tf_quad->Translate({0, +displacement, 0});
     }
-    if(Input::IsKeyPressed(KEY_U))
+    if(Input::IsKeyPressed(KEY_l))
     {
-        tf_quad->Scale(-glm::vec3(0.001f));
-    }
-    if(Input::IsKeyPressed(KEY_I))
-    {
-        tf_quad->Scale(+glm::vec3(0.001f));
-    }
-    if(Input::IsKeyPressed(KEY_H))
-    {
-        tf_quad->Rotate({0, 0, +degree});
+        tf_quad->Translate({0, 0, -displacement});
     }
     if(Input::IsKeyPressed(KEY_L))
     {
+        tf_quad->Translate({0, 0, +displacement});
+    }
+
+    if(Input::IsKeyPressed(KEY_u))
+    {
+        tf_quad->Scale(-glm::vec3(0.001f));
+    }
+    if(Input::IsKeyPressed(KEY_U))
+    {
+        tf_quad->Scale(+glm::vec3(0.001f));
+    }
+    if(Input::IsKeyPressed(KEY_i))
+    {
         tf_quad->Rotate({0, 0, -degree});
+    }
+    if(Input::IsKeyPressed(KEY_I))
+    {
+        tf_quad->Rotate({0, 0, +degree});
+    }
+
+    if(Input::IsKeyPressed(KEY_B))
+    {
+        tf_quad->Revert();
     }
 }
 
@@ -206,7 +207,7 @@ void ExampleLayer::_UpdateTri(float deltaTime)
 
 void ExampleLayer::_UpdateScene(float deltaTime)
 {
-    Renderer::BeginScene(m_cameraController->GetCamera());
+    Renderer::BeginScene(m_viewport);
     Renderer::SetBackgroundColor(0.1, 0.1, 0.1, 1);
     _UpdateTri(deltaTime);
     _UpdateQuads(deltaTime);
@@ -215,7 +216,7 @@ void ExampleLayer::_UpdateScene(float deltaTime)
 
 void ExampleLayer::OnUpdate(float deltaTime)
 {
-    _UpdateCamera(deltaTime);
+    _UpdateViewport(deltaTime);
     _UpdateScene(deltaTime);
 }
 
@@ -225,7 +226,7 @@ void ExampleLayer::OnImGuiRender()
     std::shared_ptr<MA> red = Renderer::Resources::Get<MA>("red");
     std::shared_ptr<MA> green = Renderer::Resources::Get<MA>("green");
 
-    m_cameraController->OnImGuiRender();
+    m_viewport->OnImGuiRender();
 
     ImGui::Begin("ExampleLayer");
     ImGui::Button("ExampleLayer");

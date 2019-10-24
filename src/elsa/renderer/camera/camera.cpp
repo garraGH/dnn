@@ -11,151 +11,210 @@
 
 #include "camera.h"
 #include "glm/gtc/matrix_transform.hpp"
-#include "camera_orthographic.h"
-#include "camera_perspective.h"
+// #include "camera_orthographic.h"
+// #include "camera_perspective.h"
 #include "imgui.h"
 #include "glm/gtx/string_cast.hpp"
 // #include "logger.h"
 #include "../../core.h"
 #include "../../input/input.h"
 
-std::shared_ptr<Camera> Camera::Create(Type type)
+std::shared_ptr<Camera> Camera::Create(const std::string& name, Type type, Usage usage)
 {
-    switch(type)
-    {
-        case Type::Orthographic: return std::make_shared<OrthographicCamera>();
-        case Type::Perspective: return std::make_shared<PerspectiveCamera>();
-        default: CORE_ASSERT(false, "Unknown Camera Type!"); return nullptr;
-    }
+    return std::make_shared<Camera>(name, type, usage);
 }
 
-Camera::Camera()
-    : m_type(Type::Unknown)
+void Camera::Sight::_Update()
 {
-    
-}
-
-Camera::~Camera()
-{
-
-}
-
-void Camera::_Update()
-{
-    if(_NotDirty())
+    if(!m_dirty)
     {
         return;
     }
 
-    _UpdateAsp();
-    _UpdatePose();
-    _UpdateViewProjection();
+    m_dirty = false;
+    m_type == Type::Orthographic? _calcOrthoMatrix() : _calcPerspectiveMatrix();
 }
 
-void Camera::_UpdatePose()
+void Camera::Sight::_calcOrthoMatrix()
 {
-    if(!m_poseDirty)
+    m_matProjection[0][0] = 2.0/m_width/m_scale;
+    m_matProjection[1][1] = 2.0*m_asp/m_width/m_scale;
+    m_matProjection[2][2] = -2.0/(m_far-m_near);
+    m_matProjection[2][3] = 0;
+    m_matProjection[3][2] = -(m_far+m_near)/(m_far-m_near);
+    m_matProjection[3][3] = 1;
+}
+
+void Camera::Sight::_calcPerspectiveMatrix()
+{
+    m_matProjection[1][1] = 1.0/glm::tan(glm::radians(m_vfov)*0.5)/m_scale;
+    m_matProjection[0][0] = m_matProjection[1][1]/m_asp;
+    m_matProjection[2][2] = -(m_far+m_near)/(m_far-m_near);
+    m_matProjection[2][3] = -1;
+    m_matProjection[3][2] = -2.0*m_far*m_near/(m_far-m_near);
+    m_matProjection[3][3] = 0;
+}
+
+void Camera::_UpdateView()
+{
+    if(!m_dirty)
     {
         return;
     }
+    m_dirty = false;
+    glm::mat4 transform = glm::rotate(glm::mat4(1.0f), glm::radians(m_orientation.x), glm::vec3(1, 0, 0)) 
+                        * glm::rotate(glm::mat4(1.0f), glm::radians(m_orientation.y), glm::vec3(0, 1, 0)) 
+                        * glm::rotate(glm::mat4(1.0f), glm::radians(m_orientation.z), glm::vec3(0, 0, 1))   
+                        * glm::translate(glm::mat4(1.0f), m_position);
+    if(m_usage == Usage::TwoDimension)
+    {
+        transform = glm::rotate(glm::mat4(1.0f), glm::radians(m_orientation.z), glm::vec3(0, 0, 1)) * glm::translate(glm::mat4(1.0f), m_position);
+    }
 
-    glm::mat4 transform = glm::rotate(glm::mat4(1.0f), glm::radians(m_rotation.x), glm::vec3(1, 0, 0)) 
-                        * glm::rotate(glm::mat4(1.0f), glm::radians(m_rotation.y), glm::vec3(0, 1, 0)) 
-                        * glm::rotate(glm::mat4(1.0f), glm::radians(m_rotation.z), glm::vec3(0, 0, -1))   // make positive rotate ccw
-                        * glm::translate(glm::mat4(1.0f), m_translation);
     m_matView = glm::inverse(transform);
-    m_poseDirty = false;
 }
     
 void Camera::_UpdateViewProjection()
 {
-    m_matViewProjection = m_matProjection*m_matView;
+    if(!NeedUpdate())
+    {
+        return;
+    }
+
+    _UpdateView();
+    m_matViewProjection = m_sight.GetProjectionMatrix()*m_matView;
 }
 
-
-//////////////////////////////////////////
-//
-CameraContoller::CameraContoller(Camera::Type type)
+void Camera::OnUpdate(float deltaTime)
 {
-    m_camera = Camera::Create(type);
-}
-
-void CameraContoller::OnUpdate(float deltaTime)
-{
+    if(Input::IsKeyPressed(KEY_x))
+    {
+        Translate({-deltaTime*m_speedTrans, 0, 0});
+    }
+    if(Input::IsKeyPressed(KEY_X))
+    {
+        Translate({+deltaTime*m_speedTrans, 0, 0});
+    }
+    if(Input::IsKeyPressed(KEY_y))
+    {
+        Translate({0, -deltaTime*m_speedTrans, 0});
+    }
+    if(Input::IsKeyPressed(KEY_Y))
+    {
+        Translate({0, +deltaTime*m_speedTrans, 0});
+    }
+    if(Input::IsKeyPressed(KEY_z))
+    {
+        Translate({0, 0, -deltaTime*m_speedTrans});
+    }
+    if(Input::IsKeyPressed(KEY_Z))
+    {
+        Translate({0, 0, +deltaTime*m_speedTrans});
+    }
+    if(Input::IsKeyPressed(KEY_s))
+    {
+        Scale(-deltaTime*m_speedScale);
+    }
     if(Input::IsKeyPressed(KEY_S))
     {
-        m_camera->Translate({+deltaTime*m_speedTrans, 0, 0});
+        Scale(+deltaTime*m_speedScale);
     }
-    if(Input::IsKeyPressed(KEY_F))
+
+    if(Input::IsKeyPressed(KEY_b))
     {
-        m_camera->Translate({-deltaTime*m_speedTrans, 0, 0});
-    }
-    if(Input::IsKeyPressed(KEY_W))
-    {
-        m_camera->Translate({0, +deltaTime*m_speedTrans, 0});
-    }
-    if(Input::IsKeyPressed(KEY_R))
-    {
-        m_camera->Translate({0, -deltaTime*m_speedTrans, 0});
-    }
-    if(Input::IsKeyPressed(KEY_E))
-    {
-        m_camera->Scale(-deltaTime*m_speedScale);
-    }
-    if(Input::IsKeyPressed(KEY_D))
-    {
-        m_camera->Scale(+deltaTime*m_speedScale);
+        Revert();
     }
 
     if(m_rotationEnabled)
     {
-        if(Input::IsKeyPressed(KEY_K))
+        if(Input::IsKeyPressed(KEY_w))
         {
-            m_camera->Rotate({0, 0, -deltaTime*m_speedRotat});
+            Rotate({-deltaTime*m_speedRotat, 0, 0});
         }
-        if(Input::IsKeyPressed(KEY_J))
+        if(Input::IsKeyPressed(KEY_W))
         {
-            m_camera->Rotate({0, 0, +deltaTime*m_speedRotat});
+            Rotate({+deltaTime*m_speedRotat, 0, 0});
+        }
+        if(Input::IsKeyPressed(KEY_e))
+        {
+            Rotate({0, -deltaTime*m_speedRotat, 0});
+        }
+        if(Input::IsKeyPressed(KEY_E))
+        {
+            Rotate({0, +deltaTime*m_speedRotat, 0});
+        }
+        if(Input::IsKeyPressed(KEY_r))
+        {
+            Rotate({0, 0, -deltaTime*m_speedRotat});
+        }
+        if(Input::IsKeyPressed(KEY_R))
+        {
+            Rotate({0, 0, +deltaTime*m_speedRotat});
         }
     }
 }
 
 
-void CameraContoller::OnEvent(Event& e)
+void Camera::OnEvent(Event& e)
 {
     EventDispatcher dispatcher(e);
-    dispatcher.Dispatch<MouseScrolledEvent>(BIND_EVENT_CALLBACK(CameraContoller, _OnMouseScrolled));
-    dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_CALLBACK(CameraContoller, _OnWindowResized));
+    dispatcher.Dispatch<MouseScrolledEvent>(BIND_EVENT_CALLBACK(Camera, _OnMouseScrolled));
 }
 
-bool CameraContoller::_OnMouseScrolled(MouseScrolledEvent& e)
+bool Camera::_OnMouseScrolled(MouseScrolledEvent& e)
 {
-    m_camera->Scale(-e.GetOffsetY()*m_speedScale);
+    Scale(-e.GetOffsetY()*m_speedScale);
     return false;
 }
 
-
-bool CameraContoller::_OnWindowResized(WindowResizeEvent& e)
+void Camera::OnImGuiRender()
 {
-    m_camera->SetAspectRatio((float)e.GetWidth()/e.GetHeight());
-    return false;
-}
+    ImGui::Begin(m_name.c_str());
 
-void CameraContoller::OnImGuiRender()
-{
-    ImGui::Begin("CameraContoller");
-
-    ImGui::DragFloat("speed of translation", &m_speedTrans,  0.05f,  0.01f,  2.0f);
-    ImGui::DragFloat("speed of rotation", &m_speedRotat,  1.0f,  1.0f,  180.0f);
-    ImGui::DragFloat("speed of scale", &m_speedScale,  0.02f,  0.01f,  20.0f);
-    ImGui::Checkbox("enable rotation", &m_rotationEnabled);
     if(ImGui::Button("revert"))
     {
         Revert();
     }
-    ImGui::Text("translation: %s",  glm::to_string(m_camera->GetTranslation()).c_str());
-    ImGui::Text("   rotation: %s",  glm::to_string(m_camera->GetRotation()).c_str());
-    ImGui::Text("      scale: %6.3f",  m_camera->GetScale());
+    if(ImGui::RadioButton("Orthographic", m_type == Type::Orthographic))
+    {
+        m_type = Type::Orthographic;
+        m_sight.SetType(m_type);
+    }
+    ImGui::SameLine();
+    if(ImGui::RadioButton("Perspective", m_type == Type::Perspective))
+    {
+        m_type = Type::Perspective;
+        m_sight.SetType(m_type);
+    }
+    if(ImGui::RadioButton("2D", m_usage == Usage::TwoDimension))
+    {
+        m_usage = Usage::TwoDimension;
+        m_dirty = true;
+    }
+    ImGui::SameLine();
+    if(ImGui::RadioButton("3D", m_usage == Usage::ThreeDimension))
+    {
+        m_usage = Usage::ThreeDimension;
+        m_dirty = true;
+    }
+    ImGui::Separator();
+
+    ImGui::DragFloat("speed of translation", &m_speedTrans,  0.05f,  0.01f,  2.0f);
+    ImGui::DragFloat("speed of rotation", &m_speedRotat,  1.0f,  1.0f,  180.0f);
+    ImGui::DragFloat("speed of scale", &m_speedScale,  0.02f,  0.01f,  20.0f);
+    ImGui::Separator();
+    ImGui::Checkbox("enable rotation", &m_rotationEnabled);
+    ImGui::SameLine();
+    ImGui::Checkbox("fix target", &m_targetFixed);
+    ImGui::Separator();
+
+    ImGui::Separator();
+    ImGui::Text("   position: %s",  glm::to_string(m_position).c_str());
+    ImGui::Text("     target: %s",  glm::to_string(m_target).c_str());
+    ImGui::Text("  direction: %s",  glm::to_string(m_direction).c_str());
+    ImGui::Text("         up: %s",  glm::to_string(m_up).c_str());
+    ImGui::Text("orientation: %s",  glm::to_string(m_orientation).c_str());
+    ImGui::Text("      scale: %6.3f",  GetScale());
 
     ImGui::End();
 }

@@ -30,7 +30,7 @@ protected:
     void _CreateRadioButtonOf(const std::shared_ptr<ShaderToy>& toy);
 
 private:
-    std::unique_ptr<CameraContoller> m_cameraController = std::make_unique<CameraContoller>(Camera::Type::Orthographic);
+    std::shared_ptr<Viewport> m_viewport = Viewport::Create("ShaderToyViewPort");
     std::shared_ptr<Renderer::Element> m_canvas = nullptr;
 
     ShaderToy::Type m_toyType = ShaderToy::Type::Pattern;

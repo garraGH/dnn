@@ -58,7 +58,6 @@ void Application::OnEvent(Event& e)
     EventDispatcher ed(e);
 #define DISPATCH(event) ed.Dispatch<event>(BIND_EVENT_CALLBACK(Application, _On##event))
     DISPATCH(WindowCloseEvent);
-    DISPATCH(WindowResizeEvent);
     DISPATCH(KeyPressedEvent);
     DISPATCH(KeyReleasedEvent);
 #undef DISPATCH
@@ -78,13 +77,6 @@ _ON(WindowCloseEvent)
     INFO("CLOSED");
     m_running = false;
     return true;
-}
-
-_ON(WindowResizeEvent)
-{
-    INFO("Resized: %d, %d", e.GetWidth(), e.GetHeight());
-    Renderer::OnWindowResized(e.GetWidth(), e.GetHeight());
-    return false;
 }
 
 _ON(KeyPressedEvent)

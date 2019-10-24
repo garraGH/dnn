@@ -17,9 +17,9 @@ OpenGLAPI::OpenGLAPI()
     s_type = OpenGL;
 }
 
-void OpenGLAPI::ResizeWindow(unsigned int width, unsigned int height)
+void OpenGLAPI::SetViewport(float left, float bottom, float right, float top)
 {
-    glad_glViewport(0, 0, width, height);
+    glad_glViewport(left, bottom, right, top);
 }
 
 void OpenGLAPI::SetBackgroundColor(float r, float g, float b, float a)

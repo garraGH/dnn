@@ -39,7 +39,6 @@ public:
 protected:
 #define ON(event) bool _On##event(event& e)
     void OnEvent(Event& e);
-    ON(WindowResizeEvent);
     ON(KeyPressedEvent);
     ON(KeyReleasedEvent);
     ON(WindowCloseEvent);
