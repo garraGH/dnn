@@ -24,8 +24,8 @@ public:
     {
         Renderer::SetAPIType(Renderer::API::OpenGL);
 
-//         PushLayer(ExampleLayer::Create());
-        PushLayer(ShaderToyLayer::Create());
+        PushLayer(ExampleLayer::Create());
+//         PushLayer(ShaderToyLayer::Create());
     }
 
     ~DNN()
@@ -37,7 +37,7 @@ protected:
 private:
 };
 
-Application* CreateApplication()
+std::unique_ptr<Application> CreateApplication()
 {
-    return new DNN();
+    return std::make_unique<DNN>();
 }

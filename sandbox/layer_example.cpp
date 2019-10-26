@@ -22,7 +22,27 @@ std::shared_ptr<ExampleLayer> ExampleLayer::Create()
 ExampleLayer::ExampleLayer()
     : Layer("ExampleLayer")
 {
+    _PrepareViewports();
     _PrepareResources();
+}
+
+void ExampleLayer::_PrepareViewports()
+{
+    for(int i=0; i<4; i++)
+    {
+        m_viewport[i] = Viewport::Create("ExampleLayer_Viewport"+std::to_string(i));
+    }
+    m_viewport[0]->SetRange(0, 0, 0.5, 0.5);
+    m_viewport[1]->SetRange(0.5, 0, 0.5, 0.5);
+    m_viewport[2]->SetRange(0.5, 0.5, 0.5, 0.5);
+    m_viewport[3]->SetRange(0, 0.5, 0.5, 0.5);
+    m_viewport[0]->SetBackgroundColor(0.1, 0, 0, 1.0);
+    m_viewport[1]->SetBackgroundColor(0, 0.1, 0, 1.0);
+    m_viewport[2]->SetBackgroundColor(0, 0, 0.1, 1.0);
+    m_viewport[3]->SetBackgroundColor(0.1, 0.1, 0.1, 1.0);
+
+    m_viewport[0]->AttachCamera(Application::GetCamera());
+    m_viewport[1]->AttachCamera(Application::GetCamera());
 }
 
 void ExampleLayer::_PrepareResources()
@@ -109,12 +129,18 @@ void ExampleLayer::_PrepareResources()
     
 void ExampleLayer::OnEvent(Event& e)
 {
-    m_viewport->OnEvent(e);
+    for(int i=0; i<4; i++)
+    {
+        m_viewport[i]->OnEvent(e);
+    }
 }
 
 void ExampleLayer::_UpdateViewport(float deltaTime)
 {
-    m_viewport->OnUpdate(deltaTime);
+    for(int i=0; i<4; i++)
+    {
+        m_viewport[i]->OnUpdate(deltaTime);
+    }
 }
 
 void ExampleLayer::_TransformQuads(float deltaTime)
@@ -207,11 +233,13 @@ void ExampleLayer::_UpdateTri(float deltaTime)
 
 void ExampleLayer::_UpdateScene(float deltaTime)
 {
-    Renderer::BeginScene(m_viewport);
-    Renderer::SetBackgroundColor(0.1, 0.1, 0.1, 1);
-    _UpdateTri(deltaTime);
-    _UpdateQuads(deltaTime);
-    Renderer::EndScene();
+    for(int i=0; i<4; i++)
+    {
+        Renderer::BeginScene(m_viewport[i]);
+        _UpdateTri(deltaTime);
+        _UpdateQuads(deltaTime);
+        Renderer::EndScene();
+    }
 }
 
 void ExampleLayer::OnUpdate(float deltaTime)
@@ -226,7 +254,10 @@ void ExampleLayer::OnImGuiRender()
     std::shared_ptr<MA> red = Renderer::Resources::Get<MA>("red");
     std::shared_ptr<MA> green = Renderer::Resources::Get<MA>("green");
 
-    m_viewport->OnImGuiRender();
+    for(int i=0; i<4; i++)
+    {
+        m_viewport[i]->OnImGuiRender();
+    }
 
     ImGui::Begin("ExampleLayer");
     ImGui::Button("ExampleLayer");

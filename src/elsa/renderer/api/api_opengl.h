@@ -17,7 +17,7 @@ class OpenGLAPI : public Renderer::API
 public:
     OpenGLAPI();
     
-    virtual void SetViewport(float left, float bottom, float right, float top) override;
+    virtual void SetViewport(const std::shared_ptr<Viewport>& viewport) override;
     virtual void SetBackgroundColor(float r, float g, float b, float a) override;
     virtual void DrawIndexed(const std::shared_ptr<BufferArray>& bufferArray) override;
 };

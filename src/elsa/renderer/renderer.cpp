@@ -35,8 +35,7 @@ void Renderer::SetAPIType(API::Type apiType)
 
 void Renderer::BeginScene(const std::shared_ptr<Viewport>& viewport)
 {
-    std::array<float, 4> range = viewport->GetRange();
-    Command::SetViewport(range[0], range[1], range[2], range[3]);
+    Command::SetViewport(viewport);
     s_camera = viewport->GetCamera();
 }
 

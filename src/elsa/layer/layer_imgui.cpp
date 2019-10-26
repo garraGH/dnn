@@ -53,8 +53,7 @@ void ImGuiLayer::OnAttach()
         style.Colors[ImGuiCol_WindowBg].w = 1.0f;
     }
 
-    Application* app = Application::Get();
-    m_window = app->GetWindow();
+    m_window = Application::GetInstance()->GetWindow();
     ImGui_ImplGlfw_InitForOpenGL(static_cast<GLFWwindow*>(m_window->GetNativeWindow()), true);
     ImGui_ImplOpenGL3_Init("#version 460");
 }

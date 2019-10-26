@@ -13,6 +13,7 @@
 #include <memory>
 #include <map>
 
+#include "../renderer/camera/camera.h"
 #include "../event/event.h"
 #include "../event/event_key.h"
 #include "../event/event_mouse.h"
@@ -34,7 +35,8 @@ public:
     void PushOverlay(const std::shared_ptr<Layer>& layer);
 
     inline Window* GetWindow() const { return m_window.get(); }
-    inline static Application* Get() { return s_instance; }
+    inline static Application* GetInstance() { return s_instance; }
+    inline static std::shared_ptr<Camera>& GetCamera() { return s_camera; }
 
 protected:
 #define ON(event) bool _On##event(event& e)
@@ -70,6 +72,7 @@ private:
 
 private:
     static Application* s_instance;
+    static std::shared_ptr<Camera> s_camera;
 };
 
-Application* CreateApplication();
+std::unique_ptr<Application> CreateApplication();

@@ -9,6 +9,7 @@
 ============================================*/
 
 
+#include "input/input.h"
 #include "viewport.h"
 #include "imgui.h"
 #include "../../core.h"
@@ -21,14 +22,29 @@ std::shared_ptr<Viewport> Viewport::Create(const std::string& name)
 Viewport::Viewport(const std::string& name) 
     : m_name(name) 
 { 
-    m_camera = Camera::Create(m_name+"camera");
+    m_cameraDefault = Camera::Create(m_name+"-DefaultCamera");
+}
+
+void Viewport::AttachCamera(const std::shared_ptr<Camera>& camera)
+{
+    m_cameraAttached = camera;
+}
+
+void Viewport::DetachCamera()
+{
+    m_cameraAttached = nullptr;
 }
 
 void Viewport::SetRange(float left, float bottom, float width, float height)
 {
     m_range = {left, bottom, width, height};
-    m_camera->SetAspectRatio(width/height);
+    m_cameraDefault->SetAspectRatio(width/height);
+    if(m_cameraAttached) 
+    {
+        m_cameraAttached->SetAspectRatio(width/height);
+    }
 }
+
 
 void Viewport::SetType(Type t)
 {
@@ -54,6 +70,16 @@ void Viewport::SetType(Type t)
     }
 }
 
+void Viewport::SetBackgroundColor(float r, float g, float b, float a)
+{
+    m_backgroundColor = {r, g, b, a};
+}
+
+void Viewport::SetBackgroundDepth(float depth)
+{
+    m_backgroundDepth = depth;
+}
+
 std::array<float, 4> Viewport::GetRange() const
 {
     if(m_type == Type::Fixed)
@@ -64,23 +90,52 @@ std::array<float, 4> Viewport::GetRange() const
     return { m_range[0]*m_windowSize[0], m_range[1]*m_windowSize[1], m_range[2]*m_windowSize[0], m_range[3]*m_windowSize[1]};
 }
 
+const std::array<float, 4>& Viewport::GetBackgroundColor() const
+{
+    return m_backgroundColor;
+}
+
+float Viewport::GetBackgroundDepth() const
+{
+    return m_backgroundDepth;
+}
+
 const std::shared_ptr<Camera>& Viewport::GetCamera() const
 {
-    return m_camera;
+    return m_cameraAttached? m_cameraAttached : m_cameraDefault;
+}
+
+bool Viewport::_CursorOutside() const
+{
+    auto [x, y] = Input::GetMousePosition();
+    y = m_windowSize[1]-y;
+    auto [left, bottom, width, height] = GetRange();
+    return x<left || x>left+width || y<bottom || y>bottom+height;
 }
 
 void Viewport::OnUpdate(float deltaTime)
 {
-    m_camera->OnUpdate(deltaTime);
+    if(_CursorOutside())
+    {
+        return;
+    }
+
+    GetCamera()->OnUpdate(deltaTime);
 }
 
 void Viewport::OnEvent(Event& e)
 {
+    if(_CursorOutside())
+    {
+        return;
+    }
+
     EventDispatcher ed(e);
 #define DISPATCH(event) ed.Dispatch<event>(BIND_EVENT_CALLBACK(Viewport, _On##event))
     DISPATCH(WindowResizeEvent);
 #undef DISPATCH
-    m_camera->OnEvent(e);
+
+    GetCamera()->OnEvent(e);
 }
 
 bool Viewport::_OnWindowResizeEvent(WindowResizeEvent& e)
@@ -89,7 +144,12 @@ bool Viewport::_OnWindowResizeEvent(WindowResizeEvent& e)
     m_windowSize[1] = e.GetHeight();
     if(m_type == Type::Percentage)
     {
-        m_camera->SetAspectRatio((m_windowSize[0]*m_range[2])/(m_windowSize[1]*m_range[3]));
+        float asp = (m_windowSize[0]*m_range[2])/(m_windowSize[1]*m_range[3]);
+        m_cameraDefault->SetAspectRatio(asp);
+        if(m_cameraAttached)
+        {
+            m_cameraAttached->SetAspectRatio(asp);
+        }
     }
     return false;
 }
@@ -110,11 +170,25 @@ void Viewport::OnImGuiRender()
     ImGui::Separator();
     if(ImGui::InputFloat4("range", &m_range[0], ImGuiInputTextFlags_EnterReturnsTrue))
     {
-        m_camera->SetAspectRatio(m_range[2]/m_range[3]);
+        float asp = m_range[2]/m_range[3];
+        m_cameraDefault->SetAspectRatio(asp);
+        if(m_cameraAttached)
+        {
+            m_cameraAttached->SetAspectRatio(asp);
+        }
     }
     ImGui::Separator();
 
-    m_camera->OnImGuiRender();
+    if(m_cameraAttached)
+    {
+        m_cameraAttached->OnImGuiRender(false);
+    }
+    else
+    {
+        m_cameraDefault->OnImGuiRender(false);
+    }
 
     ImGui::End();
 }
+
+

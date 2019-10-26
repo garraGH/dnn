@@ -113,7 +113,7 @@ public:
 
     void OnUpdate(float deltaTime);
     void OnEvent(Event& e);
-    void OnImGuiRender();
+    void OnImGuiRender(bool independent=true);
 
     static std::shared_ptr<Camera> Create(const std::string& name, Type type=Type::Perspective, Usage usage=Usage::ThreeDimension);
 

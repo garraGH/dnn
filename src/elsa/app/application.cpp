@@ -18,13 +18,15 @@
 #include "../input/input.h"
 #include "../renderer/renderer.h"
 Application* Application::s_instance = nullptr;
+std::shared_ptr<Camera> Application::s_camera = nullptr;
 
 Application::Application()
     : m_running(true)
 {
     CORE_ASSERT(!s_instance, "Application already exist!");
-    m_timer = std::make_unique<TimerCPU>(TimerCPU("ApplicationRun"));
     s_instance = this;
+    s_camera = std::make_shared<Camera>("GlobalMainCamera");
+    m_timer = std::make_unique<TimerCPU>(TimerCPU("ApplicationRun"));
 
     m_window = std::unique_ptr<Window>(Window::Create(WindowsProps("Elsa", 1000, 1000)));
     m_window->SetEventCallback(BIND_EVENT_CALLBACK(Application, OnEvent));

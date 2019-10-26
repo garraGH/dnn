@@ -17,7 +17,7 @@ Input* Input::s_input = new GLFWInput;
 
 bool GLFWInput::_IsKeyPressed(KeyCode keyCode)
 {
-    auto window = static_cast<GLFWwindow*>(Application::Get()->GetWindow()->GetNativeWindow());
+    auto window = static_cast<GLFWwindow*>(Application::GetInstance()->GetWindow()->GetNativeWindow());
     if(KEY_a <= keyCode && keyCode <= KEY_z)    // a-z
     {
         keyCode = KeyCode(keyCode-0x20);        // to A-Z
@@ -49,14 +49,14 @@ bool GLFWInput::_IsKeyPressed(KeyCode keyCode)
 
 bool GLFWInput::_IsMouseButtonPressed(MouseButtonCode mouseButtonCode)
 {
-    auto window = static_cast<GLFWwindow*>(Application::Get()->GetWindow()->GetNativeWindow());
+    auto window = static_cast<GLFWwindow*>(Application::GetInstance()->GetWindow()->GetNativeWindow());
     auto state = glfwGetMouseButton(window, mouseButtonCode);
     return state == GLFW_PRESS;
 }
 
 std::pair<float, float> GLFWInput::_GetMousePosition()
 {
-    auto window = static_cast<GLFWwindow*>(Application::Get()->GetWindow()->GetNativeWindow());
+    auto window = static_cast<GLFWwindow*>(Application::GetInstance()->GetWindow()->GetNativeWindow());
     double xpos, ypos;
     glfwGetCursorPos(window, &xpos, &ypos);
     return { (float)xpos, (float)ypos };

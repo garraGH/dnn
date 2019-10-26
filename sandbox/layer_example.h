@@ -30,9 +30,11 @@ protected:
     void _UpdateQuads(float deltaTime);
     void _TransformQuads(float deltaTime);
     void _PrepareResources();
+    void _PrepareViewports();
 
 private:
-    std::shared_ptr<Viewport> m_viewport = Viewport::Create("Viewport_Main");
+    std::shared_ptr<Viewport> m_viewport[4];
+
     float m_speedTranslate = 0.5f;
     float m_speedRotate = 30.0f;
 };

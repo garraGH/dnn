@@ -37,7 +37,7 @@ public:
         };
 
         virtual void SetBackgroundColor(float r, float g, float b, float a) = 0;
-        virtual void SetViewport(float left, float bottom, float right, float top) = 0;
+        virtual void SetViewport(const std::shared_ptr<Viewport>& viewport) = 0;
         virtual void DrawIndexed(const std::shared_ptr<BufferArray>& bufferArray) = 0;
 
         static inline Type GetType() { return s_type; }
@@ -50,7 +50,7 @@ public:
     {
     public:
         static inline void SetBackgroundColor(float r, float g, float b, float a) { s_api->SetBackgroundColor(r, g, b, a); }
-        static inline void SetViewport(float left, float bottom, float right, float top) { s_api->SetViewport(left, bottom, right, top); }
+        static inline void SetViewport(const std::shared_ptr<Viewport>& viewport) { s_api->SetViewport(viewport); }
         static inline void DrawIndexed(const std::shared_ptr<BufferArray>& bufferArray) { s_api->DrawIndexed(bufferArray); }
     };
 

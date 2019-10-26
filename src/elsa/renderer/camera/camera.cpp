@@ -167,9 +167,16 @@ bool Camera::_OnMouseScrolled(MouseScrolledEvent& e)
     return false;
 }
 
-void Camera::OnImGuiRender()
+void Camera::OnImGuiRender(bool independent)
 {
-    ImGui::Begin(m_name.c_str());
+    if(independent)
+    {
+        ImGui::Begin(m_name.c_str());
+    }
+    else
+    {
+        ImGui::Text(m_name.c_str());
+    }
 
     if(ImGui::Button("revert"))
     {
@@ -216,5 +223,8 @@ void Camera::OnImGuiRender()
     ImGui::Text("orientation: %s",  glm::to_string(m_orientation).c_str());
     ImGui::Text("      scale: %6.3f",  GetScale());
 
-    ImGui::End();
+    if(independent)
+    {
+        ImGui::End();
+    }
 }

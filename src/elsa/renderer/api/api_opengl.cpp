@@ -17,20 +17,28 @@ OpenGLAPI::OpenGLAPI()
     s_type = OpenGL;
 }
 
-void OpenGLAPI::SetViewport(float left, float bottom, float right, float top)
+void OpenGLAPI::SetViewport(const std::shared_ptr<Viewport>& viewport)
 {
-    glad_glViewport(left, bottom, right, top);
+    auto [x, y, w, h] = viewport->GetRange();
+    auto [r, g, b, a] = viewport->GetBackgroundColor();
+    float depth = viewport->GetBackgroundDepth();
+    glViewport(x, y, w, h);
+    glScissor(x, y, w, h);
+    glEnable(GL_SCISSOR_TEST);
+    glClearDepth(depth);
+    glClearColor(r, g, b, a);
+    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+    glDisable(GL_SCISSOR_TEST);
 }
 
 void OpenGLAPI::SetBackgroundColor(float r, float g, float b, float a)
 {
-    glad_glClearColor(r, g, b, a);
-    glad_glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClearColor(r, g, b, a);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 void OpenGLAPI::DrawIndexed(const std::shared_ptr<BufferArray>& bufferArray)
 {
-    glad_glDrawElements(GL_TRIANGLES, bufferArray->IndexCount(), bufferArray->IndexType(), nullptr);
+    glDrawElements(GL_TRIANGLES, bufferArray->IndexCount(), bufferArray->IndexType(), nullptr);
 }
-
 

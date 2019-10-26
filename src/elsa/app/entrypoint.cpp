@@ -15,11 +15,10 @@ int main(int argc, char** argv)
 {
     Logger::Init();
 
-    Application* app = CreateApplication();
-    app->Run();
-    delete app;
+    CreateApplication()->Run();
 
     Logger::Close();
+
     return 0;
 }
 
