@@ -59,7 +59,7 @@ public:
     public:
         Element(const std::string& name) : Asset(name) {}
         static std::shared_ptr<Element> Create(const std::string& name) { return std::make_shared<Element>(name); }
-        std::shared_ptr<Element> Set(const std::shared_ptr<Mesh>& mesh, const std::shared_ptr<Material>& material)
+        std::shared_ptr<Element> Set(const std::shared_ptr<Elsa::Mesh>& mesh, const std::shared_ptr<Material>& material)
         {
             m_mesh = mesh;
             m_material = material;
@@ -67,12 +67,12 @@ public:
         }
 
         virtual std::string GetTypeName() const { return "Renderer::Element"; }
-        std::shared_ptr<Element> SetMesh(const std::shared_ptr<Mesh>& mesh) { m_mesh = mesh; return shared_from_this(); }
+        std::shared_ptr<Element> SetMesh(const std::shared_ptr<Elsa::Mesh>& mesh) { m_mesh = mesh; return shared_from_this(); }
         std::shared_ptr<Element> SetMaterial(const std::shared_ptr<Material>& material) { m_material = material; return shared_from_this(); }
         void RenderedBy(const std::shared_ptr<Shader>& shader);
 
     private:
-        std::shared_ptr<Mesh> m_mesh = nullptr;
+        std::shared_ptr<Elsa::Mesh> m_mesh = nullptr;
         std::shared_ptr<Material> m_material = nullptr;
     };
 
@@ -105,7 +105,11 @@ public:
             m_assets[name] = asset;
         }
 
-        std::shared_ptr<T>& Get(const std::string& name) { CORE_ASSERT(Exist(name), "Assets::Get: asset not found! "+name); return m_assets[name]; }
+        std::shared_ptr<T>& Get(const std::string& name)
+        { 
+            CORE_ASSERT(Exist(name), "Assets::Get: asset not found! "+name);
+            return m_assets[name];
+        }
     private:
         static Assets<T> s_instance;
         std::map<std::string, std::shared_ptr<T>> m_assets;

@@ -17,9 +17,55 @@
 #include "../transform/transform.h"
 #include "../buffer/buffer.h"
 #include "../rendererobject.h"
+#include "../material/material.h"
+
+namespace Elsa {
 
 class Mesh : public Asset, public std::enable_shared_from_this<Mesh>
 {
+public:
+    class Vertexes
+    {
+    public:
+        enum class DataLayout
+        {
+
+        };
+
+        class Vertex
+        {
+        public:
+        protected:
+        private:
+            glm::vec3 m_pos;        // position
+            glm::vec3 m_nor;        // normal
+            glm::vec2 m_uv;         // texcoordinate
+        };
+    public:
+        Vertexes();
+    protected:
+    private:
+        int m_count;
+        void* m_data;
+        DataLayout m_dataLayout;
+    };
+
+    class Indices
+    {
+        enum class DataType
+        {
+            Int8, 
+            Int16, 
+            Int32, 
+        };
+
+    public:
+    protected:
+    private:
+        int m_count;
+        void* m_data;
+        DataType m_dataType;
+    };
 public:
     Mesh(const std::string& name="unnamed") : Asset(name) {} 
     virtual void Bind(const std::shared_ptr<Shader>& shader) = 0;
@@ -33,9 +79,22 @@ public:
     const std::shared_ptr<BufferArray>& GetBufferArray() const { return m_bufferArray; }
     static std::shared_ptr<Mesh> Create(const std::string& name);
 
+    void SetVertexNumber(unsigned int nVertexes);
+    void SetIndexNumber(unsigned int nIndeices);
+    void PushVertex(const glm::vec3& vtx);
+    void PushIndex(unsigned int index);
+
+    void Build();
+
 protected:
     bool m_dirty = true;
     std::shared_ptr<Shader> m_shader = nullptr;
     std::shared_ptr<BufferArray> m_bufferArray = BufferArray::Create();
     std::shared_ptr<Transform> m_transform = std::make_shared<Transform>();
+    std::shared_ptr<Material> m_material = nullptr;
+
+    std::vector<glm::vec3> m_vertices;
+    std::vector<unsigned int> m_indices;
 };
+
+}

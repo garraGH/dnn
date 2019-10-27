@@ -51,7 +51,7 @@ void ShaderToyLayer::_PrepareResources()
     std::shared_ptr<Buffer> vertexBuffer = Buffer::CreateVertex(sizeof(vertices), vertices);
     vertexBuffer->SetLayout(layoutVertex);
 
-    std::shared_ptr<Mesh> msCanvas = Renderer::Resources::Create<Mesh>("Canvas")->Set(indexBuffer, {vertexBuffer});
+    std::shared_ptr<Elsa::Mesh> msCanvas = Renderer::Resources::Create<Elsa::Mesh>("Canvas")->Set(indexBuffer, {vertexBuffer});
 
 
     m_canvas = Renderer::Resources::Create<Renderer::Element>("Canvas")->Set(msCanvas, m_shaderToys[m_toyType]->GetMaterial());

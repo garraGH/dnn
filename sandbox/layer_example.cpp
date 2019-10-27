@@ -110,8 +110,8 @@ void ExampleLayer::_PrepareResources()
     positionBuffer_quad->SetLayout(layoutPosition_quad);
     colorBuffer_quad->SetLayout(layoutColor_quad);
 
-    Renderer::Resources::Create<Mesh>("mesh_tri")->Set(indexBuffer_tri, {vertexBuffer_tri});
-    Renderer::Resources::Create<Mesh>("mesh_quad")->Set(indexBuffer_quad, {positionBuffer_quad, colorBuffer_quad});
+    Renderer::Resources::Create<Elsa::Mesh>("mesh_tri")->Set(indexBuffer_tri, {vertexBuffer_tri});
+    Renderer::Resources::Create<Elsa::Mesh>("mesh_quad")->Set(indexBuffer_quad, {positionBuffer_quad, colorBuffer_quad});
 
     using MA = Material::Attribute;
     Renderer::Resources::Create<MA>("red")->Set(MA::Type::Float4, 1, glm::value_ptr(glm::vec4(1, 0.1, 0.2, 1)));
@@ -120,8 +120,8 @@ void ExampleLayer::_PrepareResources()
     Renderer::Resources::Create<Material>("mtr_tri")->Set("u_Color", Renderer::Resources::Get<MA>("green"));
     Renderer::Resources::Create<Material>("mtr_quad")->Set("u_Color", Renderer::Resources::Get<MA>("red"));
     Renderer::Resources::Create<Shader>("Basic")->LoadFromFile("/home/garra/study/dnn/assets/shader/Basic.glsl");
-    Renderer::Resources::Create<Renderer::Element>("ele_tri")->Set(Renderer::Resources::Get<Mesh>("mesh_tri"), Renderer::Resources::Get<Material>("mtr_tri"));
-    Renderer::Resources::Create<Renderer::Element>("ele_quad")->Set(Renderer::Resources::Get<Mesh>("mesh_quad"), Renderer::Resources::Get<Material>("mtr_quad"));
+    Renderer::Resources::Create<Renderer::Element>("ele_tri")->Set(Renderer::Resources::Get<Elsa::Mesh>("mesh_tri"), Renderer::Resources::Get<Material>("mtr_tri"));
+    Renderer::Resources::Create<Renderer::Element>("ele_quad")->Set(Renderer::Resources::Get<Elsa::Mesh>("mesh_quad"), Renderer::Resources::Get<Material>("mtr_quad"));
 
     Renderer::Resources::Create<Transform>("tf_tri");
     Renderer::Resources::Create<Transform>("tf_quad")->SetScale(glm::vec3(0.1f));
@@ -205,8 +205,8 @@ void ExampleLayer::_UpdateQuads(float deltaTime)
     std::shared_ptr<MA> red = Renderer::Resources::Get<MA>("red");
     std::shared_ptr<MA> blue = Renderer::Resources::Get<MA>("blue");
     std::shared_ptr<Material> mtr_quad = Renderer::Resources::Get<Material>("mtr_quad");
-    std::shared_ptr<Mesh> mesh_tri = Renderer::Resources::Get<Mesh>("mesh_tri");
-    std::shared_ptr<Mesh> mesh_quad = Renderer::Resources::Get<Mesh>("mesh_quad");
+    std::shared_ptr<Elsa::Mesh> mesh_tri = Renderer::Resources::Get<Elsa::Mesh>("mesh_tri");
+    std::shared_ptr<Elsa::Mesh> mesh_quad = Renderer::Resources::Get<Elsa::Mesh>("mesh_quad");
 
     std::shared_ptr<Transform> tf_quad = Renderer::Resources::Get<Transform>("tf_quad");
     for(int i=0; i<5; i++)
@@ -226,7 +226,7 @@ void ExampleLayer::_UpdateQuads(float deltaTime)
 
 void ExampleLayer::_UpdateTri(float deltaTime)
 {
-    Renderer::Resources::Get<Mesh>("mesh_tri")->SetTransform(Renderer::Resources::Get<Transform>("tf_tri"));
+    Renderer::Resources::Get<Elsa::Mesh>("mesh_tri")->SetTransform(Renderer::Resources::Get<Transform>("tf_tri"));
     Renderer::Resources::Get<Material>("mtr_tri")->Set("u_Color", Renderer::Resources::Get<Material::Attribute>("green"));
     Renderer::Submit("ele_tri", "Basic");
 }

@@ -13,3 +13,6 @@
 [submodule "deps/modules/stb"]
 	path = deps/modules/stb
 	url = https://github.com/garraGH/stb
+[submodule "deps/modules/assimp"]
+	path = deps/modules/assimp
+	url = https://github.com/garraGH/assimp

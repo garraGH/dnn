@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include "layer_example.h"
 #include "layer_shadertoy.h"
+#include "layer_learnopengl.h"
 #include "logger.h"
 
 
@@ -24,7 +25,8 @@ public:
     {
         Renderer::SetAPIType(Renderer::API::OpenGL);
 
-        PushLayer(ExampleLayer::Create());
+        PushLayer(LearnOpenGLLayer::Create());
+//         PushLayer(ExampleLayer::Create());
 //         PushLayer(ShaderToyLayer::Create());
     }
 

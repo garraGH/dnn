@@ -12,9 +12,13 @@
 #pragma once
 #include "mesh.h"
 
+namespace Elsa {
+
 class OpenGLMesh : public Mesh
 {
 public:
     OpenGLMesh(const std::string& name) : Mesh(name) {}
     virtual void Bind(const std::shared_ptr<Shader>& shader) override;
 };
+
+}

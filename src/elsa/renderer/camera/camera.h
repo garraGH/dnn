@@ -53,6 +53,8 @@ public:
         float GetScale() const  { return m_scale; }
         bool IsDirty() const    { return m_dirty; }
 
+        void OnImGuiRender();
+
         const glm::mat4& GetProjectionMatrix() { _Update(); return m_matProjection; }
 
     protected:
@@ -66,7 +68,7 @@ public:
         float m_vfov = 45;      //VerticalFieldOfView, perspective
         float m_asp = 1;        //aspect ratio = width/height
         float m_near = 0.1;
-        float m_far = 10;
+        float m_far = 100;
         bool m_dirty = true;
         float m_scale = 1.0;
 

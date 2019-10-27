@@ -55,6 +55,37 @@ void Camera::Sight::_calcPerspectiveMatrix()
     m_matProjection[3][3] = 0;
 }
 
+void Camera::Sight::OnImGuiRender()
+{
+    ImGui::PushItemWidth(200);
+    ImGui::Separator();
+    if(ImGui::RadioButton("Orthographic", m_type == Type::Orthographic))
+    {
+        m_type = Type::Orthographic;
+    }
+    if(ImGui::RadioButton("Perspective", m_type == Type::Perspective))
+    {
+        m_type = Type::Perspective;
+    }
+    if(m_type == Type::Orthographic)
+    {
+        ImGui::SliderFloat("Width", &m_width, 0, 1000);
+    }
+    else
+    {
+        ImGui::SliderFloat("vFov", &m_vfov, 0, 180);
+    }
+    ImGui::SameLine();
+    ImGui::DragFloat("scale", &m_scale,  0.1,  0.1,  10);
+    ImGui::SameLine();
+    ImGui::Text("asp: %.3f", m_asp);
+    ImGui::DragFloat("near", &m_near,  0.1,  0.1, 10);
+    ImGui::SameLine();
+    ImGui::DragFloat("far", &m_far,  10,  100,  10000);
+    m_dirty = true;
+
+}
+
 void Camera::_UpdateView()
 {
     if(!m_dirty)
@@ -105,10 +136,12 @@ void Camera::OnUpdate(float deltaTime)
     }
     if(Input::IsKeyPressed(KEY_z))
     {
+        INFO("Camera::OnUpdate: KEY_z Pressed.");
         Translate({0, 0, -deltaTime*m_speedTrans});
     }
     if(Input::IsKeyPressed(KEY_Z))
     {
+        INFO("Camera::OnUpdate: KEY_Z Pressed.");
         Translate({0, 0, +deltaTime*m_speedTrans});
     }
     if(Input::IsKeyPressed(KEY_s))
@@ -182,6 +215,7 @@ void Camera::OnImGuiRender(bool independent)
     {
         Revert();
     }
+    m_sight.OnImGuiRender();
     if(ImGui::RadioButton("Orthographic", m_type == Type::Orthographic))
     {
         m_type = Type::Orthographic;

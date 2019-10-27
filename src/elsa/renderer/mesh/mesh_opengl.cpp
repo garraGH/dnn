@@ -10,6 +10,7 @@
 
 
 #include "mesh_opengl.h"
+namespace Elsa {
 
 std::shared_ptr<Mesh> Mesh::Create(const std::string& name)
 {
@@ -28,4 +29,6 @@ void OpenGLMesh::Bind(const std::shared_ptr<Shader>& shader)
     m_shader = shader;
 
     m_shader->SetTransformMatrix(m_transform->GetTransformMatrx());
+}
+
 }

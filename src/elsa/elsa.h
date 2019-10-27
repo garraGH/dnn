@@ -46,3 +46,4 @@
 #include "renderer/shader/shader_glsl.h"
 #include "renderer/camera/camera.h"
 #include "renderer/viewport/viewport.h"
+#include "renderer/mesh/model.h"
