@@ -16,7 +16,7 @@
 #include "../../core.h"
 #include "../shader/shader.h"
 
-class Buffer : public RenderObject
+class Buffer : public RenderObject, public std::enable_shared_from_this<Buffer>
 {
 public:
     class Element
@@ -50,6 +50,7 @@ public:
         std::vector<Element>::const_iterator end() const { return m_elements.end(); }
         unsigned int Stride() const { return m_stride; }
         void Push(Element& element);
+        bool Empty() const { return m_elements.empty(); }
 
     protected:
         void _calculateOffsetAndStride(Element& e);
@@ -67,7 +68,7 @@ public:
     virtual void Unbind() const override {}
 
     unsigned int GetCount() const;
-    void SetLayout(const Layout& layout);
+    std::shared_ptr<Buffer> SetLayout(const Layout& layout);
     virtual void Bind(const std::shared_ptr<Shader>& shader){}
 
     static std::shared_ptr<Buffer> CreateVertex(unsigned int size, const void* data);

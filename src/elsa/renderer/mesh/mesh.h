@@ -83,9 +83,12 @@ public:
     void SetIndexNumber(unsigned int nIndeices);
     void PushVertex(const glm::vec3& vtx);
     void PushIndex(unsigned int index);
+    void SetAABB(float x0, float y0, float z0, float x1, float y1, float z1);
+    std::pair<glm::vec3, glm::vec3> GetAABB() const;
 
     void Build();
 
+    const std::vector<glm::vec3>& GetVertices() const { return m_vertices; }
 protected:
     bool m_dirty = true;
     std::shared_ptr<Shader> m_shader = nullptr;
@@ -95,6 +98,8 @@ protected:
 
     std::vector<glm::vec3> m_vertices;
     std::vector<unsigned int> m_indices;
+    glm::vec3 m_min = glm::vec3(0);
+    glm::vec3 m_max = glm::vec3(1);
 };
 
 }

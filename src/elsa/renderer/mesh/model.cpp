@@ -13,6 +13,7 @@
 #include "../material/material.h"
 #include "logger.h"
 #include "glm/glm.hpp"
+#include "glm/gtx/string_cast.hpp"
 
 std::shared_ptr<Model> Model::Create(const std::string& name)
 {
@@ -28,7 +29,7 @@ Model::Model(const std::string& name)
 std::shared_ptr<Model> Model::LoadFromFile(const std::string& filepath)
 {
     Assimp::Importer importer;
-    const aiScene* scene = importer.ReadFile(filepath, aiProcess_Triangulate|aiProcess_FlipUVs);
+    const aiScene* scene = importer.ReadFile(filepath, aiProcess_Triangulate|aiProcess_FlipUVs|aiProcess_OptimizeMeshes|aiProcess_GenBoundingBoxes);
     if(!scene || !scene->mRootNode || scene->mFlags&AI_SCENE_FLAGS_INCOMPLETE)
     {
         ERROR("Model::LoadFromFile: %s, %s", filepath, importer.GetErrorString());
@@ -75,6 +76,10 @@ void Model::_ProcessMesh(const aiScene* scene, const aiMesh* mesh, unsigned int 
             elsaMesh->PushIndex(mesh->mFaces[i].mIndices[j]);
         }
     }
+
+    const aiVector3D& mMin = mesh->mAABB.mMin;
+    const aiVector3D& mMax = mesh->mAABB.mMax;
+    elsaMesh->SetAABB(mMin.x, mMin.y, mMin.z, mMax.x, mMax.y, mMax.z);
     elsaMesh->Build();
     m_meshes.push_back(elsaMesh);
     std::string eleName = "re_"+elsaMesh->GetName();
@@ -96,3 +101,30 @@ void Model::Draw(const std::shared_ptr<Shader>& shader)
     }
 }
 
+void Model::Export(const glm::mat4& vp)
+{
+    for(auto mesh : m_meshes)
+    {
+        auto vertices = mesh->GetVertices();
+        for(auto v : vertices)
+        {
+            INFO("{}:{}", glm::to_string(v), glm::to_string(vp*glm::vec4(v, 1)));
+            break;
+        }
+        break;
+    }
+}
+
+std::pair<glm::vec3, glm::vec3> Model::GetAABB() const
+{
+    glm::vec3 mMin(1e10);
+    glm::vec3 mMax(-1e10);
+    for(auto mesh : m_meshes)    
+    {
+        auto [aMin, aMax] = mesh->GetAABB();
+        mMin = glm::min(mMin, aMin);
+        mMax = glm::max(mMax, aMax);
+    }
+
+    return {mMin, mMax};
+}

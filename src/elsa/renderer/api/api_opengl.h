@@ -20,5 +20,6 @@ public:
     virtual void SetViewport(const std::shared_ptr<Viewport>& viewport) override;
     virtual void SetBackgroundColor(float r, float g, float b, float a) override;
     virtual void DrawIndexed(const std::shared_ptr<BufferArray>& bufferArray) override;
+    virtual void SetPolygonMode(Renderer::PolygonMode mode) override;
 };
 

@@ -101,6 +101,7 @@ void OpenGLIndexBuffer::Unbind() const
 
 GLenum OpenGLIndexBuffer::GetType()
 {
+    CORE_ASSERT(!m_layout.Empty(), "OpenGLIndexBuffer::GetType: none layout!");
     const Element& e = *m_layout.begin();
     return _TypeFrom(e.Type());
 }
@@ -162,6 +163,7 @@ void OpenGLBufferArray::Bind(const std::shared_ptr<Shader>& shader)
 
 unsigned int OpenGLBufferArray::IndexCount() const
 {
+    CORE_ASSERT(m_indexBuffer, "OpenGLBufferArray::IndexCount: indexBuffer is nullptr!");
     return m_indexBuffer->GetCount();
 }
 

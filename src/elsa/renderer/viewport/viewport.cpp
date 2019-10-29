@@ -168,7 +168,7 @@ void Viewport::OnImGuiRender()
         SetType(Type::Percentage);
     }
     ImGui::Separator();
-    if(ImGui::InputFloat4("range", &m_range[0], ImGuiInputTextFlags_EnterReturnsTrue))
+    if(ImGui::InputFloat4("range", &m_range[0], "%.3f", ImGuiInputTextFlags_EnterReturnsTrue))
     {
         float asp = m_range[2]/m_range[3];
         m_cameraDefault->SetAspectRatio(asp);

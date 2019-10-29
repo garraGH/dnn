@@ -29,6 +29,11 @@ void OpenGLAPI::SetViewport(const std::shared_ptr<Viewport>& viewport)
     glClearColor(r, g, b, a);
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
     glDisable(GL_SCISSOR_TEST);
+
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LEQUAL);
+    glEnable(GL_DEPTH_WRITEMASK);
+    glEnable(GL_BLEND);
 }
 
 void OpenGLAPI::SetBackgroundColor(float r, float g, float b, float a)
@@ -40,5 +45,15 @@ void OpenGLAPI::SetBackgroundColor(float r, float g, float b, float a)
 void OpenGLAPI::DrawIndexed(const std::shared_ptr<BufferArray>& bufferArray)
 {
     glDrawElements(GL_TRIANGLES, bufferArray->IndexCount(), bufferArray->IndexType(), nullptr);
+
 }
 
+void OpenGLAPI::SetPolygonMode(Renderer::PolygonMode mode)
+{
+    switch(mode)
+    {
+        case Renderer::PolygonMode::POINT: return glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
+        case Renderer::PolygonMode::LINE:  return glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        case Renderer::PolygonMode::FILL:  return glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    }
+}

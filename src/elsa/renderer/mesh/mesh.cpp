@@ -47,7 +47,6 @@ std::shared_ptr<Mesh> Mesh::AddVertexBuffer(const std::shared_ptr<Buffer>& verte
 void Mesh::SetVertexNumber(unsigned int numVertices)
 {
     m_vertices.reserve(numVertices);
-    INFO("Mesh::SetVertexNumber: {}", m_vertices.size());
 }
 
 
@@ -59,12 +58,22 @@ void Mesh::PushVertex(const glm::vec3& vtx)
 void Mesh::SetIndexNumber(unsigned int nIndeices)
 {
     m_indices.reserve(nIndeices);
-    INFO("Mesh::SetIndexNumber: {}", m_indices.size());
 }
 
 void Mesh::PushIndex(unsigned int index)
 {
     m_indices.push_back(index);
+}
+
+void Mesh::SetAABB(float x0, float y0, float z0, float x1, float y1, float z1)
+{
+    m_min = glm::vec3(x0, y0, z0);
+    m_max = glm::vec3(x1, y1, z1);
+}
+
+std::pair<glm::vec3, glm::vec3> Mesh::GetAABB() const
+{
+    return {m_min, m_max};
 }
 
 void Mesh::Build()

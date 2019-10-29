@@ -63,9 +63,10 @@ Buffer::~Buffer()
 
 }
 
-void Buffer::SetLayout(const Layout& layout)
+std::shared_ptr<Buffer> Buffer::SetLayout(const Layout& layout)
 {
     m_layout = layout;
+    return shared_from_this();
 }
 
 unsigned int Buffer::GetCount() const 

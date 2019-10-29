@@ -22,6 +22,13 @@
 class Renderer
 {
 public:
+    enum class PolygonMode
+    {
+        POINT, 
+        LINE, 
+        FILL
+    };
+
     class API
     {
     public:
@@ -39,6 +46,7 @@ public:
         virtual void SetBackgroundColor(float r, float g, float b, float a) = 0;
         virtual void SetViewport(const std::shared_ptr<Viewport>& viewport) = 0;
         virtual void DrawIndexed(const std::shared_ptr<BufferArray>& bufferArray) = 0;
+        virtual void SetPolygonMode(PolygonMode mode) = 0;
 
         static inline Type GetType() { return s_type; }
 
@@ -52,6 +60,7 @@ public:
         static inline void SetBackgroundColor(float r, float g, float b, float a) { s_api->SetBackgroundColor(r, g, b, a); }
         static inline void SetViewport(const std::shared_ptr<Viewport>& viewport) { s_api->SetViewport(viewport); }
         static inline void DrawIndexed(const std::shared_ptr<BufferArray>& bufferArray) { s_api->DrawIndexed(bufferArray); }
+        static inline void SetPolygonMode(PolygonMode mode) { s_api->SetPolygonMode(mode); }
     };
 
     class Element : public Asset, public std::enable_shared_from_this<Element>
@@ -128,9 +137,11 @@ public:
 
 public:
 
+
     inline static API::Type GetAPIType() { return s_api->GetType(); }
     static void SetAPIType(API::Type apiType);
     static void SetBackgroundColor(float r, float g, float b, float a) { Command::SetBackgroundColor(r, g, b, a); }
+    static void SetPolygonMode(PolygonMode mode);
 
     static void BeginScene(const std::shared_ptr<Viewport>& viewport);
     static void Submit(const std::shared_ptr<Element>& rendererElement, const std::shared_ptr<Shader>& shader);

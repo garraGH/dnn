@@ -17,6 +17,7 @@
 #include "../app/application.h"
 #include "../window/window_x11.h"
 #include "logger.h"
+#include "../renderer/renderer.h"
 
 std::shared_ptr<ImGuiLayer> ImGuiLayer::Create()
 {
@@ -90,11 +91,32 @@ void ImGuiLayer::End()
 
 void ImGuiLayer::OnImGuiRender()
 {
-    static bool show = true;
-    ImGui::ShowDemoWindow(&show);
+//     static bool show = true;
+//     ImGui::ShowDemoWindow(&show);
+
+
+    static Renderer::PolygonMode s_polygonMode = Renderer::PolygonMode::FILL;
 
     ImGui::Begin("Application");
     ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+    ImGui::Separator();
+    if(ImGui::RadioButton("POINT", s_polygonMode == Renderer::PolygonMode::POINT) && s_polygonMode != Renderer::PolygonMode::POINT)
+    {
+        s_polygonMode = Renderer::PolygonMode::POINT;
+        Renderer::SetPolygonMode(s_polygonMode);
+    }
+    ImGui::SameLine();
+    if(ImGui::RadioButton("LINE", s_polygonMode == Renderer::PolygonMode::LINE) && s_polygonMode != Renderer::PolygonMode::LINE)
+    {
+        s_polygonMode = Renderer::PolygonMode::LINE;
+        Renderer::SetPolygonMode(s_polygonMode);
+    }
+    ImGui::SameLine();
+    if(ImGui::RadioButton("FILL", s_polygonMode == Renderer::PolygonMode::FILL) && s_polygonMode != Renderer::PolygonMode::FILL)
+    {
+        s_polygonMode = Renderer::PolygonMode::FILL;
+        Renderer::SetPolygonMode(s_polygonMode);
+    }
     ImGui::Separator();
     if(ImGui::RadioButton("VerticalSync", m_window->IsVSync()))
     {

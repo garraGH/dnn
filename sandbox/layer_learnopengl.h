@@ -25,10 +25,13 @@ public:
 
 protected:
     void _PrepareResources();
+    void _PrepareSkybox();
+    void _UpdateMaterialAttribute();
 
 private:
     std::shared_ptr<Viewport> m_viewport = Viewport::Create("LearnOpenGL_Viewport_Main");
     std::shared_ptr<Model> m_model = nullptr;
     std::shared_ptr<Shader> m_shader = nullptr;
+
 };
 

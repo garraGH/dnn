@@ -11,6 +11,7 @@
 
 #pragma once
 #include "event.h"
+#include "../input/codes_mouse.h"
 #include <sstream>
 
 class MouseMovedEvent : public Event
@@ -56,22 +57,22 @@ private:
     float m_offsetX, m_offsetY;
 };
 
-class MosueButtonEvent : public Event
+class MouseButtonEvent : public Event
 {
 public:
-    inline int GetMouseButton() const { return m_button; }
+    inline MouseButtonCode GetMouseButton() const { return m_button; }
 
     EVENT_CLASS_CATEGORY(EC_Input|EC_Mouse|EC_MouseButton)
 protected:
-    MosueButtonEvent(int button) : m_button(button) {  }
-    int m_button;
+    MouseButtonEvent(MouseButtonCode button) : m_button(button) {  }
+    MouseButtonCode m_button;
 };
 
 
-class MouseButtonPressedEvent : public MosueButtonEvent
+class MouseButtonPressedEvent : public MouseButtonEvent
 {
 public:
-    MouseButtonPressedEvent(int button) : MosueButtonEvent(button) {  }
+    MouseButtonPressedEvent(MouseButtonCode button) : MouseButtonEvent(button) {  }
     std::string ToString() const override
     {
         std::stringstream ss;
@@ -82,10 +83,10 @@ public:
     EVENT_CLASS_TYPE(ET_MouseButtonPressed)
 };
 
-class MouseButtonReleasedEvent : public MosueButtonEvent
+class MouseButtonReleasedEvent : public MouseButtonEvent
 {
 public:
-    MouseButtonReleasedEvent(int button) : MosueButtonEvent(button) {  }
+    MouseButtonReleasedEvent(MouseButtonCode button) : MouseButtonEvent(button) {  }
     std::string ToString() const override
     {
         std::stringstream ss;

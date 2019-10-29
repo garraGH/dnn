@@ -24,7 +24,9 @@ public:
 
     std::shared_ptr<Model> LoadFromFile(const std::string& filepath);
     void Draw(const std::shared_ptr<Shader>& shader);
+    void Export(const glm::mat4& vp);
 
+    std::pair<glm::vec3, glm::vec3> GetAABB() const;
     static std::shared_ptr<Model> Create(const std::string& name);
 protected:
     void _ProcessNode(aiNode* node, const aiScene* scene);
@@ -35,4 +37,5 @@ private:
     std::vector<std::shared_ptr<Elsa::Mesh>> m_meshes;
     std::vector<std::shared_ptr<Renderer::Element>> m_renderElements;
     std::vector<std::shared_ptr<Material>> m_materials;
+    
 };

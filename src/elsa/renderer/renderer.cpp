@@ -39,6 +39,11 @@ void Renderer::BeginScene(const std::shared_ptr<Viewport>& viewport)
     s_camera = viewport->GetCamera();
 }
 
+void Renderer::SetPolygonMode(PolygonMode mode)
+{
+    Command::SetPolygonMode(mode);
+}
+
 void Renderer::Submit(const std::string& nameOfElement, const std::string& nameOfShader)
 {
     Resources::Get<Element>(nameOfElement)->RenderedBy(Resources::Get<Shader>(nameOfShader));

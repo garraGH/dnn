@@ -15,9 +15,11 @@
 // #include "camera_perspective.h"
 #include "imgui.h"
 #include "glm/gtx/string_cast.hpp"
+#include "glm/gtc/type_ptr.hpp"
 // #include "logger.h"
 #include "../../core.h"
 #include "../../input/input.h"
+#include "../../input/codes_mouse.h"
 
 std::shared_ptr<Camera> Camera::Create(const std::string& name, Type type, Usage usage)
 {
@@ -59,31 +61,33 @@ void Camera::Sight::OnImGuiRender()
 {
     ImGui::PushItemWidth(200);
     ImGui::Separator();
-    if(ImGui::RadioButton("Orthographic", m_type == Type::Orthographic))
+    if(ImGui::RadioButton("Orthographic", m_type == Type::Orthographic) && m_type != Type::Orthographic)
     {
         m_type = Type::Orthographic;
+        m_dirty = true;
     }
-    if(ImGui::RadioButton("Perspective", m_type == Type::Perspective))
+    ImGui::SameLine();
+    if(ImGui::RadioButton("Perspective", m_type == Type::Perspective) && m_type != Type::Perspective)
     {
         m_type = Type::Perspective;
+        m_dirty = true;
     }
+
     if(m_type == Type::Orthographic)
     {
-        ImGui::SliderFloat("Width", &m_width, 0, 1000);
+        m_dirty |= ImGui::SliderFloat("width", &m_width, 0, 1000);
     }
     else
     {
-        ImGui::SliderFloat("vFov", &m_vfov, 0, 180);
+        m_dirty |= ImGui::SliderFloat("vFov", &m_vfov, 0, 180);
     }
     ImGui::SameLine();
-    ImGui::DragFloat("scale", &m_scale,  0.1,  0.1,  10);
+    m_dirty |= ImGui::DragFloat("scale", &m_scale,  0.1,  0.1,  10);
     ImGui::SameLine();
     ImGui::Text("asp: %.3f", m_asp);
-    ImGui::DragFloat("near", &m_near,  0.1,  0.1, 10);
+    m_dirty |= ImGui::DragFloat("near", &m_near,  0.1,  0.1, 10);
     ImGui::SameLine();
-    ImGui::DragFloat("far", &m_far,  10,  100,  10000);
-    m_dirty = true;
-
+    m_dirty |= ImGui::DragFloat("far", &m_far,  10,  100,  10000);
 }
 
 void Camera::_UpdateView()
@@ -93,16 +97,67 @@ void Camera::_UpdateView()
         return;
     }
     m_dirty = false;
-    glm::mat4 transform = glm::rotate(glm::mat4(1.0f), glm::radians(m_orientation.x), glm::vec3(1, 0, 0)) 
-                        * glm::rotate(glm::mat4(1.0f), glm::radians(m_orientation.y), glm::vec3(0, 1, 0)) 
-                        * glm::rotate(glm::mat4(1.0f), glm::radians(m_orientation.z), glm::vec3(0, 0, 1))   
-                        * glm::translate(glm::mat4(1.0f), m_position);
-    if(m_usage == Usage::TwoDimension)
+//     glm::mat4 transform = glm::rotate(glm::mat4(1.0f), glm::radians(m_orientation.z), glm::vec3(0, 0, 1)) 
+//                         * glm::rotate(glm::mat4(1.0f), glm::radians(m_orientation.x), glm::vec3(1, 0, 0))   
+//                         * glm::rotate(glm::mat4(1.0f), glm::radians(m_orientation.y), glm::vec3(0, 1, 0)) 
+//                         * glm::translate(glm::mat4(1.0f), m_position);
+//     if(m_usage == Usage::TwoDimension)
+//     {
+//         transform = glm::rotate(glm::mat4(1.0f), glm::radians(m_orientation.z), glm::vec3(0, 0, 1)) * glm::translate(glm::mat4(1.0f), m_position);
+//     }
+// 
+//     float x = -glm::radians(m_orientation.x);
+//     float y = -glm::radians(m_orientation.y);
+//     float z = -glm::radians(m_orientation.z);
+//     float cosx = cos(x);
+//     float sinx = sin(x);
+//     float cosy = cos(y);
+//     float siny = sin(y);
+//     float cosz = cos(z);
+//     float sinz = sin(z);
+//     glm::mat4 yaw = 
+//     {
+//         +cosy,     0, -siny,     0, 
+//             0,     1,     0,     0, 
+//         +siny,     0, +cosy,     0, 
+//             0,     0,     0,     1
+//     };
+//     glm::mat4 pitch = 
+//     {
+//         1,     0,     0,     0, 
+//         0, +cosx, +sinx,     0, 
+//         0, -sinx, +cosx,     0, 
+//         0,     0,     0,     1
+//     };
+//     glm::mat4 roll = 
+//     {
+//         +cosz, +sinz,     0,     0, 
+//         -sinz, +cosz,     0,     0, 
+//             0,     0,     1,     0, 
+//             0,     0,     0,     1
+//     };
+    glm::mat4 trans = 
     {
-        transform = glm::rotate(glm::mat4(1.0f), glm::radians(m_orientation.z), glm::vec3(0, 0, 1)) * glm::translate(glm::mat4(1.0f), m_position);
-    }
+        1, 0, 0, 0, 
+        0, 1, 0, 0, 
+        0, 0, 1, 0,
+        -m_position.x, -m_position.y, -m_position.z, 1
+    };
 
-    m_matView = glm::inverse(transform);
+//     m_matView = roll*pitch*yaw*trans;
+
+    //lookat
+    glm::vec3 D = -GetDirection();
+    glm::vec3 R = glm::normalize(glm::cross(m_up, D));
+    glm::vec3 U = glm::cross(D, R);
+    glm::mat4 rot = 
+    {
+        R.x, U.x, D.x, 0, 
+        R.y, U.y, D.y, 0, 
+        R.z, U.z, D.z, 0, 
+        0, 0, 0, 1
+    };
+    m_matView = rot*trans;
 }
     
 void Camera::_UpdateViewProjection()
@@ -192,11 +247,118 @@ void Camera::OnEvent(Event& e)
 {
     EventDispatcher dispatcher(e);
     dispatcher.Dispatch<MouseScrolledEvent>(BIND_EVENT_CALLBACK(Camera, _OnMouseScrolled));
+    dispatcher.Dispatch<MouseButtonPressedEvent>(BIND_EVENT_CALLBACK(Camera, _OnMouseButtonPressed));
+    dispatcher.Dispatch<MouseButtonReleasedEvent>(BIND_EVENT_CALLBACK(Camera, _OnMouseButtonReleased));
+    dispatcher.Dispatch<MouseMovedEvent>(BIND_EVENT_CALLBACK(Camera, _OnMouseMoved));
+    dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_CALLBACK(Camera, _OnWindowResize));
 }
 
 bool Camera::_OnMouseScrolled(MouseScrolledEvent& e)
 {
-    Scale(-e.GetOffsetY()*m_speedScale);
+    if(Input::IsKeyPressed(KEY_LEFT_CONTROL))
+    {
+        Scale(-e.GetOffsetY()*m_speedScale);
+    }
+    else
+    {
+        Translate(glm::vec3(0, 0, -e.GetOffsetY()*m_speedTrans));
+    }
+    return false;
+}
+
+bool Camera::_OnMouseButtonPressed(MouseButtonPressedEvent& e)
+{
+    m_bLeftButtonPressed = e.GetMouseButton() == MOUSE_BUTTON_LEFT ;
+    m_bRightButtonPressed = e.GetMouseButton() == MOUSE_BUTTON_RIGHT;
+    m_cursorPosPressed = Input::GetMousePosition();
+    m_cursorPosPrevious = m_cursorPosPressed;
+    return false;
+}
+
+#define PI 3.14159265
+bool Camera::_OnMouseMoved(MouseMovedEvent& e)
+{
+    if(!(m_bLeftButtonPressed||m_bRightButtonPressed))
+    {
+        return false;
+    }
+
+    m_dirty = true;
+
+    float xCurr = e.GetX();
+    float yCurr = e.GetY();
+
+    float dx = +e.GetX()-m_cursorPosPrevious.first;
+    float dy = -e.GetY()+m_cursorPosPrevious.second;
+
+    m_cursorPosPrevious = {xCurr, yCurr};
+
+
+    if(m_bRightButtonPressed)
+    {
+        dx *= PI/m_windowSize[0];
+        dy *= PI/m_windowSize[1];
+        glm::vec3 dir = m_target-m_position;
+        INFO("distance: {}", glm::distance(m_target, m_position));
+        dir.y = 0;
+        float r = glm::length(dir);
+        float theta = std::atan2(dir.z, dir.x);
+        INFO("{} {} {}", theta, dx, r);
+        theta += dx;
+        if(Input::IsKeyPressed(KEY_LEFT_CONTROL))
+        {
+            m_position.x = m_target.x-r*std::cos(theta);
+            m_position.z = m_target.z-r*std::sin(theta);
+        }
+        else
+        {
+            m_target.x = m_position.x+r*std::cos(theta);
+            m_target.z = m_position.z+r*std::sin(theta);
+        }
+
+        dir = m_target-m_position;
+        dir.x = 0;
+        INFO("distance: {}", glm::distance(m_target, m_position));
+        r = glm::length(dir);
+        theta = std::atan2(dir.z, dir.y);
+        theta += dy;
+        if(Input::IsKeyPressed(KEY_LEFT_CONTROL))
+        {
+            m_position.y = m_target.y-r*std::cos(theta);
+            m_position.z = m_target.z-r*std::sin(theta);
+        }
+        else
+        {
+            m_target.y = m_position.y+r*std::cos(theta);
+            m_target.z = m_position.z+r*std::sin(theta);
+        }
+
+        m_up.y = (m_position.y>=m_target.y)? +1 : -1;
+
+    }
+    if(m_bLeftButtonPressed)
+    {
+        dx *= 100.0/m_windowSize[0];
+        dy *= 100.0/m_windowSize[1];
+        m_position += glm::vec3(dx, dy, 0);
+        if(Input::IsKeyPressed(KEY_LEFT_CONTROL))
+        {
+            m_target += glm::vec3(dx, dy, 0);
+        }
+    }
+    return false;
+}
+
+bool Camera::_OnMouseButtonReleased(MouseButtonReleasedEvent& e)
+{
+    m_bLeftButtonPressed &= !(e.GetMouseButton() == MOUSE_BUTTON_LEFT);
+    m_bRightButtonPressed &= !(e.GetMouseButton() == MOUSE_BUTTON_RIGHT);
+    return false;
+}
+
+bool Camera::_OnWindowResize(WindowResizeEvent& e)
+{
+    m_windowSize = {e.GetWidth(), e.GetHeight()};
     return false;
 }
 
@@ -216,33 +378,22 @@ void Camera::OnImGuiRender(bool independent)
         Revert();
     }
     m_sight.OnImGuiRender();
-    if(ImGui::RadioButton("Orthographic", m_type == Type::Orthographic))
-    {
-        m_type = Type::Orthographic;
-        m_sight.SetType(m_type);
-    }
-    ImGui::SameLine();
-    if(ImGui::RadioButton("Perspective", m_type == Type::Perspective))
-    {
-        m_type = Type::Perspective;
-        m_sight.SetType(m_type);
-    }
-    if(ImGui::RadioButton("2D", m_usage == Usage::TwoDimension))
+    if(ImGui::RadioButton("2D", m_usage == Usage::TwoDimension) && m_usage != Usage::TwoDimension)
     {
         m_usage = Usage::TwoDimension;
         m_dirty = true;
     }
     ImGui::SameLine();
-    if(ImGui::RadioButton("3D", m_usage == Usage::ThreeDimension))
+    if(ImGui::RadioButton("3D", m_usage == Usage::ThreeDimension) && m_usage != Usage::ThreeDimension)
     {
         m_usage = Usage::ThreeDimension;
         m_dirty = true;
     }
     ImGui::Separator();
 
-    ImGui::DragFloat("speed of translation", &m_speedTrans,  0.05f,  0.01f,  2.0f);
-    ImGui::DragFloat("speed of rotation", &m_speedRotat,  1.0f,  1.0f,  180.0f);
-    ImGui::DragFloat("speed of scale", &m_speedScale,  0.02f,  0.01f,  20.0f);
+    ImGui::DragFloat("speed of translation", &m_speedTrans, 1, 0.1f, 100.0f);
+    ImGui::DragFloat("speed of rotation", &m_speedRotat, 1.0f, 1.0f, 180.0f);
+    ImGui::DragFloat("speed of scale", &m_speedScale, 0.05f, 0.01f, 20.0f);
     ImGui::Separator();
     ImGui::Checkbox("enable rotation", &m_rotationEnabled);
     ImGui::SameLine();
@@ -250,9 +401,12 @@ void Camera::OnImGuiRender(bool independent)
     ImGui::Separator();
 
     ImGui::Separator();
+    m_dirty |= ImGui::SliderFloat3("position", (float*)glm::value_ptr(m_position), -1000, 1000);
+    m_dirty |= ImGui::SliderFloat3("target", (float*)glm::value_ptr(m_target), -1000, 1000);
+    m_dirty |= ImGui::SliderFloat3("up", (float*)glm::value_ptr(m_up), -1, 1);
+
     ImGui::Text("   position: %s",  glm::to_string(m_position).c_str());
     ImGui::Text("     target: %s",  glm::to_string(m_target).c_str());
-    ImGui::Text("  direction: %s",  glm::to_string(m_direction).c_str());
     ImGui::Text("         up: %s",  glm::to_string(m_up).c_str());
     ImGui::Text("orientation: %s",  glm::to_string(m_orientation).c_str());
     ImGui::Text("      scale: %6.3f",  GetScale());

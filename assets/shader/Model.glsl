@@ -9,7 +9,8 @@ out vec4 v_Position;
 void main()
 {
     gl_Position = u_ViewProjection*u_Transform*vec4(a_Position, 1.0f);
-    v_Position = gl_Position;
+    v_Position = gl_Position/gl_Position.w;
+    v_Position = (v_Position+1)*0.5;
 }
 
 #type fragment

@@ -67,8 +67,8 @@ public:
         float m_width = 2;      //ortho
         float m_vfov = 45;      //VerticalFieldOfView, perspective
         float m_asp = 1;        //aspect ratio = width/height
-        float m_near = 0.1;
-        float m_far = 100;
+        float m_near = 1;
+        float m_far = 101;
         bool m_dirty = true;
         float m_scale = 1.0;
 
@@ -87,14 +87,13 @@ public:
     void SetFar(float f)            { m_sight.SetFar(f);            }
     void SetSight(float widthOrVfov, float asp, float near, float far) { m_sight.Set(widthOrVfov, asp, near, far); }
 
+    inline const glm::vec3 GetDirection() const     { return glm::normalize(m_target-m_position); }
     inline const glm::vec3& GetPosition() const     { return m_position;                   }
     inline const glm::vec3& GetTarget() const       { return m_target;                     }
-    inline const glm::vec3& GetDirection() const    { return m_direction;                  }
     inline const glm::vec3& GetOrientation() const  { return m_orientation;                }
     inline float GetScale() const                   { return m_sight.GetScale();           }
     inline void SetPosition(const glm::vec3& pos)   { m_position = pos; m_dirty = true;    }
     inline void SetTarget(const glm::vec3& target)  { m_target = target; m_dirty = true;   }
-    inline void SetDirection(const glm::vec3& dir)  { m_direction = dir; m_dirty = true;   }
     inline void SetOrientation(const glm::vec3& ori){ m_orientation = ori; m_dirty = true; }
 
     inline void SetTranslationSpeed(float speed){ m_speedTrans = speed; }
@@ -104,7 +103,7 @@ public:
     inline void Translate(const glm::vec3& dis) { m_position += dis; m_dirty = true;      }
     inline void Rotate(const glm::vec3& angle)  { m_orientation += angle; m_dirty = true; }
     inline void Scale(float s)                  { m_sight.Scale(s);                       }
-    inline void Revert()                        { m_position = glm::vec3(0.0f); m_orientation = glm::vec3(0.0f); m_sight.SetScale(1.0); m_dirty = true; }
+    inline void Revert()                        { m_position = glm::vec3(0, 0, 10); m_target = glm::vec3(0); m_orientation = glm::vec3(0.0f); m_sight.SetScale(1.0); m_dirty = true; }
 
     inline const glm::mat4& GetViewMatrix()           { _UpdateView(); return m_matView;                     }
     inline const glm::mat4& GetProjectionMatrix()     { return m_sight.GetProjectionMatrix();                }
@@ -125,6 +124,11 @@ protected:
 
 protected:
     bool _OnMouseScrolled(MouseScrolledEvent& e);
+    bool _OnMouseButtonPressed(MouseButtonPressedEvent& e);
+    bool _OnMouseButtonReleased(MouseButtonReleasedEvent& e);
+    bool _OnMouseMoved(MouseMovedEvent& e);
+    bool _OnWindowResize(WindowResizeEvent& e);
+    
 
 private:
     std::string m_name;
@@ -138,13 +142,18 @@ private:
     glm::mat4 m_matView = glm::mat4(1.0f);
     glm::mat4 m_matViewProjection = glm::mat4(1.0f);
 
-    glm::vec3 m_position = glm::vec3(0, 0, 1);
+    glm::vec3 m_position = glm::vec3(0, 0, 11);
     glm::vec3 m_target = glm::vec3(0);
-    glm::vec3 m_direction = glm::vec3(0, 0, -1);
     glm::vec3 m_up = glm::vec3(0, 1, 0);
     glm::vec3 m_orientation = glm::vec3(0);
 
     float m_speedTrans = 0.5f;
     float m_speedRotat = 20.0f;
     float m_speedScale = 0.1f;
+
+    bool m_bLeftButtonPressed = false;
+    bool m_bRightButtonPressed = false;
+    std::pair<float, float> m_cursorPosPressed;
+    std::pair<float, float> m_cursorPosPrevious;
+    std::array<unsigned int, 2> m_windowSize = {1000, 1000};
 };
