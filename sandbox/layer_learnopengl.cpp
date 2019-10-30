@@ -31,7 +31,7 @@ void LearnOpenGLLayer::OnEvent(Event& e)
 
 void LearnOpenGLLayer::OnUpdate(float deltaTime)
 {
-    _UpdateMaterialAttribute();
+    _UpdateSkyboxMaterialAttributes();
 
     Renderer::BeginScene(m_viewport);
     m_model->Draw(m_shader);
@@ -63,33 +63,23 @@ void LearnOpenGLLayer::_PrepareResources()
 
 void LearnOpenGLLayer::_PrepareSkybox()
 {
-    float x = glm::tan(glm::radians(22.5));
-    float vertices[] = 
-    { 
-        -1, -1, -x, +x, 1, 
-        -1, +1, -x, -x, 1, 
-        +1, +1, +x, -x, 1, 
-        +1, -1, +x, +x, 1, 
-    };
+    float vertices[] = { -1, -1, +1, -1, +1, +1, -1, +1 };
     unsigned char indices[] = { 0, 1, 2, 0, 2, 3 };
-    Buffer::Layout layoutVextex = 
-    {
-        {Buffer::Element::DataType::Float2, "a_Position", false}, 
-        {Buffer::Element::DataType::Float3, "a_Direction", false}
-    };
+    Buffer::Layout layoutVextex = { {Buffer::Element::DataType::Float2, "a_Position", false} };
     Buffer::Layout layoutIndex = { {Buffer::Element::DataType::UChar} };
     std::shared_ptr<Buffer> vb = Buffer::CreateVertex(sizeof(vertices), vertices)->SetLayout(layoutVextex);
     std::shared_ptr<Buffer> ib = Buffer::CreateIndex(sizeof(indices), indices)->SetLayout(layoutIndex);
     std::shared_ptr<Elsa::Mesh> mesh= Renderer::Resources::Create<Elsa::Mesh>("Skybox")->Set(ib, {vb});
     INFO("meshptr:{}, {}", mesh->GetBufferArray(), (void*)(mesh->GetBufferArray().get()));
     std::shared_ptr<Texture> tex = Renderer::Resources::Create<Texture2D>("Skybox")->LoadFromFile("/home/garra/study/dnn/assets/texture/skybox/autumn-crossing_3.jpg");
-    std::shared_ptr<Material::Attribute> aCameraDirection = Renderer::Resources::Create<Material::Attribute>("CameraDirection")->SetType(Material::Attribute::Type::Float3);
-    std::shared_ptr<Material> mtr = Renderer::Resources::Create<Material>("Skybox")->AddTexture("u_Skybox", tex)->Set("u_CameraDirection", aCameraDirection);
+    using MA = Material::Attribute;
+    std::shared_ptr<MA> maCornersDirection = Renderer::Resources::Create<MA>("CornersDirection")->Set(MA::Type::Float3, 4);
+    std::shared_ptr<Material> mtr = Renderer::Resources::Create<Material>("Skybox")->AddTexture("u_Skybox", tex)->Set("u_CornersDirection", maCornersDirection);
     Renderer::Resources::Create<Renderer::Element>("Skybox")->Set(mesh, mtr);
     Renderer::Resources::Create<Shader>("Skybox")->LoadFromFile("/home/garra/study/dnn/assets/shader/Skybox.glsl");
 }
 
-void LearnOpenGLLayer::_UpdateMaterialAttribute()
+void LearnOpenGLLayer::_UpdateSkyboxMaterialAttributes()
 {   
-    Renderer::Resources::Get<Material::Attribute>("CameraDirection")->UpdateData(glm::value_ptr(m_viewport->GetCamera()->GetDirection()));
+    Renderer::Resources::Get<Material::Attribute>("CornersDirection")->UpdateData(&m_viewport->GetCamera()->GetCornersDirection()[0]);
 }

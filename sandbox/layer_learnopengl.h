@@ -26,7 +26,7 @@ public:
 protected:
     void _PrepareResources();
     void _PrepareSkybox();
-    void _UpdateMaterialAttribute();
+    void _UpdateSkyboxMaterialAttributes();
 
 private:
     std::shared_ptr<Viewport> m_viewport = Viewport::Create("LearnOpenGL_Viewport_Main");

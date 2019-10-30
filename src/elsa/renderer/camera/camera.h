@@ -105,9 +105,11 @@ public:
     inline void Scale(float s)                  { m_sight.Scale(s);                       }
     inline void Revert()                        { m_position = glm::vec3(0, 0, 10); m_target = glm::vec3(0); m_orientation = glm::vec3(0.0f); m_sight.SetScale(1.0); m_dirty = true; }
 
+    inline const glm::mat4& GetWorldMatrix()          { _UpdateView(); return m_matWorld;                    }
     inline const glm::mat4& GetViewMatrix()           { _UpdateView(); return m_matView;                     }
     inline const glm::mat4& GetProjectionMatrix()     { return m_sight.GetProjectionMatrix();                }
     inline const glm::mat4& GetViewProjectionMatrix() { _UpdateViewProjection(); return m_matViewProjection; }
+    std::array<float, 12> GetCornersDirection() const;
 
     inline bool NeedUpdate() const              { return m_sight.IsDirty() || m_dirty; }
     inline void EnableRotation(bool enabled)    { m_rotationEnabled = enabled;         }
@@ -139,6 +141,7 @@ private:
     Usage m_usage = Usage::ThreeDimension;
     Sight m_sight;
 
+    glm::mat4 m_matWorld = glm::mat4(1.0f);
     glm::mat4 m_matView = glm::mat4(1.0f);
     glm::mat4 m_matViewProjection = glm::mat4(1.0f);
 

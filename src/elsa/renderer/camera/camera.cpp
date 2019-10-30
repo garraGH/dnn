@@ -11,12 +11,9 @@
 
 #include "camera.h"
 #include "glm/gtc/matrix_transform.hpp"
-// #include "camera_orthographic.h"
-// #include "camera_perspective.h"
 #include "imgui.h"
 #include "glm/gtx/string_cast.hpp"
 #include "glm/gtc/type_ptr.hpp"
-// #include "logger.h"
 #include "../../core.h"
 #include "../../input/input.h"
 #include "../../input/codes_mouse.h"
@@ -158,6 +155,7 @@ void Camera::_UpdateView()
         0, 0, 0, 1
     };
     m_matView = rot*trans;
+    m_matWorld = glm::inverse(m_matView);
 }
     
 void Camera::_UpdateViewProjection()
@@ -169,6 +167,21 @@ void Camera::_UpdateViewProjection()
 
     _UpdateView();
     m_matViewProjection = m_sight.GetProjectionMatrix()*m_matView;
+}
+
+std::array<float, 12> Camera::GetCornersDirection() const
+{
+    float y = std::tan(glm::radians(m_sight.GetVfov()*0.5));
+    float x = m_sight.GetAsp()*y;
+    glm::vec3 pos0 = m_matWorld*glm::vec4(-x, -y, 1, 1);
+    glm::vec3 dir0 = glm::normalize(m_position-pos0);
+    glm::vec3 pos1 = m_matWorld*glm::vec4(+x, -y, 1, 1);
+    glm::vec3 dir1 = glm::normalize(m_position-pos1);
+    glm::vec3 pos2 = m_matWorld*glm::vec4(+x, +y, 1, 1);
+    glm::vec3 dir2 = glm::normalize(m_position-pos2);
+    glm::vec3 pos3 = m_matWorld*glm::vec4(-x, +y, 1, 1);
+    glm::vec3 dir3 = glm::normalize(m_position-pos3);
+    return {dir0.x, dir0.y, dir0.z, dir1.x, dir1.y, dir1.z, dir2.x, dir2.y, dir2.z, dir3.x, dir3.y, dir3.z};
 }
 
 void Camera::OnUpdate(float deltaTime)
@@ -299,11 +312,9 @@ bool Camera::_OnMouseMoved(MouseMovedEvent& e)
         dx *= PI/m_windowSize[0];
         dy *= PI/m_windowSize[1];
         glm::vec3 dir = m_target-m_position;
-        INFO("distance: {}", glm::distance(m_target, m_position));
         dir.y = 0;
         float r = glm::length(dir);
         float theta = std::atan2(dir.z, dir.x);
-        INFO("{} {} {}", theta, dx, r);
         theta += dx;
         if(Input::IsKeyPressed(KEY_LEFT_CONTROL))
         {
@@ -318,7 +329,6 @@ bool Camera::_OnMouseMoved(MouseMovedEvent& e)
 
         dir = m_target-m_position;
         dir.x = 0;
-        INFO("distance: {}", glm::distance(m_target, m_position));
         r = glm::length(dir);
         theta = std::atan2(dir.z, dir.y);
         theta += dy;
@@ -333,7 +343,7 @@ bool Camera::_OnMouseMoved(MouseMovedEvent& e)
             m_target.z = m_position.z+r*std::sin(theta);
         }
 
-        m_up.y = (m_position.y>=m_target.y)? +1 : -1;
+//         m_up.y = (m_position.y>=m_target.y)? +1 : -1;
 
     }
     if(m_bLeftButtonPressed)
