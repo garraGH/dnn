@@ -26,7 +26,7 @@ void main()
 in vec3 v_Near;
 in vec3 v_Far;
 out vec4 o_Color;
-uniform mat4 u_ViewProjection;
+uniform mat4 u_World2Clip;
 float CheckerBoard(vec2 I, float s)
 {
     return float((int(floor(I.x*s))+int(floor(I.y*s)))%2);
@@ -34,7 +34,7 @@ float CheckerBoard(vec2 I, float s)
 
 float ComputeDepth(vec3 pos_ws)
 {
-    vec4 pos_cs = u_ViewProjection*vec4(pos_ws, 1.0);
+    vec4 pos_cs = u_World2Clip*vec4(pos_ws, 1.0);
     float depth_cs = pos_cs.z/pos_cs.w;
     float far = gl_DepthRange.far;
     float near = gl_DepthRange.near;
