@@ -55,7 +55,10 @@ public:
 
         void OnImGuiRender();
 
-        const glm::mat4& GetProjectionMatrix() { _Update(); return m_matProjection; }
+        const glm::mat4& View2Clip() { _Update(); return m_matView2Clip; }
+        const glm::mat4& Clip2View() { _Update(); return m_matClip2View; }
+        float DepthClip2NDC(float depthInClip) const;
+        float DepthNDC2Clip(float depthInNDC) const;
 
     protected:
         void _Update();
@@ -72,7 +75,8 @@ public:
         bool m_dirty = true;
         float m_scale = 1.0;
 
-        glm::mat4 m_matProjection = glm::mat4(0);
+        glm::mat4 m_matView2Clip = glm::mat4(1);
+        glm::mat4 m_matClip2View = glm::mat4(1);
     };
     
 public:
@@ -92,26 +96,38 @@ public:
     inline const glm::vec3& GetTarget() const       { return m_target;                     }
     inline const glm::vec3& GetOrientation() const  { return m_orientation;                }
     inline float GetScale() const                   { return m_sight.GetScale();           }
-    inline void SetPosition(const glm::vec3& pos)   { m_position = pos; m_dirty = true;    }
-    inline void SetTarget(const glm::vec3& target)  { m_target = target; m_dirty = true;   }
-    inline void SetOrientation(const glm::vec3& ori){ m_orientation = ori; m_dirty = true; }
+    inline void SetPosition(const glm::vec3& pos)   { m_position = pos; m_dirty = 0x01010101;    }
+    inline void SetTarget(const glm::vec3& target)  { m_target = target; m_dirty = 0x01010101;   }
+    inline void SetOrientation(const glm::vec3& ori){ m_orientation = ori; m_dirty = 0x01010101; }
 
     inline void SetTranslationSpeed(float speed){ m_speedTrans = speed; }
     inline void SetRotationSpeed(float speed)   { m_speedRotat = speed; }
     inline void SetScaleSpeed(float speed)      { m_speedScale = speed; }
 
-    inline void Translate(const glm::vec3& dis) { m_position += dis; m_dirty = true;      }
-    inline void Rotate(const glm::vec3& angle)  { m_orientation += angle; m_dirty = true; }
+    inline void Translate(const glm::vec3& dis) { m_position += dis; m_target += dis; m_dirty = 0x01010101;      }
+    inline void Rotate(const glm::vec3& angle)  { m_orientation += angle; m_dirty = 0x01010101; }
     inline void Scale(float s)                  { m_sight.Scale(s);                       }
-    inline void Revert()                        { m_position = glm::vec3(0, 0, 10); m_target = glm::vec3(0); m_orientation = glm::vec3(0.0f); m_sight.SetScale(1.0); m_dirty = true; }
+    inline void Revert()                        { m_position = glm::vec3(0, 0, 10); m_target = glm::vec3(0); m_orientation = glm::vec3(0.0f); m_sight.SetScale(1.0); m_dirty = 0x01010101; }
 
-    inline const glm::mat4& GetWorldMatrix()          { _UpdateView(); return m_matWorld;                    }
-    inline const glm::mat4& GetViewMatrix()           { _UpdateView(); return m_matView;                     }
-    inline const glm::mat4& GetProjectionMatrix()     { return m_sight.GetProjectionMatrix();                }
-    inline const glm::mat4& GetViewProjectionMatrix() { _UpdateViewProjection(); return m_matViewProjection; }
-    std::array<float, 12> GetCornersDirection() const;
+    inline const glm::mat4& World2View() { _UpdateWorld2View(); return m_matWorld2View; }
+    inline const glm::mat4& View2World() { _UpdateView2World(); return m_matView2World; }
+    inline const glm::mat4& View2Clip()  { return m_sight.View2Clip();                  }
+    inline const glm::mat4& Clip2View()  { return m_sight.Clip2View();                  }
+    inline const glm::mat4& World2Clip() { _UpdateWorld2Clip(); return m_matWorld2Clip; }
+    inline const glm::mat4& Clip2World() { _UpdateClip2World(); return m_matClip2World; }
 
-    inline bool NeedUpdate() const              { return m_sight.IsDirty() || m_dirty; }
+    glm::vec3 Screen2World(const glm::vec2& pntOnScreen);
+    glm::vec2 World2Screen(const glm::vec3& posInWorld);
+    glm::vec3 Screen2View(const glm::vec2& pntOnScreen);
+    glm::vec2 View2Screen(const glm::vec3& posInView);
+    glm::vec3 View2World(const glm::vec3& posInView);
+    glm::vec3 World2View(const glm::vec3& posInWorld);
+
+    std::array<glm::vec3, 4> GetNearCornersInWorldSpace();
+    std::array<glm::vec3, 4> GetFarCornersInWorldSpace();
+
+    glm::vec3 GetPosFromClipSpaceToWorldSpace(const glm::vec3& pos);
+    inline bool NeedUpdate() const              { return m_sight.IsDirty() || m_dirty != 0; }
     inline void EnableRotation(bool enabled)    { m_rotationEnabled = enabled;         }
 
     void OnUpdate(float deltaTime);
@@ -121,8 +137,12 @@ public:
     static std::shared_ptr<Camera> Create(const std::string& name, Type type=Type::Perspective, Usage usage=Usage::ThreeDimension);
 
 protected:
-    void _UpdateView();
-    void _UpdateViewProjection();
+    void _UpdateWorld2View();
+    void _UpdateView2World();
+    void _UpdateWorld2Clip();
+    void _UpdateClip2World();
+    std::array<glm::vec3, 4> _GetCornersInWorldSpace(float d);
+    void _ShowPosTooptips();
 
 protected:
     bool _OnMouseScrolled(MouseScrolledEvent& e);
@@ -130,33 +150,54 @@ protected:
     bool _OnMouseButtonReleased(MouseButtonReleasedEvent& e);
     bool _OnMouseMoved(MouseMovedEvent& e);
     bool _OnWindowResize(WindowResizeEvent& e);
-    
+    void _DragScene();
+    void _RotateAroundPosOfButtonPressed(MouseMovedEvent& e);
+    glm::vec3 _RotateAroundTargetOnHorizontalPlane(const glm::vec3& pos, const glm::vec3& target, float theta);
+    glm::vec3 _RotateAroundTargetOnVerticalPlane(const glm::vec3& pos, const glm::vec3& target, float theta);
+    glm::vec3 _GetWorldPosOfCurrentCursorOnDragPlane();
+    glm::vec3 _GetWorldPosOfCurrentCursorOnHorizontalPlane();
+    glm::vec3 _GetWorldPosOfCurrentCursorOnVerticalPlane();
 
 private:
     std::string m_name;
-    bool m_dirty = true;
+    union
+    {
+        int m_dirty = 0x01010101;
+        struct
+        {
+            bool m_dirtyW2V;
+            bool m_dirtyV2W;
+            bool m_dirtyW2C;
+            bool m_dirtyC2W;
+        };
+    };
+
     bool m_rotationEnabled = true;
     bool m_targetFixed = true;
     Type m_type = Type::Perspective;
     Usage m_usage = Usage::ThreeDimension;
     Sight m_sight;
 
-    glm::mat4 m_matWorld = glm::mat4(1.0f);
-    glm::mat4 m_matView = glm::mat4(1.0f);
-    glm::mat4 m_matViewProjection = glm::mat4(1.0f);
+    glm::mat4 m_matWorld2View = glm::mat4(1.0f);
+    glm::mat4 m_matView2World = glm::mat4(1.0f);
+    glm::mat4 m_matWorld2Clip = glm::mat4(1.0f);
+    glm::mat4 m_matClip2World = glm::mat4(1.0f);
 
-    glm::vec3 m_position = glm::vec3(0, 0, 11);
+    glm::vec3 m_position = glm::vec3(0, 10, 10);
     glm::vec3 m_target = glm::vec3(0);
     glm::vec3 m_up = glm::vec3(0, 1, 0);
     glm::vec3 m_orientation = glm::vec3(0);
 
-    float m_speedTrans = 0.5f;
+    float m_speedTrans = 1;
     float m_speedRotat = 20.0f;
-    float m_speedScale = 0.1f;
+    float m_speedScale = 0.2f;
 
     bool m_bLeftButtonPressed = false;
     bool m_bRightButtonPressed = false;
-    std::pair<float, float> m_cursorPosPressed;
-    std::pair<float, float> m_cursorPosPrevious;
+    std::pair<float, float> m_cursorScreenPntWhenButtonPressed;
+    glm::vec3 m_worldPosOfCursorWhenButtonPressed;
+    glm::vec3 m_cameraWorldPositionWhenButtonPressed;
+    glm::vec3 m_cameraWorldTargetWhenButtonPressed;
+
     std::array<unsigned int, 2> m_windowSize = {1000, 1000};
 };

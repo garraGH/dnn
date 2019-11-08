@@ -156,14 +156,14 @@ void GLSLProgram::_Upload(const char* name, const glm::mat4& matrix)
     }
 }
 
-void GLSLProgram::SetViewProjectionMatrix(const glm::mat4& vp)
+void GLSLProgram::SetWorld2ClipMatrix(const glm::mat4& w2c)
 {
-    _Upload("u_ViewProjection", vp);
+    _Upload("u_World2Clip", w2c);
 }
 
-void GLSLProgram::SetTransformMatrix(const glm::mat4& trans)
+void GLSLProgram::SetModel2WorldMatrix(const glm::mat4& m2w)
 {
-    _Upload("u_Transform", trans);
+    _Upload("u_Model2World", m2w);
 }
 
 int GLSLProgram::_UpdateLocations(const std::string& name)

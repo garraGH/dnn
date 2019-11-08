@@ -34,6 +34,7 @@ void OpenGLAPI::SetViewport(const std::shared_ptr<Viewport>& viewport)
     glDepthFunc(GL_LEQUAL);
     glEnable(GL_DEPTH_WRITEMASK);
     glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_DST_ALPHA);
 }
 
 void OpenGLAPI::SetBackgroundColor(float r, float g, float b, float a)
@@ -56,4 +57,11 @@ void OpenGLAPI::SetPolygonMode(Renderer::PolygonMode mode)
         case Renderer::PolygonMode::LINE:  return glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         case Renderer::PolygonMode::FILL:  return glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
+}
+
+float OpenGLAPI::GetPixelDepth(int x, int y)
+{
+    float depth = 0;
+    glad_glReadPixels(x, y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depth);
+    return depth;
 }

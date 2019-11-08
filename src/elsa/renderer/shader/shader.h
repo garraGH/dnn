@@ -36,8 +36,8 @@ public:
 
 public:
     Shader(const std::string& name) : RenderObject(name) {}
-    virtual void SetViewProjectionMatrix(const glm::mat4& vp) = 0;
-    virtual void SetTransformMatrix(const glm::mat4& trans) = 0;
+    virtual void SetWorld2ClipMatrix(const glm::mat4& w2c) = 0;
+    virtual void SetModel2WorldMatrix(const glm::mat4& m2w) = 0;
 
     virtual std::shared_ptr<Shader> LoadFromFile(const std::string& srcFile) = 0;
     virtual std::shared_ptr<Shader> LoadFromSource(const std::string& srcVertex, const std::string& srcFragment) = 0;

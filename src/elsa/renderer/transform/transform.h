@@ -35,7 +35,7 @@ public:
     void Rotate(const glm::vec3& degree) { m_rotation += degree; m_dirty = true; }
     void Scale(const glm::vec3& size) { m_scale += size; m_dirty = true; }
 
-    const glm::mat4& GetTransformMatrx();
+    const glm::mat4& Get();
 
     void Debug();
 

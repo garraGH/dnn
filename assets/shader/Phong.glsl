@@ -11,12 +11,12 @@ void main()
 
 #type fragment
 #version 460 core
-uniform vec3 u_ModelColor = vec3(1, 0, 0);
+uniform vec3 u_ObjectColor = vec3(1, 0, 0);
 uniform vec3 u_LightColor = vec3(0.8, 0.8, 0.8);
 
-out vec4 o_Color;
+out vec4 f_Color;
 
 void main()
 {
-   o_Color = vec4(u_ModelColor*u_LightColor, 1.0);
+   f_Color = vec4(u_ObjectColor*u_LightColor, 1.0);
 }

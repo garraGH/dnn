@@ -29,7 +29,7 @@ Model::Model(const std::string& name)
 std::shared_ptr<Model> Model::LoadFromFile(const std::string& filepath)
 {
     Assimp::Importer importer;
-    const aiScene* scene = importer.ReadFile(filepath, aiProcess_Triangulate|aiProcess_FlipUVs|aiProcess_OptimizeMeshes|aiProcess_GenBoundingBoxes);
+    const aiScene* scene = importer.ReadFile(filepath, aiProcess_Triangulate|aiProcess_FlipUVs|aiProcess_OptimizeMeshes|aiProcess_GenBoundingBoxes|aiProcess_GlobalScale);
     if(!scene || !scene->mRootNode || scene->mFlags&AI_SCENE_FLAGS_INCOMPLETE)
     {
         ERROR("Model::LoadFromFile: %s, %s", filepath, importer.GetErrorString());
@@ -53,17 +53,21 @@ void Model::_ProcessNode(aiNode* node, const aiScene* scene)
 }
 void Model::_ProcessMesh(const aiScene* scene, const aiMesh* mesh, unsigned int nthMesh)
 {
-    INFO("Model::_ProcessMesh: {}, numVertices = {},\tnumFaces = {}", mesh->mName.C_Str(), mesh->mNumVertices, mesh->mNumFaces);
+    double scale(100.0);
+//     scene->mMetaData->Get("UnitScaleFactor", scale);
+
     std::string meshName = mesh->mName.C_Str();
     meshName += "_";
     meshName += std::to_string(nthMesh);
+//     INFO("Model::_ProcessMesh: {}, numVertices = {},\tnumFaces = {},\tscale = {}", meshName, mesh->mNumVertices, mesh->mNumFaces, scale);
     
     std::shared_ptr<Elsa::Mesh> elsaMesh = Elsa::Mesh::Create(meshName);
     elsaMesh->SetVertexNumber(mesh->mNumVertices);
 
+    
     for(unsigned int i=0; i<mesh->mNumVertices; i++)
     {
-        elsaMesh->PushVertex(glm::vec3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z));
+        elsaMesh->PushVertex(glm::vec3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z)/float(scale));
     }
     elsaMesh->SetIndexNumber(mesh->mNumFaces*3);
 //     unsigned int k = 0;

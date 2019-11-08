@@ -54,6 +54,11 @@ void Renderer::Submit(const std::shared_ptr<Renderer::Element>& rendererElement,
     rendererElement->RenderedBy(shader);
 }
 
+float Renderer::GetPixelDepth(int x, int y)
+{
+    return Command::GetPixelDepth(x, y);
+}
+
 void Renderer::Element::RenderedBy(const std::shared_ptr<Shader>& shader)
 {
     CORE_ASSERT(shader, "Renderer::Element::RenderedBy: Must Bind a shader to render.");
@@ -61,7 +66,7 @@ void Renderer::Element::RenderedBy(const std::shared_ptr<Shader>& shader)
     shader->Bind();
 //     if(s_camera->IsDirty())
     {
-        shader->SetViewProjectionMatrix(s_camera->GetViewProjectionMatrix());
+        shader->SetWorld2ClipMatrix(s_camera->World2Clip());
     }
 
     if(m_material)
@@ -72,3 +77,5 @@ void Renderer::Element::RenderedBy(const std::shared_ptr<Shader>& shader)
     m_mesh->Bind(shader);
     Renderer::Command::DrawIndexed(m_mesh->GetBufferArray());
 }
+
+

@@ -21,5 +21,6 @@ public:
     virtual void SetBackgroundColor(float r, float g, float b, float a) override;
     virtual void DrawIndexed(const std::shared_ptr<BufferArray>& bufferArray) override;
     virtual void SetPolygonMode(Renderer::PolygonMode mode) override;
+    virtual float GetPixelDepth(int x, int y) override;
 };
 

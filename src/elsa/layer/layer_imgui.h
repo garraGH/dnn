@@ -30,6 +30,7 @@ public:
     void OnImGuiRender() override;
     void End();
 
+    bool CaptureInput() const;
     static std::shared_ptr<ImGuiLayer> Create();
 private:
     Window* m_window = nullptr;

@@ -63,6 +63,12 @@ void Application::OnEvent(Event& e)
     DISPATCH(KeyPressedEvent);
     DISPATCH(KeyReleasedEvent);
 #undef DISPATCH
+
+    if(m_layerImGui->CaptureInput())
+    {
+        return;
+    }
+
     for(auto it = m_layerStack->end(); it != m_layerStack->begin();)
     {
         (*--it)->OnEvent(e);

@@ -47,6 +47,7 @@ public:
         virtual void SetViewport(const std::shared_ptr<Viewport>& viewport) = 0;
         virtual void DrawIndexed(const std::shared_ptr<BufferArray>& bufferArray) = 0;
         virtual void SetPolygonMode(PolygonMode mode) = 0;
+        virtual float GetPixelDepth(int x, int y) = 0;
 
         static inline Type GetType() { return s_type; }
 
@@ -61,6 +62,7 @@ public:
         static inline void SetViewport(const std::shared_ptr<Viewport>& viewport) { s_api->SetViewport(viewport); }
         static inline void DrawIndexed(const std::shared_ptr<BufferArray>& bufferArray) { s_api->DrawIndexed(bufferArray); }
         static inline void SetPolygonMode(PolygonMode mode) { s_api->SetPolygonMode(mode); }
+        static inline float GetPixelDepth(int x, int y) { return s_api->GetPixelDepth(x, y); }
     };
 
     class Element : public Asset, public std::enable_shared_from_this<Element>
@@ -76,7 +78,9 @@ public:
         }
 
         virtual std::string GetTypeName() const { return "Renderer::Element"; }
+        std::shared_ptr<Element> SetMesh(const std::string& meshName) { m_mesh = Renderer::Resources::Get<Elsa::Mesh>(meshName); return shared_from_this(); }
         std::shared_ptr<Element> SetMesh(const std::shared_ptr<Elsa::Mesh>& mesh) { m_mesh = mesh; return shared_from_this(); }
+        std::shared_ptr<Element> SetMaterial(const std::string& mtrName) { m_material = Renderer::Resources::Get<Material>(mtrName); return shared_from_this(); }
         std::shared_ptr<Element> SetMaterial(const std::shared_ptr<Material>& material) { m_material = material; return shared_from_this(); }
         void RenderedBy(const std::shared_ptr<Shader>& shader);
 
@@ -148,6 +152,7 @@ public:
     static void Submit(const std::string& nameOfElement, const std::string& nameOfShader);
     static void EndScene() {}
 
+    static float GetPixelDepth(int x, int y);
 
 private:
     static std::unique_ptr<API> s_api;

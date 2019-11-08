@@ -64,6 +64,11 @@ void ImGuiLayer::OnDetach()
 
 }
 
+bool ImGuiLayer::CaptureInput() const
+{
+    const ImGuiIO& io = ImGui::GetIO();
+    return io.WantTextInput || io.WantCaptureMouse || io.WantCaptureKeyboard;
+}
 void ImGuiLayer::Begin()
 {
     ImGui_ImplOpenGL3_NewFrame();

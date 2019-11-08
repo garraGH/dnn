@@ -14,7 +14,7 @@
 #include "glm/gtx/string_cast.hpp"
 
 
-const glm::mat4& Transform::GetTransformMatrx()
+const glm::mat4& Transform::Get()
 {
     if(m_dirty)
     {

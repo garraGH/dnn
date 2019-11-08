@@ -38,3 +38,4 @@ build/
 pkg/build
 .xmake/
 bin/
+*.hdr

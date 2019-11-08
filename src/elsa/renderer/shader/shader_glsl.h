@@ -22,8 +22,8 @@ public:
     virtual void Bind(unsigned int slot=0) override;
     virtual void Unbind() const override;
 
-    virtual void SetViewProjectionMatrix(const glm::mat4& vp) override;
-    virtual void SetTransformMatrix(const glm::mat4& trans) override;
+    virtual void SetWorld2ClipMatrix(const glm::mat4& w2c) override;
+    virtual void SetModel2WorldMatrix(const glm::mat4& m2w) override;
 
     virtual std::shared_ptr<Shader> LoadFromFile(const std::string& filepath) override;
     virtual std::shared_ptr<Shader> LoadFromSource(const std::string& srcVertex, const std::string& srcFragment) override;
