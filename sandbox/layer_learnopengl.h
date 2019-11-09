@@ -39,7 +39,22 @@ private:
     std::shared_ptr<Shader> m_shaderPos = nullptr;
     std::shared_ptr<Shader> m_shaderColor = nullptr;
 
-    float* m_lightColor = nullptr;
-    float* m_objectColor = nullptr;
+    struct 
+    {
+        float* ambient = nullptr;
+        float* diffuse = nullptr;
+        float* specular = nullptr;
+        float* shininess = nullptr;
+    }
+    m_material; 
+   
+    struct 
+    {
+        float* position = nullptr;
+        float* ambient = nullptr;
+        float* diffuse = nullptr;
+        float* specular = nullptr;
+    }
+    m_light;
 };
 
