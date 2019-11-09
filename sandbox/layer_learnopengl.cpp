@@ -53,17 +53,17 @@ void LearnOpenGLLayer::OnImGuiRender()
     ImGui::PushItemWidth(120);
     if(ImGui::CollapsingHeader("Material"))
     {
-        ImGui::ColorPicker3("Ambient", m_material.ambient);
-        ImGui::ColorPicker3("Diffuse", m_material.diffuse);
-        ImGui::ColorPicker3("Specular", m_material.specular);
+        ImGui::ColorPicker3("AmbientColor", m_material.ambientColor);
+        ImGui::ColorPicker3("DiffuseColor", m_material.diffuseColor);
+        ImGui::ColorPicker3("SpecularColor", m_material.specularColor);
         ImGui::SliderFloat("Shininess", m_material.shininess, 0, 512);
     }
 
     if(ImGui::CollapsingHeader("Light"))
     {
-        ImGui::ColorPicker3("Ambient", m_light.ambient);
-        ImGui::ColorPicker3("Diffuse", m_light.diffuse);
-        ImGui::ColorPicker3("Specular", m_light.specular);
+        ImGui::ColorPicker3("AmbientColor", m_light.ambientColor);
+        ImGui::ColorPicker3("DiffuseColor", m_light.diffuseColor);
+        ImGui::ColorPicker3("SpecularColor", m_light.specularColor);
         ImGui::SliderFloat3("Position", m_light.position, -5, 5);
     }
 }
@@ -92,35 +92,35 @@ void LearnOpenGLLayer::_PrepareUnitCubic()
     float vertices[] = 
     {
         // front
-        -1, -1, +1, 0, 0, +1,  
-        +1, -1, +1, 0, 0, +1, 
-        +1, +1, +1, 0, 0, +1, 
-        -1, +1, +1, 0, 0, +1, 
+        -1, -1, +1, 0, 0, +1, 0, 0,   
+        +1, -1, +1, 0, 0, +1, 1, 0, 
+        +1, +1, +1, 0, 0, +1, 1, 1, 
+        -1, +1, +1, 0, 0, +1, 0, 1, 
         // back
-        +1, -1, -1, 0, 0, -1, 
-        -1, -1, -1, 0, 0, -1, 
-        -1, +1, -1, 0, 0, -1, 
-        +1, +1, -1, 0, 0, -1, 
+        +1, -1, -1, 0, 0, -1, 0, 0, 
+        -1, -1, -1, 0, 0, -1, 1, 0, 
+        -1, +1, -1, 0, 0, -1, 1, 1, 
+        +1, +1, -1, 0, 0, -1, 0, 1, 
         // left
-        -1, -1, -1, -1, 0, 0, 
-        -1, -1, +1, -1, 0, 0, 
-        -1, +1, +1, -1, 0, 0, 
-        -1, +1, -1, -1, 0, 0, 
+        -1, -1, -1, -1, 0, 0, 0, 0, 
+        -1, -1, +1, -1, 0, 0, 1, 0, 
+        -1, +1, +1, -1, 0, 0, 1, 1, 
+        -1, +1, -1, -1, 0, 0, 0, 1, 
         // right
-        +1, -1, +1, +1, 0, 0, 
-        +1, -1, -1, +1, 0, 0, 
-        +1, +1, -1, +1, 0, 0, 
-        +1, +1, +1, +1, 0, 0, 
+        +1, -1, +1, +1, 0, 0, 0, 0, 
+        +1, -1, -1, +1, 0, 0, 1, 0, 
+        +1, +1, -1, +1, 0, 0, 1, 1, 
+        +1, +1, +1, +1, 0, 0, 0, 1, 
         // up
-        -1, +1, +1, 0, +1, 0, 
-        +1, +1, +1, 0, +1, 0, 
-        +1, +1, -1, 0, +1, 0, 
-        -1, +1, -1, 0, +1, 0, 
+        -1, +1, +1, 0, +1, 0, 0, 0, 
+        +1, +1, +1, 0, +1, 0, 1, 0, 
+        +1, +1, -1, 0, +1, 0, 1, 1, 
+        -1, +1, -1, 0, +1, 0, 0, 1, 
         // down
-        -1, -1, -1, 0, -1, 0, 
-        +1, -1, -1, 0, -1, 0, 
-        +1, -1, +1, 0, -1, 0, 
-        -1, -1, +1, 0, -1, 0, 
+        -1, -1, -1, 0, -1, 0, 0, 0, 
+        +1, -1, -1, 0, -1, 0, 1, 0, 
+        +1, -1, +1, 0, -1, 0, 1, 1, 
+        -1, -1, +1, 0, -1, 0, 0, 1, 
     };
 
     unsigned char indices[] = 
@@ -139,7 +139,8 @@ void LearnOpenGLLayer::_PrepareUnitCubic()
         20, 22, 23
     };
     Buffer::Layout layoutVextex = { {Buffer::Element::DataType::Float3, "a_Position", false}, 
-                                    {Buffer::Element::DataType::Float3, "a_Normal", false} };
+                                    {Buffer::Element::DataType::Float3, "a_Normal", false},
+                                    {Buffer::Element::DataType::Float2, "a_TexCoord", false}  };
     Buffer::Layout layoutIndex = { {Buffer::Element::DataType::UChar} };
     std::shared_ptr<Buffer> vb = Buffer::CreateVertex(sizeof(vertices), vertices)->SetLayout(layoutVextex);
     std::shared_ptr<Buffer> ib = Buffer::CreateIndex(sizeof(indices), indices)->SetLayout(layoutIndex);
@@ -147,39 +148,45 @@ void LearnOpenGLLayer::_PrepareUnitCubic()
     using MA = Material::Attribute;
 
     std::shared_ptr<MA> maLightPosition = Renderer::Resources::Create<MA>("LightPosition")->Set(MA::Type::Float3, 1, glm::value_ptr(glm::vec3(0, 2, 0)));
-    std::shared_ptr<MA> maLightAmbient = Renderer::Resources::Create<MA>("LightAmbient")->Set(MA::Type::Float3, 1, glm::value_ptr(glm::vec3(1.0f)));
-    std::shared_ptr<MA> maLightDiffuse = Renderer::Resources::Create<MA>("LightDiffuse")->Set(MA::Type::Float3, 1, glm::value_ptr(glm::vec3(1.0f)));
-    std::shared_ptr<MA> maLightSpecular = Renderer::Resources::Create<MA>("LightSpecular")->Set(MA::Type::Float3, 1, glm::value_ptr(glm::vec3(1.0f)));
+    std::shared_ptr<MA> maLightAmbientColor = Renderer::Resources::Create<MA>("LightAmbientColor")->Set(MA::Type::Float3, 1, glm::value_ptr(glm::vec3(1.0f)));
+    std::shared_ptr<MA> maLightDiffuseColor = Renderer::Resources::Create<MA>("LightDiffuseColor")->Set(MA::Type::Float3, 1, glm::value_ptr(glm::vec3(1.0f)));
+    std::shared_ptr<MA> maLightSpecularColor = Renderer::Resources::Create<MA>("LightSpecularColor")->Set(MA::Type::Float3, 1, glm::value_ptr(glm::vec3(1.0f)));
 
-    std::shared_ptr<MA> maMaterialAmbient = Renderer::Resources::Create<MA>("MaterialAmbient")->Set(MA::Type::Float3, 1, glm::value_ptr(glm::vec3(0.1f)));
-    std::shared_ptr<MA> maMaterialDiffuse = Renderer::Resources::Create<MA>("MaterialDiffuse")->Set(MA::Type::Float3, 1, glm::value_ptr(glm::vec3(0.5f)));
-    std::shared_ptr<MA> maMaterialSpecular = Renderer::Resources::Create<MA>("MaterialSpecular")->Set(MA::Type::Float3, 1, glm::value_ptr(glm::vec3(1.0f)));
+    std::shared_ptr<MA> maMaterialAmbientColor = Renderer::Resources::Create<MA>("MaterialAmbientColor")->Set(MA::Type::Float3, 1, glm::value_ptr(glm::vec3(0.1f)));
+    std::shared_ptr<MA> maMaterialDiffuseColor = Renderer::Resources::Create<MA>("MaterialDiffuseColor")->Set(MA::Type::Float3, 1, glm::value_ptr(glm::vec3(0.5f)));
+    std::shared_ptr<MA> maMaterialSpecularColor = Renderer::Resources::Create<MA>("MaterialSpecularColor")->Set(MA::Type::Float3, 1, glm::value_ptr(glm::vec3(1.0f)));
     std::shared_ptr<MA> maMaterialShininess = Renderer::Resources::Create<MA>("MaterialShininess")->SetType(MA::Type::Float1);
 
     std::shared_ptr<MA> maCameraPosition = Renderer::Resources::Create<MA>("CameraPosition")->Set(MA::Type::Float3, 1, glm::value_ptr(glm::vec3(2.0f)));
 
 
-    m_material.ambient = (float*)maMaterialAmbient->GetData();
-    m_material.diffuse = (float*)maMaterialDiffuse->GetData();
-    m_material.specular = (float*)maMaterialSpecular->GetData();
+    m_material.ambientColor = (float*)maMaterialAmbientColor->GetData();
+    m_material.diffuseColor = (float*)maMaterialDiffuseColor->GetData();
+    m_material.specularColor = (float*)maMaterialSpecularColor->GetData();
     m_material.shininess = (float*)maMaterialShininess->GetData();
+    m_material.diffuseMap = Renderer::Resources::Create<Texture2D>("DiffuseMap")->LoadFromFile("/home/garra/study/dnn/assets/texture/container2.png");
+    m_material.specularMap = Renderer::Resources::Create<Texture2D>("SpecularMap")->LoadFromFile("/home/garra/study/dnn/assets/texture/lighting_maps_specular_color.png");
+    m_material.emissionMap = Renderer::Resources::Create<Texture2D>("EmissionMap")->LoadFromFile("/home/garra/study/dnn/assets/texture/matrix.jpg");
     *m_material.shininess = 32.0f;
 
-    m_light.ambient = (float*)maLightAmbient->GetData();
-    m_light.diffuse = (float*)maLightDiffuse->GetData();
-    m_light.specular = (float*)maLightSpecular->GetData();
+    m_light.ambientColor = (float*)maLightAmbientColor->GetData();
+    m_light.diffuseColor = (float*)maLightDiffuseColor->GetData();
+    m_light.specularColor = (float*)maLightSpecularColor->GetData();
     m_light.position = (float*)maLightPosition->GetData();
 
 
     std::shared_ptr<Material> mtr = Renderer::Resources::Create<Material>("UnitCubic");
-    mtr->Set("u_Material.ambient", maMaterialAmbient);
-    mtr->Set("u_Material.diffuse", maMaterialDiffuse);
-    mtr->Set("u_Material.specular", maMaterialSpecular);
+    mtr->Set("u_Material.ambientColor", maMaterialAmbientColor);
+    mtr->Set("u_Material.diffuseColor", maMaterialDiffuseColor);
+    mtr->Set("u_Material.specularColor", maMaterialSpecularColor);
     mtr->Set("u_Material.shininess", maMaterialShininess);
+    mtr->AddTexture("u_Material.diffuseMap", m_material.diffuseMap);
+    mtr->AddTexture("u_Material.specularMap", m_material.specularMap);
+    mtr->AddTexture("u_Material.emissionMap", m_material.emissionMap);
     mtr->Set("u_Light.position", maLightPosition);
-    mtr->Set("u_Light.ambient", maLightAmbient);
-    mtr->Set("u_Light.diffuse", maLightDiffuse);
-    mtr->Set("u_Light.specular", maLightSpecular);
+    mtr->Set("u_Light.ambientColor", maLightAmbientColor);
+    mtr->Set("u_Light.diffuseColor", maLightDiffuseColor);
+    mtr->Set("u_Light.specularColor", maLightSpecularColor);
     mtr->Set("u_Camera.position", maCameraPosition);
 
     Renderer::Resources::Create<Shader>("Default")->LoadFromFile("/home/garra/study/dnn/assets/shader/Default.glsl");

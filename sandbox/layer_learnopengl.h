@@ -41,19 +41,22 @@ private:
 
     struct 
     {
-        float* ambient = nullptr;
-        float* diffuse = nullptr;
-        float* specular = nullptr;
+        float* ambientColor = nullptr;
+        float* diffuseColor = nullptr;
+        float* specularColor = nullptr;
         float* shininess = nullptr;
+        std::shared_ptr<Texture> diffuseMap = nullptr;
+        std::shared_ptr<Texture> specularMap = nullptr;
+        std::shared_ptr<Texture> emissionMap = nullptr;
     }
     m_material; 
    
     struct 
     {
         float* position = nullptr;
-        float* ambient = nullptr;
-        float* diffuse = nullptr;
-        float* specular = nullptr;
+        float* ambientColor = nullptr;
+        float* diffuseColor = nullptr;
+        float* specularColor = nullptr;
     }
     m_light;
 };
