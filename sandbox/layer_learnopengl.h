@@ -41,23 +41,44 @@ private:
 
     struct 
     {
-        float* ambientColor = nullptr;
-        float* diffuseColor = nullptr;
-        float* specularColor = nullptr;
+        glm::vec3* ambientReflectance = nullptr;
+        glm::vec3* diffuseReflectance = nullptr;
+        glm::vec3* specularReflectance = nullptr;
+        glm::vec3* emissiveColor = nullptr;
         float* shininess = nullptr;
         std::shared_ptr<Texture> diffuseMap = nullptr;
         std::shared_ptr<Texture> specularMap = nullptr;
-        std::shared_ptr<Texture> emissionMap = nullptr;
+        std::shared_ptr<Texture> emissiveMap = nullptr;
     }
     m_material; 
    
-    struct 
+    struct Light
     {
-        float* position = nullptr;
-        float* ambientColor = nullptr;
-        float* diffuseColor = nullptr;
-        float* specularColor = nullptr;
+        glm::vec3* color = nullptr;
+        glm::vec3* position = nullptr;
+    };
+
+    struct DirectionalLight : public Light
+    {
+        glm::vec3* direction = nullptr;
     }
-    m_light;
+    m_directionalLight;
+
+    struct PointLight : public Light
+    {
+        glm::vec3* attenuationCoefficients;
+    } 
+    m_pointLight;
+
+    struct SpotLight : public PointLight
+    {
+        glm::vec3* direction = nullptr;
+        float innerCone = 6;
+        float outerCone = 10;
+    }
+    m_spotLight, m_flashLight;
+
+    glm::vec3* m_ambientColor = nullptr;
+
 };
 

@@ -49,22 +49,69 @@ void LearnOpenGLLayer::OnUpdate(float deltaTime)
 
 void LearnOpenGLLayer::OnImGuiRender()
 {
+    using MA = Material::Attribute;
     m_viewport->OnImGuiRender();
     ImGui::PushItemWidth(120);
+    if(ImGui::CollapsingHeader("Environment"))
+    {
+        ImGui::ColorPicker3("AmbientColor", reinterpret_cast<float*>(m_ambientColor));
+    }
+
     if(ImGui::CollapsingHeader("Material"))
     {
-        ImGui::ColorPicker3("AmbientColor", m_material.ambientColor);
-        ImGui::ColorPicker3("DiffuseColor", m_material.diffuseColor);
-        ImGui::ColorPicker3("SpecularColor", m_material.specularColor);
+        ImGui::ColorPicker3("AmbientReflectance", reinterpret_cast<float*>(m_material.ambientReflectance));
+        ImGui::ColorPicker3("DiffuseReflectance", reinterpret_cast<float*>(m_material.diffuseReflectance));
+        ImGui::ColorPicker3("SpecularReflectance", reinterpret_cast<float*>(m_material.specularReflectance));
+        ImGui::ColorPicker3("EmissiveColor", reinterpret_cast<float*>(m_material.emissiveColor));
         ImGui::SliderFloat("Shininess", m_material.shininess, 0, 512);
     }
 
     if(ImGui::CollapsingHeader("Light"))
     {
-        ImGui::ColorPicker3("AmbientColor", m_light.ambientColor);
-        ImGui::ColorPicker3("DiffuseColor", m_light.diffuseColor);
-        ImGui::ColorPicker3("SpecularColor", m_light.specularColor);
-        ImGui::SliderFloat3("Position", m_light.position, -5, 5);
+        ImGui::SetNextWindowPos({100, 0});
+        if(ImGui::CollapsingHeader("DirectionalLight"))
+        {
+            ImGui::ColorPicker3("Color", reinterpret_cast<float*>(m_directionalLight.color));
+            ImGui::SliderFloat3("Direction", reinterpret_cast<float*>(m_directionalLight.direction), -1, 1);
+        }
+        if(ImGui::CollapsingHeader("PointLight"))
+        {
+            ImGui::ColorPicker3("Color", reinterpret_cast<float*>(m_pointLight.color));
+            ImGui::SliderFloat3("Position", reinterpret_cast<float*>(m_pointLight.position), -10, 10);
+            ImGui::SliderFloat3("AttenuationCoefficents", reinterpret_cast<float*>(m_pointLight.attenuationCoefficients), -10, 10);
+        }
+        if(ImGui::CollapsingHeader("SpotLight"))
+        {
+            ImGui::ColorPicker3("Color", reinterpret_cast<float*>(m_spotLight.color));
+            ImGui::SliderFloat3("Position", reinterpret_cast<float*>(m_spotLight.position), -10, 10);
+            ImGui::SliderFloat3("AttenuationCoefficents", reinterpret_cast<float*>(m_spotLight.attenuationCoefficients), -10, 10);
+            ImGui::SliderFloat3("Direction", reinterpret_cast<float*>(m_spotLight.direction), -1, 1);
+            if(ImGui::SliderFloat("InnerCone", &m_spotLight.innerCone, 0, 90))
+            {
+                float innerCone = std::cos(glm::radians(m_spotLight.innerCone));
+                Renderer::Resources::Get<MA>("SLightInnerCone")->UpdateData(&innerCone);
+            }
+            if(ImGui::SliderFloat("OuterCone", &m_spotLight.outerCone, 0, 120))
+            {
+                float outerCone = std::cos(glm::radians(m_spotLight.outerCone));
+                Renderer::Resources::Get<MA>("SLightOuterCone")->UpdateData(&outerCone);
+            }
+        }
+        if(ImGui::CollapsingHeader("FlashLight"))
+        {
+            ImGui::ColorPicker3("Color", reinterpret_cast<float*>(m_flashLight.color));
+            ImGui::SliderFloat3("AttenuationCoefficents", reinterpret_cast<float*>(m_flashLight.attenuationCoefficients), -10, 10);
+            if(ImGui::SliderFloat("InnerCone", &m_flashLight.innerCone, 0, 90))
+            {
+                float innerCone = std::cos(glm::radians(m_flashLight.innerCone));
+                Renderer::Resources::Get<MA>("FLightInnerCone")->UpdateData(&innerCone);
+            }
+            if(ImGui::SliderFloat("OuterCone", &m_flashLight.outerCone, 0, 120))
+            {
+                float outerCone = std::cos(glm::radians(m_flashLight.outerCone));
+                Renderer::Resources::Get<MA>("FLightOuterCone")->UpdateData(&outerCone);
+            }
+        }
     }
 }
 
@@ -147,47 +194,104 @@ void LearnOpenGLLayer::_PrepareUnitCubic()
     std::shared_ptr<Elsa::Mesh> mesh= Renderer::Resources::Create<Elsa::Mesh>("UnitCubic")->Set(ib, {vb});
     using MA = Material::Attribute;
 
-    std::shared_ptr<MA> maLightPosition = Renderer::Resources::Create<MA>("LightPosition")->Set(MA::Type::Float3, 1, glm::value_ptr(glm::vec3(0, 2, 0)));
-    std::shared_ptr<MA> maLightAmbientColor = Renderer::Resources::Create<MA>("LightAmbientColor")->Set(MA::Type::Float3, 1, glm::value_ptr(glm::vec3(1.0f)));
-    std::shared_ptr<MA> maLightDiffuseColor = Renderer::Resources::Create<MA>("LightDiffuseColor")->Set(MA::Type::Float3, 1, glm::value_ptr(glm::vec3(1.0f)));
-    std::shared_ptr<MA> maLightSpecularColor = Renderer::Resources::Create<MA>("LightSpecularColor")->Set(MA::Type::Float3, 1, glm::value_ptr(glm::vec3(1.0f)));
 
-    std::shared_ptr<MA> maMaterialAmbientColor = Renderer::Resources::Create<MA>("MaterialAmbientColor")->Set(MA::Type::Float3, 1, glm::value_ptr(glm::vec3(0.1f)));
-    std::shared_ptr<MA> maMaterialDiffuseColor = Renderer::Resources::Create<MA>("MaterialDiffuseColor")->Set(MA::Type::Float3, 1, glm::value_ptr(glm::vec3(0.5f)));
-    std::shared_ptr<MA> maMaterialSpecularColor = Renderer::Resources::Create<MA>("MaterialSpecularColor")->Set(MA::Type::Float3, 1, glm::value_ptr(glm::vec3(1.0f)));
+    std::shared_ptr<MA> maMaterialAmbientReflectance = Renderer::Resources::Create<MA>("MaterialAmbientReflectance")->Set(MA::Type::Float3, 1, glm::value_ptr(glm::vec3(0.1f)));
+    std::shared_ptr<MA> maMaterialDiffuseReflectance = Renderer::Resources::Create<MA>("MaterialDiffuseReflectance")->Set(MA::Type::Float3, 1, glm::value_ptr(glm::vec3(0.5f)));
+    std::shared_ptr<MA> maMaterialSpecularReflectance = Renderer::Resources::Create<MA>("MaterialSpecularReflectance")->Set(MA::Type::Float3, 1, glm::value_ptr(glm::vec3(1.0f)));
+    std::shared_ptr<MA> maMaterialEmissiveColor = Renderer::Resources::Create<MA>("MaterialEmissiveColor")->Set(MA::Type::Float3, 1, glm::value_ptr(glm::vec3(0.1f)));
     std::shared_ptr<MA> maMaterialShininess = Renderer::Resources::Create<MA>("MaterialShininess")->SetType(MA::Type::Float1);
 
     std::shared_ptr<MA> maCameraPosition = Renderer::Resources::Create<MA>("CameraPosition")->Set(MA::Type::Float3, 1, glm::value_ptr(glm::vec3(2.0f)));
 
 
-    m_material.ambientColor = (float*)maMaterialAmbientColor->GetData();
-    m_material.diffuseColor = (float*)maMaterialDiffuseColor->GetData();
-    m_material.specularColor = (float*)maMaterialSpecularColor->GetData();
-    m_material.shininess = (float*)maMaterialShininess->GetData();
+    m_material.ambientReflectance = reinterpret_cast<glm::vec3*>(maMaterialAmbientReflectance->GetData());
+    m_material.diffuseReflectance = reinterpret_cast<glm::vec3*>(maMaterialDiffuseReflectance->GetData());
+    m_material.specularReflectance = reinterpret_cast<glm::vec3*>(maMaterialSpecularReflectance->GetData());
+    m_material.emissiveColor = reinterpret_cast<glm::vec3*>(maMaterialEmissiveColor->GetData());
+    m_material.shininess = reinterpret_cast<float*>(maMaterialShininess->GetData());
     m_material.diffuseMap = Renderer::Resources::Create<Texture2D>("DiffuseMap")->LoadFromFile("/home/garra/study/dnn/assets/texture/container2.png");
     m_material.specularMap = Renderer::Resources::Create<Texture2D>("SpecularMap")->LoadFromFile("/home/garra/study/dnn/assets/texture/lighting_maps_specular_color.png");
-    m_material.emissionMap = Renderer::Resources::Create<Texture2D>("EmissionMap")->LoadFromFile("/home/garra/study/dnn/assets/texture/matrix.jpg");
+    m_material.emissiveMap = Renderer::Resources::Create<Texture2D>("EmissiveMap")->LoadFromFile("/home/garra/study/dnn/assets/texture/matrix.jpg");
     *m_material.shininess = 32.0f;
 
-    m_light.ambientColor = (float*)maLightAmbientColor->GetData();
-    m_light.diffuseColor = (float*)maLightDiffuseColor->GetData();
-    m_light.specularColor = (float*)maLightSpecularColor->GetData();
-    m_light.position = (float*)maLightPosition->GetData();
 
+    // AmbientColor
+    std::shared_ptr<MA> maAmbientColor = Renderer::Resources::Create<MA>("AmbientColor")->Set(MA::Type::Float3, 1, glm::value_ptr(glm::vec3(0.1f)));
+    m_ambientColor = reinterpret_cast<glm::vec3*>(maAmbientColor->GetData());
+
+    // DirectionalLight
+    std::shared_ptr<MA> maDLightColor = Renderer::Resources::Create<MA>("DLightColor")->Set(MA::Type::Float3, 1, glm::value_ptr(glm::vec3(1.0f)));
+    std::shared_ptr<MA> maDLightDirection = Renderer::Resources::Create<MA>("DLightDirection")->Set(MA::Type::Float3, 1, glm::value_ptr(glm::vec3(0, -1, 0)));
+    m_directionalLight.color = reinterpret_cast<glm::vec3*>(maDLightColor->GetData());
+    m_directionalLight.direction = reinterpret_cast<glm::vec3*>(maDLightDirection->GetData());
+
+    // PointLight
+    std::shared_ptr<MA> maPLightColor = Renderer::Resources::Create<MA>("PLightColor")->Set(MA::Type::Float3, 1, glm::value_ptr(glm::vec3(0.1, 0.8, 0.2)));
+    std::shared_ptr<MA> maPLightPosition = Renderer::Resources::Create<MA>("PLightPosition")->Set(MA::Type::Float3, 1, glm::value_ptr(glm::vec3(0, 2, 0)));
+    std::shared_ptr<MA> maPLightCoefs = Renderer::Resources::Create<MA>("PLightCoefs")->Set(MA::Type::Float3, 1, glm::value_ptr(glm::vec3(1.0, 1.0, 2.0)));
+    m_pointLight.color = reinterpret_cast<glm::vec3*>(maPLightColor->GetData());
+    m_pointLight.position = reinterpret_cast<glm::vec3*>(maPLightPosition->GetData());
+    m_pointLight.attenuationCoefficients = reinterpret_cast<glm::vec3*>(maPLightCoefs->GetData());
+
+    // SpotLight
+    std::shared_ptr<MA> maSLightColor = Renderer::Resources::Create<MA>("SLightColor")->Set(MA::Type::Float3, 1, glm::value_ptr(glm::vec3(0.1, 0.1, 0.9)));
+    std::shared_ptr<MA> maSLightPosition = Renderer::Resources::Create<MA>("SLightPosition")->Set(MA::Type::Float3, 1, glm::value_ptr(glm::vec3(0, 0, 2)));
+    std::shared_ptr<MA> maSLightCoefs = Renderer::Resources::Create<MA>("SLightCoefs")->Set(MA::Type::Float3, 1, glm::value_ptr(glm::vec3(1.0, 1.0, 2.0)));
+    std::shared_ptr<MA> maSLightDirection = Renderer::Resources::Create<MA>("SLightDirection")->Set(MA::Type::Float3, 1, glm::value_ptr(glm::vec3(0, 0, -1)));
+    std::shared_ptr<MA> maSLightInnerCone = Renderer::Resources::Create<MA>("SLightInnerCone")->Set(MA::Type::Float1, 1, &m_spotLight.innerCone);
+    std::shared_ptr<MA> maSLightOuterCone = Renderer::Resources::Create<MA>("SLightOuterCone")->Set(MA::Type::Float1, 1, &m_spotLight.outerCone);
+    m_spotLight.color = reinterpret_cast<glm::vec3*>(maSLightColor->GetData());
+    m_spotLight.position = reinterpret_cast<glm::vec3*>(maSLightPosition->GetData());
+    m_spotLight.attenuationCoefficients = reinterpret_cast<glm::vec3*>(maSLightCoefs->GetData());
+    m_spotLight.direction = reinterpret_cast<glm::vec3*>(maSLightDirection->GetData());
+
+    // FlashLight
+    std::shared_ptr<MA> maFLightColor = Renderer::Resources::Create<MA>("FLightColor")->Set(MA::Type::Float3, 1, glm::value_ptr(glm::vec3(0.8, 0.1, 0.2)));
+    std::shared_ptr<MA> maFLightPosition = Renderer::Resources::Create<MA>("FLightPosition")->Set(MA::Type::Float3, 1, glm::value_ptr(m_viewport->GetCamera()->GetPosition()));
+    std::shared_ptr<MA> maFLightCoefs = Renderer::Resources::Create<MA>("FLightCoefs")->Set(MA::Type::Float3, 1, glm::value_ptr(glm::vec3(1.0, 1.0, 2.0)));
+    std::shared_ptr<MA> maFLightDirection = Renderer::Resources::Create<MA>("FLightDirection")->Set(MA::Type::Float3, 1, glm::value_ptr(m_viewport->GetCamera()->GetDirection()));
+    std::shared_ptr<MA> maFLightInnerCone = Renderer::Resources::Create<MA>("FLightInnerCone")->Set(MA::Type::Float1, 1, &m_flashLight.innerCone);
+    std::shared_ptr<MA> maFLightOuterCone = Renderer::Resources::Create<MA>("FLightOuterCone")->Set(MA::Type::Float1, 1, &m_flashLight.outerCone);
+    m_flashLight.color = reinterpret_cast<glm::vec3*>(maFLightColor->GetData());
+    m_flashLight.attenuationCoefficients = reinterpret_cast<glm::vec3*>(maFLightCoefs->GetData());
 
     std::shared_ptr<Material> mtr = Renderer::Resources::Create<Material>("UnitCubic");
-    mtr->Set("u_Material.ambientColor", maMaterialAmbientColor);
-    mtr->Set("u_Material.diffuseColor", maMaterialDiffuseColor);
-    mtr->Set("u_Material.specularColor", maMaterialSpecularColor);
+    mtr->Set("u_Material.ambientReflectance", maMaterialAmbientReflectance);
+    mtr->Set("u_Material.diffuseReflectance", maMaterialDiffuseReflectance);
+    mtr->Set("u_Material.specularReflectance", maMaterialSpecularReflectance);
+    mtr->Set("u_Material.emissiveColor", maMaterialEmissiveColor);
     mtr->Set("u_Material.shininess", maMaterialShininess);
     mtr->AddTexture("u_Material.diffuseMap", m_material.diffuseMap);
     mtr->AddTexture("u_Material.specularMap", m_material.specularMap);
-    mtr->AddTexture("u_Material.emissionMap", m_material.emissionMap);
-    mtr->Set("u_Light.position", maLightPosition);
-    mtr->Set("u_Light.ambientColor", maLightAmbientColor);
-    mtr->Set("u_Light.diffuseColor", maLightDiffuseColor);
-    mtr->Set("u_Light.specularColor", maLightSpecularColor);
-    mtr->Set("u_Camera.position", maCameraPosition);
+    mtr->AddTexture("u_Material.emissiveMap", m_material.emissiveMap);
+
+    // AmbientColor
+    mtr->Set("u_AmbientColor", maAmbientColor);
+
+    // DirectionalLight
+    mtr->Set("u_DirectionalLight[0].color", maDLightColor);
+    mtr->Set("u_DirectionalLight[0].direction", maDLightDirection);
+
+    // PointLight
+    mtr->Set("u_PointLight[0].position", maPLightPosition);
+    mtr->Set("u_PointLight[0].color", maPLightColor);
+    mtr->Set("u_PointLight[0].attenuationCoefficients", maPLightCoefs);
+
+    // SpotLight
+    mtr->Set("u_SpotLight[0].position", maSLightPosition);
+    mtr->Set("u_SpotLight[0].direction", maSLightDirection);
+    mtr->Set("u_SpotLight[0].attenuationCoefficients", maSLightCoefs);
+    mtr->Set("u_SpotLight[0].color", maSLightColor);
+    mtr->Set("u_SpotLight[0].innerCone", maSLightInnerCone);
+    mtr->Set("u_SpotLight[0].outerCone", maSLightOuterCone);
+    
+    // FlashLight
+    mtr->Set("u_FlashLight.position", maFLightPosition);
+    mtr->Set("u_FlashLight.direction", maFLightDirection);
+    mtr->Set("u_FlashLight.attenuationCoefficients", maFLightCoefs);
+    mtr->Set("u_FlashLight.color", maFLightColor);
+    mtr->Set("u_FlashLight.innerCone", maFLightInnerCone);
+    mtr->Set("u_FlashLight.outerCone", maFLightOuterCone);
 
     Renderer::Resources::Create<Shader>("Default")->LoadFromFile("/home/garra/study/dnn/assets/shader/Default.glsl");
     Renderer::Resources::Create<Renderer::Element>("UnitCubic")->Set(mesh, mtr);
@@ -226,7 +330,12 @@ void LearnOpenGLLayer::_PrepareGroundPlane()
 
 void LearnOpenGLLayer::_UpdateMaterialAttributes()
 {
-    Renderer::Resources::Get<Material::Attribute>("CameraPosition")->UpdateData(&m_viewport->GetCamera()->GetPosition());
-    Renderer::Resources::Get<Material::Attribute>("NearCorners")->UpdateData(&m_viewport->GetCamera()->GetNearCornersInWorldSpace()[0]);
-    Renderer::Resources::Get<Material::Attribute>("FarCorners")->UpdateData(&m_viewport->GetCamera()->GetFarCornersInWorldSpace()[0]);
+    using MA = Material::Attribute;
+    const std::shared_ptr<Camera>& cam = m_viewport->GetCamera();
+    Renderer::Resources::Get<MA>("CameraPosition")->UpdateData(&cam->GetPosition());
+    Renderer::Resources::Get<MA>("NearCorners")->UpdateData(&cam->GetNearCornersInWorldSpace()[0]);
+    Renderer::Resources::Get<MA>("FarCorners")->UpdateData(&cam->GetFarCornersInWorldSpace()[0]);
+    Renderer::Resources::Get<MA>("FLightPosition")->UpdateData(&cam->GetPosition());
+    glm::vec3 dir = cam->GetDirection();
+    Renderer::Resources::Get<MA>("FLightDirection")->UpdateData(&dir);
 }
