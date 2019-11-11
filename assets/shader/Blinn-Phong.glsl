@@ -108,9 +108,9 @@ void _CalculateDiffuseAndSpecular(in vec3 lightDir, out vec3 diffuse, out vec3 s
     vec3 viewDir = normalize(u_Camera.position-v_FragPos);
     vec3 diffuseTexel = texture(u_Material.diffuseMap, v_TexCoord).rgb;
     vec3 specularTexel = texture(u_Material.specularMap, v_TexCoord).rgb;
-    vec3 reflectDir = reflect(-lightDir, normal);
+    vec3 bisector = normalize(lightDir+viewDir);
     float diff = max(dot(normal, lightDir), 0.0f);
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0f), u_Material.shininess);
+    float spec = pow(max(dot(bisector, normal), 0.0f), u_Material.shininess);
     diffuse = diff*u_Material.diffuseReflectance*diffuseTexel;
     specular = spec*u_Material.specularReflectance*specularTexel;
 }

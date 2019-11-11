@@ -41,7 +41,7 @@ void LearnOpenGLLayer::OnUpdate(float deltaTime)
     m_handLight->Draw(m_shaderColor);
     Renderer::Submit("GroundPlane", "GroundPlane");
     Renderer::Submit("Skybox", "Skybox");
-    Renderer::Submit("UnitCubic", "Phong");
+    Renderer::Submit("UnitCubic", "Blinn-Phong");
     Renderer::EndScene();
 
     m_viewport->OnUpdate(deltaTime);
@@ -122,7 +122,7 @@ void LearnOpenGLLayer::_PrepareModel()
     m_bulb = Renderer::Resources::Create<Model>("Bulb")->LoadFromFile("/home/garra/study/dnn/assets/mesh/Bulb/Bulbs.3ds");
     m_handLight = Renderer::Resources::Create<Model>("HandLight")->LoadFromFile("/home/garra/study/dnn/assets/mesh/HandLight/hand_light.blend");
     m_shaderPos = Renderer::Resources::Create<Shader>("Pos")->LoadFromFile("/home/garra/study/dnn/assets/shader/Model.glsl");
-    m_shaderColor = Renderer::Resources::Create<Shader>("Phong")->LoadFromFile("/home/garra/study/dnn/assets/shader/Phong.glsl");
+    m_shaderColor = Renderer::Resources::Create<Shader>("Blinn-Phong")->LoadFromFile("/home/garra/study/dnn/assets/shader/Blinn-Phong.glsl");
 
 //     m_viewport->GetCamera()->SetPosition(glm::vec3(0, 50, 50));
 //     auto [mMin, mMax] = m_model->GetAABB();
@@ -221,7 +221,7 @@ void LearnOpenGLLayer::_PrepareUnitCubic()
 
     // DirectionalLight
     std::shared_ptr<MA> maDLightColor = Renderer::Resources::Create<MA>("DLightColor")->Set(MA::Type::Float3, 1, glm::value_ptr(glm::vec3(1.0f)));
-    std::shared_ptr<MA> maDLightDirection = Renderer::Resources::Create<MA>("DLightDirection")->Set(MA::Type::Float3, 1, glm::value_ptr(glm::vec3(0, -1, 0)));
+    std::shared_ptr<MA> maDLightDirection = Renderer::Resources::Create<MA>("DLightDirection")->Set(MA::Type::Float3, 1, glm::value_ptr(glm::vec3(-1, -2, -3)));
     m_directionalLight.color = reinterpret_cast<glm::vec3*>(maDLightColor->GetData());
     m_directionalLight.direction = reinterpret_cast<glm::vec3*>(maDLightDirection->GetData());
 
