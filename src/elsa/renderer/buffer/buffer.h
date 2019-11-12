@@ -29,10 +29,11 @@ public:
         DataType Type() const { return m_type; }
         const std::string& Name() const { return m_name; } 
         bool Normalized() const { return m_normalized; }
-        size_t Offset() const { return m_offset; }
+        size_t Offset(unsigned int nthLocation=0) const;
         unsigned int Divisor() const { return m_divisor; }
         unsigned int Size() const ;
         unsigned int Components() const;
+        unsigned int NumOfLocations() const;
 
     private:
         DataType m_type = DataType::UnKnown;

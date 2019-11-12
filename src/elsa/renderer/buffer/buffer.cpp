@@ -121,9 +121,29 @@ unsigned int Buffer::Element::Components() const
         case DataType::UShort:  return 1;
         case DataType::UInt:    return 1;
         case DataType::Bool:    return 1;
-        case DataType::Mat3:    return 3*3;
-        case DataType::Mat4:    return 4*4;
+        case DataType::Mat3:    return 3;
+        case DataType::Mat4:    return 4;
         default: CORE_ASSERT(false, "UnKnown Buffer::DataType!"); return 0;
+    }
+}
+
+unsigned int Buffer::Element::NumOfLocations() const 
+{
+    switch(m_type)
+    {
+        case DataType::Mat3: return 3;
+        case DataType::Mat4: return 4;
+        default: return 1;
+    }
+}
+
+size_t Buffer::Element::Offset(unsigned int nthLocation) const
+{
+    switch(m_type)
+    {
+        case DataType::Mat3: return m_offset+12*nthLocation;
+        case DataType::Mat4: return m_offset+16*nthLocation;
+        default: return m_offset;
     }
 }
 

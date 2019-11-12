@@ -11,6 +11,7 @@
 
 #include "layer_learnopengl.h"
 #include "glm/gtc/type_ptr.hpp"
+#include "glm/gtx/string_cast.hpp"
 
 std::shared_ptr<LearnOpenGLLayer> LearnOpenGLLayer::Create()
 {
@@ -23,7 +24,7 @@ LearnOpenGLLayer::LearnOpenGLLayer()
     _PrepareSkybox();
     _PrepareUnitCubic();
     _PrepareGroundPlane();
-    _PrepareModel();
+//     _PrepareModel();
 }
 
 void LearnOpenGLLayer::OnEvent(Event& e)
@@ -36,16 +37,16 @@ void LearnOpenGLLayer::OnUpdate(float deltaTime)
     _UpdateMaterialAttributes();
 
     Renderer::BeginScene(m_viewport);
-    m_crysisNanoSuit->Draw(m_shaderPos);
+//     m_crysisNanoSuit->Draw(m_shaderPos);
 //     m_bulb->Draw(m_shaderColor);
-    m_handLight->Draw(m_shaderColor);
+//     m_handLight->Draw(m_shaderColor);
     if(m_showGround)
         Renderer::Submit("GroundPlane", "GroundPlane");
 
     if(m_showSky)
         Renderer::Submit("Skybox", "Skybox");
 
-    Renderer::Submit("UnitCubic", "Blinn-Phong", 100);
+    Renderer::Submit("UnitCubic", "Blinn-Phong", m_numOfInstance);
     Renderer::EndScene();
 
     m_viewport->OnUpdate(deltaTime);
@@ -143,7 +144,7 @@ void LearnOpenGLLayer::_PrepareModel()
     m_bulb = Renderer::Resources::Create<Model>("Bulb")->LoadFromFile("/home/garra/study/dnn/assets/mesh/Bulb/Bulbs.3ds");
     m_handLight = Renderer::Resources::Create<Model>("HandLight")->LoadFromFile("/home/garra/study/dnn/assets/mesh/HandLight/hand_light.blend");
     m_shaderPos = Renderer::Resources::Create<Shader>("Pos")->LoadFromFile("/home/garra/study/dnn/assets/shader/Model.glsl");
-    m_shaderColor = Renderer::Resources::Create<Shader>("Blinn-Phong")->LoadFromFile("/home/garra/study/dnn/assets/shader/Blinn-Phong.glsl");
+    Renderer::Resources::Create<Shader>("Default")->LoadFromFile("/home/garra/study/dnn/assets/shader/Default.glsl");
 
 //     m_viewport->GetCamera()->SetPosition(glm::vec3(0, 50, 50));
 //     auto [mMin, mMax] = m_model->GetAABB();
@@ -206,25 +207,43 @@ void LearnOpenGLLayer::_PrepareUnitCubic()
         20, 21, 22, 
         20, 22, 23
     };
-    glm::vec3 displacements[100];
+    glm::mat4 matM2W[m_numOfInstance];
+    srand(time(NULL));
+    float radius = 50.0f;
+    float offset = 20.0f;
+
     int k = 0;
-    for(float i=-20; i<20; i+=4)
+    std::shared_ptr<Transform> tf = Transform::Create("temp");
+    glm::vec3 translation = glm::vec3(0);
+    glm::vec3 rotation = glm::vec3(0);
+    glm::vec3 scale = glm::vec3(1);
+    for(unsigned int i=0; i<m_numOfInstance; i++)
     {
-        for(float j=-20; j<20; j+=4)
-        {
-            displacements[k++] = glm::vec3(i, 1, j);
-        }
+        float angle = i*360.0f/m_numOfInstance;
+        translation.x = std::sin(angle)*radius+((rand()%(int)(2*offset*100))/100.0f-offset);
+        translation.y = 0.4f*((rand()%(int)(2*offset*100))/100.0f-offset);
+        translation.z = std::cos(angle)*radius+((rand()%(int)(2*offset*100))/100.0f-offset);
+        INFO("{}", glm::to_string(translation));
+
+        rotation.x = rand()%360;
+        rotation.y = rand()%360;
+        rotation.z = rand()%360;
+
+        scale.x = (rand()%20)/20.0f+0.05f;
+        scale.z = scale.y = scale.x;
+        
+        matM2W[k++] = tf->Set(translation, rotation, scale)->Get();
     }
 
     Buffer::Layout layoutVextex = { {Buffer::Element::DataType::Float3, "a_Position", false}, 
                                     {Buffer::Element::DataType::Float3, "a_Normal", false},
                                     {Buffer::Element::DataType::Float2, "a_TexCoord", false}  };
     Buffer::Layout layoutIndex = { {Buffer::Element::DataType::UChar} };
-    Buffer::Layout layoutInstance = { {Buffer::Element::DataType::Float3, "a_Displacement", false, 1} };
+    Buffer::Layout layoutInstance = { {Buffer::Element::DataType::Mat4, "a_Model2World", false, 1} };
 
     std::shared_ptr<Buffer> vertexBuffer = Buffer::CreateVertex(sizeof(vertices), vertices)->SetLayout(layoutVextex);
     std::shared_ptr<Buffer> indexBuffer = Buffer::CreateIndex(sizeof(indices), indices)->SetLayout(layoutIndex);
-    std::shared_ptr<Buffer> instanceBuffer = Buffer::CreateVertex(100*sizeof(glm::vec3), glm::value_ptr(displacements[0]))->SetLayout(layoutInstance);
+    std::shared_ptr<Buffer> instanceBuffer = Buffer::CreateVertex(m_numOfInstance*sizeof(glm::mat4), matM2W)->SetLayout(layoutInstance);
     std::shared_ptr<Elsa::Mesh> mesh= Renderer::Resources::Create<Elsa::Mesh>("UnitCubic")->Set(indexBuffer, {vertexBuffer, instanceBuffer});
     using MA = Material::Attribute;
 
@@ -327,7 +346,7 @@ void LearnOpenGLLayer::_PrepareUnitCubic()
     mtr->Set("u_FlashLight.innerCone", maFLightInnerCone);
     mtr->Set("u_FlashLight.outerCone", maFLightOuterCone);
 
-    Renderer::Resources::Create<Shader>("Default")->LoadFromFile("/home/garra/study/dnn/assets/shader/Default.glsl");
+    Renderer::Resources::Create<Shader>("Blinn-Phong")->LoadFromFile("/home/garra/study/dnn/assets/shader/Blinn-Phong.glsl");
     Renderer::Resources::Create<Renderer::Element>("UnitCubic")->Set(mesh, mtr);
 }
 

@@ -83,5 +83,6 @@ private:
     bool m_showSky = true;
     bool m_showGround= true;
 
+    const unsigned int m_numOfInstance = 20000;
 };
 
