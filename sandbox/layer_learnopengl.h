@@ -80,5 +80,8 @@ private:
 
     glm::vec3* m_ambientColor = nullptr;
 
+    bool m_showSky = true;
+    bool m_showGround= true;
+
 };
 

@@ -39,8 +39,12 @@ void LearnOpenGLLayer::OnUpdate(float deltaTime)
     m_crysisNanoSuit->Draw(m_shaderPos);
 //     m_bulb->Draw(m_shaderColor);
     m_handLight->Draw(m_shaderColor);
-    Renderer::Submit("GroundPlane", "GroundPlane");
-    Renderer::Submit("Skybox", "Skybox");
+    if(m_showGround)
+        Renderer::Submit("GroundPlane", "GroundPlane");
+
+    if(m_showSky)
+        Renderer::Submit("Skybox", "Skybox");
+
     Renderer::Submit("UnitCubic", "Blinn-Phong", 100);
     Renderer::EndScene();
 
@@ -51,6 +55,21 @@ void LearnOpenGLLayer::OnImGuiRender()
 {
     using MA = Material::Attribute;
     m_viewport->OnImGuiRender();
+
+    ImGui::Begin("LearnOpenGLLayer");
+
+    if(ImGui::RadioButton("ShowSky", m_showSky))
+    {
+        m_showSky = !m_showSky;
+    }
+
+    ImGui::SameLine();
+    if(ImGui::RadioButton("ShowGround", m_showGround))
+    {
+        m_showGround = !m_showGround;
+    }
+
+    ImGui::Separator();
     ImGui::PushItemWidth(120);
     if(ImGui::CollapsingHeader("Environment"))
     {
@@ -113,6 +132,8 @@ void LearnOpenGLLayer::OnImGuiRender()
             }
         }
     }
+
+    ImGui::End();
 }
 
 void LearnOpenGLLayer::_PrepareModel()
