@@ -68,6 +68,7 @@ void OpenGLVertexBuffer::Bind(const std::shared_ptr<Shader>& shader)
 
         glEnableVertexAttribArray(location);
         glVertexAttribPointer(location, e.Components(), _TypeFrom(e.Type()), e.Normalized()? GL_TRUE:GL_FALSE, m_layout.Stride(), (const void*)e.Offset());
+        glVertexAttribDivisor(location, e.Divisor());
     }
 }
 

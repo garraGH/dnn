@@ -25,11 +25,12 @@ public:
         enum class DataType { UnKnown = 0, Float, Float2, Float3, Float4, Mat3, Mat4, Int, Int2, Int3, Int4, UChar, UShort, UInt, Bool };
 
     public:
-        Element(DataType type, const std::string& name="", bool normalized=false);
+        Element(DataType type, const std::string& name="", bool normalized=false, unsigned int divisor=0);
         DataType Type() const { return m_type; }
         const std::string& Name() const { return m_name; } 
         bool Normalized() const { return m_normalized; }
         size_t Offset() const { return m_offset; }
+        unsigned int Divisor() const { return m_divisor; }
         unsigned int Size() const ;
         unsigned int Components() const;
 
@@ -38,6 +39,7 @@ public:
         std::string m_name;
         bool m_normalized = false;
         size_t m_offset = 0;
+        unsigned int m_divisor = 0;
         friend class Buffer;
     };
 

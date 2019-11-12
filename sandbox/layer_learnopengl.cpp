@@ -185,13 +185,26 @@ void LearnOpenGLLayer::_PrepareUnitCubic()
         20, 21, 22, 
         20, 22, 23
     };
+    glm::vec3 displacements[100];
+    int k = 0;
+    for(float i=-20; i<20; i+=4)
+    {
+        for(float j=-20; j<20; j+=4)
+        {
+            displacements[k++] = glm::vec3(i, 1, j);
+        }
+    }
+
     Buffer::Layout layoutVextex = { {Buffer::Element::DataType::Float3, "a_Position", false}, 
                                     {Buffer::Element::DataType::Float3, "a_Normal", false},
                                     {Buffer::Element::DataType::Float2, "a_TexCoord", false}  };
     Buffer::Layout layoutIndex = { {Buffer::Element::DataType::UChar} };
-    std::shared_ptr<Buffer> vb = Buffer::CreateVertex(sizeof(vertices), vertices)->SetLayout(layoutVextex);
-    std::shared_ptr<Buffer> ib = Buffer::CreateIndex(sizeof(indices), indices)->SetLayout(layoutIndex);
-    std::shared_ptr<Elsa::Mesh> mesh= Renderer::Resources::Create<Elsa::Mesh>("UnitCubic")->Set(ib, {vb});
+    Buffer::Layout layoutInstance = { {Buffer::Element::DataType::Float3, "a_Displacement", false, 1} };
+
+    std::shared_ptr<Buffer> vertexBuffer = Buffer::CreateVertex(sizeof(vertices), vertices)->SetLayout(layoutVextex);
+    std::shared_ptr<Buffer> indexBuffer = Buffer::CreateIndex(sizeof(indices), indices)->SetLayout(layoutIndex);
+    std::shared_ptr<Buffer> instanceBuffer = Buffer::CreateVertex(100*sizeof(glm::vec3), glm::value_ptr(displacements[0]))->SetLayout(layoutInstance);
+    std::shared_ptr<Elsa::Mesh> mesh= Renderer::Resources::Create<Elsa::Mesh>("UnitCubic")->Set(indexBuffer, {vertexBuffer, instanceBuffer});
     using MA = Material::Attribute;
 
 
@@ -295,20 +308,6 @@ void LearnOpenGLLayer::_PrepareUnitCubic()
 
     Renderer::Resources::Create<Shader>("Default")->LoadFromFile("/home/garra/study/dnn/assets/shader/Default.glsl");
     Renderer::Resources::Create<Renderer::Element>("UnitCubic")->Set(mesh, mtr);
-
-    // Instance: Displacements
-    glm::vec3 displacements[100];
-    int k = 0;
-    for(float i=-20; i<20; i+=4)
-    {
-        for(float j=-20; j<20; j+=4)
-        {
-            displacements[k++] = glm::vec3(i, 1, j);
-        }
-    }
-    std::shared_ptr<MA> maDisplacements = Renderer::Resources::Create<MA>("Displacements")->Set(MA::Type::Float3, 100, glm::value_ptr(displacements[0]));
-    mtr->Set("u_Displacements", maDisplacements);
-
 }
 
 void LearnOpenGLLayer::_PrepareSkybox()

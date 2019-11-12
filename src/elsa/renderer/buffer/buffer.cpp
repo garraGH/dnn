@@ -75,10 +75,11 @@ unsigned int Buffer::GetCount() const
 }
 
 
-Buffer::Element::Element(DataType type, const std::string& name, bool normalized)
+Buffer::Element::Element(DataType type, const std::string& name, bool normalized, unsigned int divisor)
     : m_type(type)
     , m_name(name)
     , m_normalized(normalized)
+    , m_divisor(divisor)
 {
 }
 
