@@ -44,14 +44,14 @@ void Renderer::SetPolygonMode(PolygonMode mode)
     Command::SetPolygonMode(mode);
 }
 
-void Renderer::Submit(const std::string& nameOfElement, const std::string& nameOfShader)
+void Renderer::Submit(const std::string& nameOfElement, const std::string& nameOfShader, unsigned int nInstances)
 {
-    Resources::Get<Element>(nameOfElement)->RenderedBy(Resources::Get<Shader>(nameOfShader));
+    Resources::Get<Element>(nameOfElement)->RenderedBy(Resources::Get<Shader>(nameOfShader), nInstances);
 }
 
-void Renderer::Submit(const std::shared_ptr<Renderer::Element>& rendererElement, const std::shared_ptr<Shader>& shader) 
+void Renderer::Submit(const std::shared_ptr<Renderer::Element>& rendererElement, const std::shared_ptr<Shader>& shader, unsigned int nInstances) 
 {
-    rendererElement->RenderedBy(shader);
+    rendererElement->RenderedBy(shader, nInstances);
 }
 
 float Renderer::GetPixelDepth(int x, int y)
@@ -59,7 +59,7 @@ float Renderer::GetPixelDepth(int x, int y)
     return Command::GetPixelDepth(x, y);
 }
 
-void Renderer::Element::RenderedBy(const std::shared_ptr<Shader>& shader)
+void Renderer::Element::RenderedBy(const std::shared_ptr<Shader>& shader, unsigned int nInstances)
 {
     CORE_ASSERT(shader, "Renderer::Element::RenderedBy: Must Bind a shader to render.");
 
@@ -75,7 +75,7 @@ void Renderer::Element::RenderedBy(const std::shared_ptr<Shader>& shader)
     }
 
     m_mesh->Bind(shader);
-    Renderer::Command::DrawIndexed(m_mesh->GetBufferArray());
+    Renderer::Command::DrawElements(m_mesh->GetBufferArray(), nInstances);
 }
 
 

@@ -41,7 +41,7 @@ void LearnOpenGLLayer::OnUpdate(float deltaTime)
     m_handLight->Draw(m_shaderColor);
     Renderer::Submit("GroundPlane", "GroundPlane");
     Renderer::Submit("Skybox", "Skybox");
-    Renderer::Submit("UnitCubic", "Blinn-Phong");
+    Renderer::Submit("UnitCubic", "Blinn-Phong", 100);
     Renderer::EndScene();
 
     m_viewport->OnUpdate(deltaTime);
@@ -295,6 +295,20 @@ void LearnOpenGLLayer::_PrepareUnitCubic()
 
     Renderer::Resources::Create<Shader>("Default")->LoadFromFile("/home/garra/study/dnn/assets/shader/Default.glsl");
     Renderer::Resources::Create<Renderer::Element>("UnitCubic")->Set(mesh, mtr);
+
+    // Instance: Displacements
+    glm::vec3 displacements[100];
+    int k = 0;
+    for(float i=-20; i<20; i+=4)
+    {
+        for(float j=-20; j<20; j+=4)
+        {
+            displacements[k++] = glm::vec3(i, 1, j);
+        }
+    }
+    std::shared_ptr<MA> maDisplacements = Renderer::Resources::Create<MA>("Displacements")->Set(MA::Type::Float3, 100, glm::value_ptr(displacements[0]));
+    mtr->Set("u_Displacements", maDisplacements);
+
 }
 
 void LearnOpenGLLayer::_PrepareSkybox()

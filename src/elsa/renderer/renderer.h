@@ -45,7 +45,7 @@ public:
 
         virtual void SetBackgroundColor(float r, float g, float b, float a) = 0;
         virtual void SetViewport(const std::shared_ptr<Viewport>& viewport) = 0;
-        virtual void DrawIndexed(const std::shared_ptr<BufferArray>& bufferArray) = 0;
+        virtual void DrawElements(const std::shared_ptr<BufferArray>& bufferArray, unsigned int nInstances) = 0;
         virtual void SetPolygonMode(PolygonMode mode) = 0;
         virtual float GetPixelDepth(int x, int y) = 0;
 
@@ -60,7 +60,7 @@ public:
     public:
         static inline void SetBackgroundColor(float r, float g, float b, float a) { s_api->SetBackgroundColor(r, g, b, a); }
         static inline void SetViewport(const std::shared_ptr<Viewport>& viewport) { s_api->SetViewport(viewport); }
-        static inline void DrawIndexed(const std::shared_ptr<BufferArray>& bufferArray) { s_api->DrawIndexed(bufferArray); }
+        static inline void DrawElements(const std::shared_ptr<BufferArray>& bufferArray, unsigned int nInstances) { s_api->DrawElements(bufferArray, nInstances); }
         static inline void SetPolygonMode(PolygonMode mode) { s_api->SetPolygonMode(mode); }
         static inline float GetPixelDepth(int x, int y) { return s_api->GetPixelDepth(x, y); }
     };
@@ -82,7 +82,7 @@ public:
         std::shared_ptr<Element> SetMesh(const std::shared_ptr<Elsa::Mesh>& mesh) { m_mesh = mesh; return shared_from_this(); }
         std::shared_ptr<Element> SetMaterial(const std::string& mtrName) { m_material = Renderer::Resources::Get<Material>(mtrName); return shared_from_this(); }
         std::shared_ptr<Element> SetMaterial(const std::shared_ptr<Material>& material) { m_material = material; return shared_from_this(); }
-        void RenderedBy(const std::shared_ptr<Shader>& shader);
+        void RenderedBy(const std::shared_ptr<Shader>& shader, unsigned int nInstances);
 
     private:
         std::shared_ptr<Elsa::Mesh> m_mesh = nullptr;
@@ -148,8 +148,8 @@ public:
     static void SetPolygonMode(PolygonMode mode);
 
     static void BeginScene(const std::shared_ptr<Viewport>& viewport);
-    static void Submit(const std::shared_ptr<Element>& rendererElement, const std::shared_ptr<Shader>& shader);
-    static void Submit(const std::string& nameOfElement, const std::string& nameOfShader);
+    static void Submit(const std::shared_ptr<Element>& rendererElement, const std::shared_ptr<Shader>& shader, unsigned int nInstances = 1);
+    static void Submit(const std::string& nameOfElement, const std::string& nameOfShader, unsigned int nInstances = 1);
     static void EndScene() {}
 
     static float GetPixelDepth(int x, int y);
