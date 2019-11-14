@@ -33,8 +33,9 @@ void Renderer::SetAPIType(API::Type apiType)
     }
 }
 
-void Renderer::BeginScene(const std::shared_ptr<Viewport>& viewport)
+void Renderer::BeginScene(const std::shared_ptr<Viewport>& viewport, const std::shared_ptr<FrameBuffer>& frameBuffer)
 {
+    Command::SetFrameBuffer(frameBuffer);
     Command::SetViewport(viewport);
     s_camera = viewport->GetCamera();
 }
@@ -54,9 +55,9 @@ void Renderer::Submit(const std::shared_ptr<Renderer::Element>& rendererElement,
     rendererElement->RenderedBy(shader, nInstances);
 }
 
-float Renderer::GetPixelDepth(int x, int y)
+float Renderer::GetPixelDepth(int x, int y, const std::shared_ptr<FrameBuffer>& frameBuffer)
 {
-    return Command::GetPixelDepth(x, y);
+    return Command::GetPixelDepth(x, y, frameBuffer);
 }
 
 void Renderer::Element::RenderedBy(const std::shared_ptr<Shader>& shader, unsigned int nInstances)

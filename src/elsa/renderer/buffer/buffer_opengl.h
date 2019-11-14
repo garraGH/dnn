@@ -29,8 +29,8 @@ class OpenGLVertexBuffer : public OpenGLBuffer
 public:
     OpenGLVertexBuffer(unsigned int size, const void* data);
 
-    void Bind(unsigned int slot=0) override;
-    void Unbind() const override;
+    virtual void Bind(unsigned int slot=0) override;
+    virtual void Unbind() const override;
 
     virtual void Bind(const std::shared_ptr<Shader>& shader) override;
 };
@@ -40,9 +40,30 @@ class OpenGLIndexBuffer : public OpenGLBuffer
 {
 public:
     OpenGLIndexBuffer(unsigned int size, const void* data);
-    void Bind(unsigned int slot=0) override;
-    void Unbind() const override;
+    virtual void Bind(unsigned int slot=0) override;
+    virtual void Unbind() const override;
     GLenum GetType();
+};
+
+class OpenGLRenderBuffer : public RenderBuffer
+{
+public:
+    OpenGLRenderBuffer(unsigned int maxWidth, unsigned int maxHeight);
+    ~OpenGLRenderBuffer();
+
+    virtual void Bind(unsigned int slot=0) override;
+    virtual void Unbind() const override;
+
+protected:
+};
+
+class OpenGLFrameBuffer : public FrameBuffer
+{
+public:
+    OpenGLFrameBuffer(unsigned int maxWidth, unsigned int maxHeight);
+    ~OpenGLFrameBuffer();
+    virtual void Bind(unsigned int slot=0) override;
+    virtual void Unbind() const override;
 };
 
 class OpenGLBufferArray : public BufferArray

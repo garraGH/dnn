@@ -22,11 +22,13 @@ OpenGLTexture2D::OpenGLTexture2D(const std::string& name)
     : Texture2D(name)
 {
     glCreateTextures(GL_TEXTURE_2D, 1, &m_id);
+    INFO("Create OpenGLTexture2D: {}", m_id);
 }
 
 OpenGLTexture2D::~OpenGLTexture2D()
 {
     glDeleteTextures(1, &m_id);
+    INFO("Delete OpenGLTexture2D: {}, {}x{}", m_id, m_width, m_height);
 }
 
 std::shared_ptr<Texture> OpenGLTexture2D::_LoadImage()
@@ -46,6 +48,15 @@ std::shared_ptr<Texture> OpenGLTexture2D::_LoadImage()
     return shared_from_this();
 }
 
+std::shared_ptr<Texture> OpenGLTexture2D::_AllocateStorage()
+{
+    glBindTexture(GL_TEXTURE_2D, m_id);
+    glTextureStorage2D(m_id, 1, _OpenGLFormat(), m_width, m_height);
+
+    INFO("OpenGLTexture2D::_AllocateStorage: {}x{}", m_width, m_height);
+    return shared_from_this();
+}
+
 void OpenGLTexture2D::Bind(unsigned int slot)
 {
     m_slot = slot;
@@ -55,4 +66,74 @@ void OpenGLTexture2D::Bind(unsigned int slot)
 void OpenGLTexture2D::Unbind() const
 {
     glBindTextureUnit(m_slot, 0);
+}
+
+unsigned int OpenGLTexture2D::_OpenGLFormat()
+{
+    switch(m_format)
+    {
+        case Format::R8:        return GL_R8;
+        case Format::R8SN:      return GL_R8_SNORM;
+        case Format::R16:       return GL_R16;
+        case Format::R16SN:     return GL_R16_SNORM;
+        case Format::RG8:       return GL_RG8;
+        case Format::RG8SN:     return GL_RG8_SNORM;
+        case Format::RG16:      return GL_RG16;
+        case Format::RG16SN:    return GL_RG16_SNORM;
+        case Format::RG3B2:     return GL_R3_G3_B2;
+        case Format::RGB4:      return GL_RGB4;
+        case Format::RGB5:      return GL_RGB5;
+        case Format::RGB8:      return GL_RGB8;
+        case Format::RGB8SN:    return GL_RGB8_SNORM;
+        case Format::RGB10:     return GL_RGB10;
+        case Format::RGB12:     return GL_RGB12;
+        case Format::RGB16SN:   return GL_RGB16_SNORM;
+        case Format::RGBA2:     return GL_RGBA2;
+        case Format::RGBA4:     return GL_RGBA4;
+        case Format::RGB5A1:    return GL_RGB5_A1;
+        case Format::RGBA8:     return GL_RGBA8;
+        case Format::RGBA8SN:   return GL_RGBA8_SNORM;
+        case Format::RGB10A2:   return GL_RGB10_A2;
+        case Format::RGB10A2UI: return GL_RGB10_A2UI;
+        case Format::RGBA12:    return GL_RGBA12;
+        case Format::RGBA16:    return GL_RGBA16;
+        case Format::SRGB8:     return GL_SRGB8;
+        case Format::SRGBA8:    return GL_SRGB8_ALPHA8;
+        case Format::R16F:      return GL_R16F;
+        case Format::RG16F:     return GL_RG16F;
+        case Format::RGB16F:    return GL_RGB16F;
+        case Format::RGBA16F:   return GL_RGBA16F;
+        case Format::R32F:      return GL_R32F;
+        case Format::RG32F:     return GL_RG32F;
+        case Format::RGB32F:    return GL_RGB32F;
+        case Format::RGBA32F:   return GL_RGBA32F;
+        case Format::RG11B10F:  return GL_R11F_G11F_B10F;
+        case Format::RGB9E5:    return GL_RGB9_E5;
+        case Format::R8I:       return GL_R8I;
+        case Format::R8UI:      return GL_R8UI;
+        case Format::R16I:      return GL_R16I;
+        case Format::R16UI:     return GL_R16UI;
+        case Format::R32I:      return GL_R32I;
+        case Format::R32UI:     return GL_R32UI;
+        case Format::RG8I:      return GL_RG8I;
+        case Format::RG8UI:     return GL_RG8UI;
+        case Format::RG16I:     return GL_RG16I;
+        case Format::RG16UI:    return GL_RG16UI;
+        case Format::RG32I:     return GL_RG32I;
+        case Format::RG32UI:    return GL_RG32UI;
+        case Format::RGB8I:     return GL_RGB8I;
+        case Format::RGB8UI:    return GL_RGB8UI;
+        case Format::RGB16I:    return GL_RGB16I;
+        case Format::RGB16UI:   return GL_RGB16UI;
+        case Format::RGB32I:    return GL_RGB32I;
+        case Format::RGB32UI:   return GL_RGB32UI;
+        case Format::RGBA8I:    return GL_RGBA8I;
+        case Format::RGBA8UI:   return GL_RGBA8UI;
+        case Format::RGBA16I:   return GL_RGBA16I;
+        case Format::RGBA16UI:  return GL_RGBA16UI;
+        case Format::RGBA32I:   return GL_RGBA32I;
+        case Format::RGBA32UI:  return GL_RGBA32UI;
+
+        default: CORE_ASSERT(false, "OpenGLTexture2D::_OpenGLFormat: Unkown format!"); return 0;
+    }
 }

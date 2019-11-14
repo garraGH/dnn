@@ -15,6 +15,7 @@
 #include "../../event/event_key.h"
 #include "../../event/event_mouse.h"
 #include "../../event/event_application.h"
+#include "../buffer/buffer.h"
 
 class Camera
 {
@@ -90,6 +91,7 @@ public:
     void SetNear(float n)           { m_sight.SetNear(n);           }
     void SetFar(float f)            { m_sight.SetFar(f);            }
     void SetSight(float widthOrVfov, float asp, float near, float far) { m_sight.Set(widthOrVfov, asp, near, far); }
+    void SetFrameBuffer(const std::shared_ptr<FrameBuffer>& frameBuffer) { m_frameBuffer = frameBuffer; }
 
     inline const glm::vec3 GetDirection() const     { return glm::normalize(m_target-m_position); }
     inline const glm::vec3& GetPosition() const     { return m_position;                   }
@@ -200,4 +202,5 @@ private:
     glm::vec3 m_cameraWorldTargetWhenButtonPressed;
 
     std::array<unsigned int, 2> m_windowSize = {1000, 1000};
+    std::shared_ptr<FrameBuffer> m_frameBuffer = nullptr;
 };

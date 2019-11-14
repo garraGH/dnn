@@ -11,18 +11,19 @@
 
 #include "buffer_opengl.h"
 #include "../../core.h"
+#include "../texture/texture2d.h"
 
 OpenGLBuffer::OpenGLBuffer(unsigned int size, const void* data)
     : Buffer(size, data)
 {
     glGenBuffers(1, &m_id);
-    CORE_INFO("OpenGLBuffer size: {}, id: {}", size, m_id);
+    CORE_INFO("Create OpenGLBuffer id({}), size({})", m_id, m_size);
 }
 
 OpenGLBuffer::~OpenGLBuffer()
 {
     glDeleteBuffers(1, &m_id);
-    CORE_INFO("OpenGLBuffer delete: {}", m_id);
+    CORE_INFO("Delete OpenGLBuffer: id({}), size({})", m_id, m_size);
 }
 
 GLenum OpenGLBuffer::_TypeFrom(Element::DataType dataType) const
@@ -87,6 +88,7 @@ void OpenGLVertexBuffer::Unbind() const
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
+//////////////////////////////////////////////////////////////////////
 OpenGLIndexBuffer::OpenGLIndexBuffer(unsigned int size, const void* data)
     : OpenGLBuffer(size, data)
 {
@@ -111,7 +113,68 @@ GLenum OpenGLIndexBuffer::GetType()
     const Element& e = *m_layout.begin();
     return _TypeFrom(e.Type());
 }
+//////////////////////////////////////////////////////////////////////
+OpenGLRenderBuffer::OpenGLRenderBuffer(unsigned int maxWidth, unsigned int maxHeight)
+    : RenderBuffer(maxWidth, maxHeight)
+{
+    glGenRenderbuffers(1, &m_id);
+    glBindRenderbuffer(GL_RENDERBUFFER, m_id);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, m_maxWidth, m_maxHeight);
+    CORE_INFO("Create OpenGLRenderBuffer id({}), size({}x{})", m_id, maxWidth, maxHeight);
+}
 
+OpenGLRenderBuffer::~OpenGLRenderBuffer()
+{
+    glDeleteRenderbuffers(1, &m_id);
+    CORE_INFO("Delete OpenGLRenderBuffer id({}), size({}x{})", m_id, m_maxWidth, m_maxHeight);
+}
+
+void OpenGLRenderBuffer::Bind(unsigned int slot)
+{
+    glBindRenderbuffer(GL_RENDERBUFFER, m_id);
+}
+
+void OpenGLRenderBuffer::Unbind() const
+{
+    glBindRenderbuffer(GL_RENDERBUFFER, 0);
+}
+
+//////////////////////////////////////////////////////////////////////
+OpenGLFrameBuffer::OpenGLFrameBuffer(unsigned int maxWidth, unsigned int maxHeight)
+    : FrameBuffer(maxWidth, maxHeight)
+{
+    m_colorBuffer = Texture2D::Create("ColorBuffer")->Set(m_maxWidth, m_maxHeight, Texture::Format::RGB8);
+    m_depthStencilBuffer = RenderBuffer::Create(m_maxWidth, m_maxHeight);
+    glCreateFramebuffers(1, &m_id);
+    glNamedFramebufferTexture(m_id, GL_COLOR_ATTACHMENT0, m_colorBuffer->ID(), 0);
+    glNamedFramebufferRenderbuffer(m_id, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_depthStencilBuffer->ID());
+    if(glCheckNamedFramebufferStatus(m_id, GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+    {
+        CORE_ASSERT(false, "FrameBuffer is not complete!");
+    }
+
+    CORE_INFO("Create OpenGLFrameBuffer id({}), size({}x{})", m_id, maxWidth, maxHeight);
+}
+
+OpenGLFrameBuffer::~OpenGLFrameBuffer()
+{
+    glDeleteFramebuffers(1, &m_id);
+    CORE_INFO("Delete OpenGLFrameBuffer id({}), size({}x{})", m_id, m_maxWidth, m_maxHeight);
+}
+
+void OpenGLFrameBuffer::Bind(unsigned int slot)
+{
+    glBindFramebuffer(GL_FRAMEBUFFER, m_id);
+}
+
+void OpenGLFrameBuffer::Unbind() const
+{
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+
+
+//////////////////////////////////////////////////////////////////////
 OpenGLBufferArray::OpenGLBufferArray()
 {
     glGenVertexArrays(1, &m_id);

@@ -38,6 +38,30 @@ std::shared_ptr<Buffer> Buffer::CreateIndex(unsigned int size, const void* data)
     }
 }
 
+std::shared_ptr<RenderBuffer> RenderBuffer::Create(unsigned int maxWidth, unsigned int maxHeight)
+{
+    switch(Renderer::GetAPIType())
+    {
+        case Renderer::API::OpenGL:
+            return std::make_shared<OpenGLRenderBuffer>(maxWidth, maxHeight);
+        default:
+            CORE_ASSERT(false, "RenderBuffer::Create: API is currently not supported!");
+            return nullptr;
+    }
+}
+
+std::shared_ptr<FrameBuffer> FrameBuffer::Create(unsigned int maxWidth, unsigned int maxHeight)
+{
+    switch(Renderer::GetAPIType())
+    {
+        case Renderer::API::OpenGL:
+            return std::make_shared<OpenGLFrameBuffer>(maxWidth, maxHeight);
+        default:
+            CORE_ASSERT(false, "FrameBuffer::Create: API is currently not supported!");
+            return nullptr;
+    }
+}
+
 std::shared_ptr<BufferArray> BufferArray::Create()
 {
     switch(Renderer::GetAPIType())

@@ -15,6 +15,7 @@
 #include "../rendererobject.h"
 #include "../../core.h"
 #include "../shader/shader.h"
+#include "../texture/texture.h"
 
 class Buffer : public RenderObject, public std::enable_shared_from_this<Buffer>
 {
@@ -82,6 +83,53 @@ protected:
     Layout m_layout;
     unsigned int m_size = 0;
     const void* m_data = nullptr;
+};
+
+class RenderBuffer : public RenderObject
+{
+public:
+    RenderBuffer(unsigned int maxWidth, unsigned int maxHeight) : m_maxWidth(maxWidth), m_maxHeight(maxHeight) {}
+    void SetCurrentSize(unsigned int width, unsigned int height) { CORE_ASSERT(width<=m_maxWidth&&height<=m_maxHeight, "RenderBuffer: size exceed limit!"); m_curWidth = width; m_curHeight = height; } 
+
+    virtual void Bind(unsigned int slot=0) override {}
+    virtual void Unbind() const override {}
+
+    static std::shared_ptr<RenderBuffer> Create(unsigned int maxWidth, unsigned int maxHeight);
+
+protected:
+    unsigned int m_maxWidth;
+    unsigned int m_maxHeight;
+    unsigned int m_curWidth;
+    unsigned int m_curHeight;
+};
+
+class FrameBuffer : public RenderObject
+{
+public:
+    FrameBuffer(unsigned int maxWidth, unsigned int maxHeight) : m_maxWidth(maxWidth), m_maxHeight(maxHeight), m_curWidth(maxWidth), m_curHeight(maxHeight) {}
+    void SetCurrentSize(unsigned int width, unsigned int height) { CORE_ASSERT(width<=m_maxWidth&&height<=m_maxHeight, "FrameBuffer: size exceed limit!"); m_curWidth = width; m_curHeight = height; } 
+
+    virtual void Bind(unsigned int slot=0) override {}
+    virtual void Unbind() const override {}
+
+    unsigned int GetMaxWidth() const { return m_maxWidth; }
+    unsigned int GetMaxHeight() const { return m_maxHeight; }
+    unsigned int GetCurWidth() const { return m_curWidth; }
+    unsigned int GetCurHeight() const { return m_curHeight; }
+
+    const std::shared_ptr<Texture>& GetColorBuffer() const { return m_colorBuffer; }
+    const std::shared_ptr<RenderBuffer>& GetDepthStencilBuffer() const { return m_depthStencilBuffer; }
+    static std::shared_ptr<FrameBuffer> Create(unsigned int maxWidth, unsigned int maxHeight);
+    
+protected:
+
+    std::shared_ptr<Texture> m_colorBuffer;
+    std::shared_ptr<RenderBuffer> m_depthStencilBuffer;
+
+    unsigned int m_maxWidth;
+    unsigned int m_maxHeight;
+    unsigned int m_curWidth;
+    unsigned int m_curHeight;
 };
 
 class BufferArray : public RenderObject

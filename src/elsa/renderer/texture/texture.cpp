@@ -19,4 +19,12 @@ std::shared_ptr<Texture> Texture::LoadFromFile(const std::string& imagePath)
 }
 
 
+std::shared_ptr<Texture> Texture::Set(int width, int height, Format format)
+{
+    m_width = width;
+    m_height = height;
+    m_format = format;
+
+    return _AllocateStorage();
+}
 

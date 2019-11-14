@@ -495,7 +495,7 @@ glm::vec3 Camera::Screen2View(const glm::vec2& pntOnScreen)
     float x = pntOnScreen.x;
     float y = h-pntOnScreen.y;
 
-    float z_ndc = Renderer::GetPixelDepth(x, y)*2-1;
+    float z_ndc = Renderer::GetPixelDepth(x, y, m_frameBuffer)*2-1;
     float z_cs = m_sight.DepthNDC2Clip(z_ndc);
     glm::vec4 pos_ndc(x/w*2-1.0, y/h*2-1.0, z_ndc, 1.0);
     glm::vec4 pos_cs = -z_cs*pos_ndc;
@@ -519,7 +519,7 @@ glm::vec3 Camera::Screen2World(const glm::vec2& pntOnScreen)
     float x = pntOnScreen.x;
     float y = h-pntOnScreen.y;
 
-    float z_ndc = Renderer::GetPixelDepth(x, y)*2-1;
+    float z_ndc = Renderer::GetPixelDepth(x, y, m_frameBuffer)*2-1;
     float z_cs = m_sight.DepthNDC2Clip(z_ndc);
     glm::vec4 pos_ndc(x/w*2-1.0, y/h*2-1.0, z_ndc, 1.0);
     glm::vec4 pos_cs = -z_cs*pos_ndc;
@@ -557,7 +557,7 @@ void Camera::_ShowPosTooptips()
     unsigned int w = m_windowSize[0];
     unsigned int h = m_windowSize[1];
     y = h-y;
-    float z_ndc = Renderer::GetPixelDepth(x, y)*2-1;
+    float z_ndc = Renderer::GetPixelDepth(x, y, m_frameBuffer)*2-1;
     float z_cs = m_sight.DepthNDC2Clip(z_ndc);
     glm::vec4 pos_ndc(x/w*2-1.0, y/h*2-1.0, z_ndc, 1.0);
     ImGui::Text("       ndc: (%.3f, %.3f, %.6f, %.3f)",  pos_ndc.x, pos_ndc.y, pos_ndc.z, pos_ndc.w);

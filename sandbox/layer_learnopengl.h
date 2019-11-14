@@ -24,8 +24,14 @@ public:
     static std::shared_ptr<LearnOpenGLLayer> Create();
 
 protected:
+#define ON(event) bool _On##event(event& e)
+    ON(WindowResizeEvent);
+#undef ON
+
+protected:
     void _PrepareSkybox();
     void _PrepareGroundPlane();
+    void _PrepareOffscreenPlane();
     void _PrepareModel();
     void _PrepareUnitCubic();
     void _UpdateMaterialAttributes();
@@ -79,10 +85,13 @@ private:
     m_spotLight, m_flashLight;
 
     glm::vec3* m_ambientColor = nullptr;
+    glm::vec2* m_rightTopTexCoord = nullptr;
 
     bool m_showSky = true;
     bool m_showGround= true;
 
     const unsigned int m_numOfInstance = 20000;
+
+    std::shared_ptr<FrameBuffer> m_frameBuffer = FrameBuffer::Create(1920, 1080);
 };
 

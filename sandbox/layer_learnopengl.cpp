@@ -22,21 +22,35 @@ LearnOpenGLLayer::LearnOpenGLLayer()
     : Layer( "LearnOpenGLLayer" )
 {
     _PrepareSkybox();
+    _PrepareOffscreenPlane();
     _PrepareUnitCubic();
     _PrepareGroundPlane();
+    m_viewport->GetCamera()->SetFrameBuffer(m_frameBuffer);
+    m_viewport->GetCamera()->SetTarget(glm::vec3(0, 8, 0));
 //     _PrepareModel();
 }
 
 void LearnOpenGLLayer::OnEvent(Event& e)
 {
+    EventDispatcher ed(e);
+#define DISPATCH(event) ed.Dispatch<event>(BIND_EVENT_CALLBACK(LearnOpenGLLayer, _On##event))
+    DISPATCH(WindowResizeEvent);
+#undef DISPATCH
     m_viewport->OnEvent(e);
+}
+
+bool LearnOpenGLLayer::_OnWindowResizeEvent(WindowResizeEvent& e)
+{
+    m_rightTopTexCoord->x = e.GetWidth()/(float)m_frameBuffer->GetCurWidth();
+    m_rightTopTexCoord->y = e.GetHeight()/(float)m_frameBuffer->GetCurHeight();
+    return false;
 }
 
 void LearnOpenGLLayer::OnUpdate(float deltaTime)
 {
     _UpdateMaterialAttributes();
 
-    Renderer::BeginScene(m_viewport);
+    Renderer::BeginScene(m_viewport, m_frameBuffer);
 //     m_crysisNanoSuit->Draw(m_shaderPos);
 //     m_bulb->Draw(m_shaderColor);
 //     m_handLight->Draw(m_shaderColor);
@@ -47,6 +61,10 @@ void LearnOpenGLLayer::OnUpdate(float deltaTime)
         Renderer::Submit("Skybox", "Skybox");
 
     Renderer::Submit("UnitCubic", "Blinn-Phong", m_numOfInstance);
+    Renderer::EndScene();
+
+    Renderer::BeginScene(m_viewport);
+    Renderer::Submit("Offscreen", "Offscreen");
     Renderer::EndScene();
 
     m_viewport->OnUpdate(deltaTime);
@@ -223,7 +241,6 @@ void LearnOpenGLLayer::_PrepareUnitCubic()
         translation.x = std::sin(angle)*radius+((rand()%(int)(2*offset*100))/100.0f-offset);
         translation.y = 0.4f*((rand()%(int)(2*offset*100))/100.0f-offset);
         translation.z = std::cos(angle)*radius+((rand()%(int)(2*offset*100))/100.0f-offset);
-        INFO("{}", glm::to_string(translation));
 
         rotation.x = rand()%360;
         rotation.y = rand()%360;
@@ -348,11 +365,18 @@ void LearnOpenGLLayer::_PrepareUnitCubic()
 
     Renderer::Resources::Create<Shader>("Blinn-Phong")->LoadFromFile("/home/garra/study/dnn/assets/shader/Blinn-Phong.glsl");
     Renderer::Resources::Create<Renderer::Element>("UnitCubic")->Set(mesh, mtr);
+
 }
 
 void LearnOpenGLLayer::_PrepareSkybox()
 {
-    float vertices[] = { -1, -1, +1, -1, +1, +1, -1, +1 };
+    float vertices[] = 
+    {
+        -1, -1, 
+        +1, -1, 
+        +1, +1, 
+        -1, +1,
+    };
     unsigned char indices[] = { 0, 1, 2, 0, 2, 3 };
     Buffer::Layout layoutVextex = { {Buffer::Element::DataType::Float2, "a_Position", false} };
     Buffer::Layout layoutIndex = { {Buffer::Element::DataType::UChar} };
@@ -369,6 +393,35 @@ void LearnOpenGLLayer::_PrepareSkybox()
     mtr->Set("u_NearCorners", maNearCorners)->Set("u_FarCorners", maFarCorners);
     Renderer::Resources::Create<Renderer::Element>("Skybox")->Set(mesh, mtr);
     Renderer::Resources::Create<Shader>("Skybox")->LoadFromFile("/home/garra/study/dnn/assets/shader/Skybox.glsl");
+}
+
+void LearnOpenGLLayer::_PrepareOffscreenPlane()
+{
+    using MA = Material::Attribute;
+    std::shared_ptr<MA> maRightTopTexCoord = Renderer::Resources::Create<MA>("RightTopTexCoord")->SetType(MA::Type::Float2);
+    std::shared_ptr<Material>  mtr = Renderer::Resources::Create<Material>("Offscreen");
+    mtr->Set("u_RightTopTexCoord", maRightTopTexCoord);
+    mtr->AddTexture("u_Offscreen", m_frameBuffer->GetColorBuffer());
+    m_rightTopTexCoord = reinterpret_cast<glm::vec2*>(maRightTopTexCoord->GetData());
+    std::array<float, 4> r = m_viewport->GetRange();
+    *m_rightTopTexCoord = glm::vec2(r[2]/m_frameBuffer->GetCurWidth(), r[3]/m_frameBuffer->GetCurHeight());
+
+    float vertices[] = 
+    {
+        -1, -1, 
+        +1, -1, 
+        -1, +1, 
+        +1, +1,
+    };
+    unsigned char indices[] = { 0, 1, 3, 0, 3, 2 };
+    Buffer::Layout layoutVextex = { {Buffer::Element::DataType::Float2, "a_Position", false} };
+    Buffer::Layout layoutIndex = { {Buffer::Element::DataType::UChar} };
+    std::shared_ptr<Buffer> vb = Buffer::CreateVertex(sizeof(vertices), vertices)->SetLayout(layoutVextex);
+    std::shared_ptr<Buffer> ib = Buffer::CreateIndex(sizeof(indices), indices)->SetLayout(layoutIndex);
+    std::shared_ptr<Elsa::Mesh> mesh= Renderer::Resources::Create<Elsa::Mesh>("OffscreenPlane")->Set(ib, {vb});
+
+    Renderer::Resources::Create<Renderer::Element>("Offscreen")->Set(mesh, mtr);
+    Renderer::Resources::Create<Shader>("Offscreen")->LoadFromFile("/home/garra/study/dnn/assets/shader/OffscreenTexture.glsl");
 }
 
 void LearnOpenGLLayer::_PrepareGroundPlane()
