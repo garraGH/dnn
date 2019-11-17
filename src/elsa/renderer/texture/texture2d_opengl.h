@@ -26,7 +26,7 @@ public:
 
 protected:
     virtual std::shared_ptr<Texture> _LoadImage() override;
-    virtual std::shared_ptr<Texture> _AllocateStorage() override;
+    virtual void _AllocateStorage() override;
 
 private:
     unsigned int _OpenGLFormat();

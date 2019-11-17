@@ -21,7 +21,7 @@ std::shared_ptr<Texture2D> OpenGLTexture2D::Create(const std::string& name)
 OpenGLTexture2D::OpenGLTexture2D(const std::string& name)
     : Texture2D(name)
 {
-    glCreateTextures(GL_TEXTURE_2D, 1, &m_id);
+    glGenTextures(1, &m_id);
     INFO("Create OpenGLTexture2D: {}", m_id);
 }
 
@@ -34,9 +34,10 @@ OpenGLTexture2D::~OpenGLTexture2D()
 std::shared_ptr<Texture> OpenGLTexture2D::_LoadImage()
 {
     stbi_set_flip_vertically_on_load(true);
-    stbi_uc* data = stbi_load(m_imagePath.c_str(), &m_width, &m_height, &m_channel, 0);
+    stbi_uc* data = stbi_load(m_imagePath.c_str(), (int*)&m_width, (int*)&m_height, (int*)&m_channel, 0);
     CORE_ASSERT(data, "OpenGLTexture2D::LoadFromFile: Failed to load image: "+m_imagePath);
 
+    glBindTexture(GL_TEXTURE_2D, m_id);
     glTextureParameteri(m_id, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTextureParameteri(m_id, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTextureStorage2D(m_id, 1, m_channel == 3? GL_RGB8 : GL_RGBA8, m_width, m_height);
@@ -48,18 +49,30 @@ std::shared_ptr<Texture> OpenGLTexture2D::_LoadImage()
     return shared_from_this();
 }
 
-std::shared_ptr<Texture> OpenGLTexture2D::_AllocateStorage()
+void OpenGLTexture2D::_AllocateStorage()
 {
-    glBindTexture(GL_TEXTURE_2D, m_id);
-    glTextureStorage2D(m_id, 1, _OpenGLFormat(), m_width, m_height);
-
-    INFO("OpenGLTexture2D::_AllocateStorage: {}x{}", m_width, m_height);
-    return shared_from_this();
+    INFO("OpenGLTexture2D::_AllocateStorage: size({}x{}), samples({})", m_width, m_height, m_samples);
+    m_samples == 1? 
+        glTextureStorage2D(m_id, 1, _OpenGLFormat(), m_width, m_height) :
+        glTextureStorage2DMultisample(m_id, m_samples, _OpenGLFormat(), m_width, m_height, GL_TRUE);
+    if(m_samples == 1)
+    {
+        glBindTexture(GL_TEXTURE_2D, m_id);
+        glTextureStorage2D(m_id, 1, _OpenGLFormat(), m_width, m_height);
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }
+    else
+    {
+        glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, m_id);
+        glTextureStorage2DMultisample(m_id, m_samples, _OpenGLFormat(), m_width, m_height, GL_TRUE);
+        glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
+    }
 }
 
 void OpenGLTexture2D::Bind(unsigned int slot)
 {
     m_slot = slot;
+
     glBindTextureUnit(slot, m_id);
 }
 

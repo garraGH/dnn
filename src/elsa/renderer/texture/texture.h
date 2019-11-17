@@ -23,23 +23,25 @@ public:
     Texture(const std::string& name) : RenderObject(name) {}
     virtual std::string GetTypeName() { return "Texture"; }
 
-    std::shared_ptr<Texture> Set(int width, int height, Format format);
+    std::shared_ptr<Texture> Set(unsigned int width, unsigned int height, unsigned int samples=1, Format format=Format::RGB8);
     std::shared_ptr<Texture> LoadFromFile(const std::string& imagePath);
+    void Reset(unsigned int width, unsigned int height, unsigned int samples=1, Format format=Format::RGB8);
     const std::string& GetImagePath() const { return m_imagePath; }
-    int GetWidth() const { return m_width; }
-    int GetHeight() const { return m_height; }
-    int GetDepth() const { return m_depth; }
-    int GetChannel() const { return m_channel; }
+    unsigned int GetWidth() const { return m_width; }
+    unsigned int GetHeight() const { return m_height; }
+    unsigned int GetDepth() const { return m_depth; }
+    unsigned int GetChannel() const { return m_channel; }
 
 protected:
-    virtual std::shared_ptr<Texture> _LoadImage() { return nullptr; }
-    virtual std::shared_ptr<Texture> _AllocateStorage() { return nullptr; }
+    virtual std::shared_ptr<Texture> _LoadImage() = 0;
+    virtual void _AllocateStorage() = 0;
 
 protected:
     std::string m_imagePath;
-    int m_width = 0;
-    int m_height = 0;
-    int m_depth = 0;
-    int m_channel = 0;
+    unsigned int m_width = 0;
+    unsigned int m_height = 0;
+    unsigned int m_depth = 0;
+    unsigned int m_channel = 0;
+    unsigned int m_samples = 1;
     Format m_format = Format::RGB8;
 };

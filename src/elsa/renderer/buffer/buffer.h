@@ -88,48 +88,43 @@ protected:
 class RenderBuffer : public RenderObject
 {
 public:
-    RenderBuffer(unsigned int maxWidth, unsigned int maxHeight) : m_maxWidth(maxWidth), m_maxHeight(maxHeight) {}
-    void SetCurrentSize(unsigned int width, unsigned int height) { CORE_ASSERT(width<=m_maxWidth&&height<=m_maxHeight, "RenderBuffer: size exceed limit!"); m_curWidth = width; m_curHeight = height; } 
+    RenderBuffer(unsigned int width, unsigned int height, unsigned int samples=4, const std::string& name="unnamed");
+    void Reset(unsigned int width, unsigned int height, unsigned int samples=4);
 
-    virtual void Bind(unsigned int slot=0) override {}
-    virtual void Unbind() const override {}
-
-    static std::shared_ptr<RenderBuffer> Create(unsigned int maxWidth, unsigned int maxHeight);
+    static std::shared_ptr<RenderBuffer> Create(unsigned int width, unsigned int height, unsigned int samples, const std::string& name);
+protected: 
+    virtual void _Reset() = 0;
 
 protected:
-    unsigned int m_maxWidth;
-    unsigned int m_maxHeight;
-    unsigned int m_curWidth;
-    unsigned int m_curHeight;
+    unsigned int m_width = 1920;
+    unsigned int m_height = 1080;
+    unsigned int m_samples = 4;
 };
 
 class FrameBuffer : public RenderObject
 {
 public:
-    FrameBuffer(unsigned int maxWidth, unsigned int maxHeight) : m_maxWidth(maxWidth), m_maxHeight(maxHeight), m_curWidth(maxWidth), m_curHeight(maxHeight) {}
-    void SetCurrentSize(unsigned int width, unsigned int height) { CORE_ASSERT(width<=m_maxWidth&&height<=m_maxHeight, "FrameBuffer: size exceed limit!"); m_curWidth = width; m_curHeight = height; } 
+    FrameBuffer(unsigned int width, unsigned int height, unsigned int samples=4, const std::string& name="unnamed");
+    void Reset(unsigned int width, unsigned int height, unsigned int samples=4);
 
-    virtual void Bind(unsigned int slot=0) override {}
-    virtual void Unbind() const override {}
-
-    unsigned int GetMaxWidth() const { return m_maxWidth; }
-    unsigned int GetMaxHeight() const { return m_maxHeight; }
-    unsigned int GetCurWidth() const { return m_curWidth; }
-    unsigned int GetCurHeight() const { return m_curHeight; }
+    unsigned int GetWidth() const { return m_width; }
+    unsigned int GetHeight() const { return m_height; }
+    unsigned int GetSamples() const { return m_samples; }
 
     const std::shared_ptr<Texture>& GetColorBuffer() const { return m_colorBuffer; }
     const std::shared_ptr<RenderBuffer>& GetDepthStencilBuffer() const { return m_depthStencilBuffer; }
-    static std::shared_ptr<FrameBuffer> Create(unsigned int maxWidth, unsigned int maxHeight);
-    
+    static std::shared_ptr<FrameBuffer> Create(unsigned int width, unsigned int height, unsigned int samples=4, const std::string& name="unnamed");
+
 protected:
+    virtual void _Reset() = 0;
 
-    std::shared_ptr<Texture> m_colorBuffer;
-    std::shared_ptr<RenderBuffer> m_depthStencilBuffer;
+protected:
+    std::shared_ptr<Texture> m_colorBuffer = nullptr;
+    std::shared_ptr<RenderBuffer> m_depthStencilBuffer = nullptr;
 
-    unsigned int m_maxWidth;
-    unsigned int m_maxHeight;
-    unsigned int m_curWidth;
-    unsigned int m_curHeight;
+    unsigned int m_width = 1920;
+    unsigned int m_height = 1080;
+    unsigned int m_samples = 4;
 };
 
 class BufferArray : public RenderObject

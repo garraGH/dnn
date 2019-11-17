@@ -43,9 +43,10 @@ public:
             Metal = 6
         };
 
-        virtual void SetBackgroundColor(float r, float g, float b, float a) = 0;
+        virtual void SetBackground(const glm::vec4& color, float depth, float stencil) = 0;
         virtual void SetViewport(const std::shared_ptr<Viewport>& viewport) = 0;
         virtual void SetFrameBuffer(const std::shared_ptr<FrameBuffer>& frameBuffer) = 0;
+        virtual void BlitFrameBuffer(const std::shared_ptr<FrameBuffer>& from, const std::shared_ptr<FrameBuffer>& to) = 0;
         virtual void DrawElements(const std::shared_ptr<BufferArray>& bufferArray, unsigned int nInstances) = 0;
         virtual void SetPolygonMode(PolygonMode mode) = 0;
         virtual float GetPixelDepth(int x, int y, const std::shared_ptr<FrameBuffer>& frameBuffer) = 0;
@@ -59,9 +60,10 @@ public:
     class Command
     {
     public:
-        static inline void SetBackgroundColor(float r, float g, float b, float a) { s_api->SetBackgroundColor(r, g, b, a); }
+        static inline void SetBackground(const glm::vec4& color, float depth=1.0f, float stencil=1.0f) { s_api->SetBackground(color, depth, stencil); }
         static inline void SetViewport(const std::shared_ptr<Viewport>& viewport) { s_api->SetViewport(viewport); }
         static inline void SetFrameBuffer(const std::shared_ptr<FrameBuffer>& frameBuffer) { s_api->SetFrameBuffer(frameBuffer); }
+        static inline void BlitFrameBuffer(const std::shared_ptr<FrameBuffer>& from, const std::shared_ptr<FrameBuffer>& to) { s_api->BlitFrameBuffer(from, to); }
         static inline void DrawElements(const std::shared_ptr<BufferArray>& bufferArray, unsigned int nInstances) { s_api->DrawElements(bufferArray, nInstances); }
         static inline void SetPolygonMode(PolygonMode mode) { s_api->SetPolygonMode(mode); }
         static inline float GetPixelDepth(int x, int y, const std::shared_ptr<FrameBuffer>& frameBuffer) { return s_api->GetPixelDepth(x, y, frameBuffer); }
@@ -146,15 +148,16 @@ public:
 
     inline static API::Type GetAPIType() { return s_api->GetType(); }
     static void SetAPIType(API::Type apiType);
-    static void SetBackgroundColor(float r, float g, float b, float a) { Command::SetBackgroundColor(r, g, b, a); }
-    static void SetPolygonMode(PolygonMode mode);
+    static void SetBackground(const glm::vec4& color, float depth=1.0f, float stencil=1.0f) { Command::SetBackground(color, depth, stencil); }
+    static void SetPolygonMode(PolygonMode mode) { Command::SetPolygonMode(mode); }
+    static void BlitFrameBuffer(const std::shared_ptr<FrameBuffer>& from, const std::shared_ptr<FrameBuffer>& to) { Command::BlitFrameBuffer(from, to); }
+    static float GetPixelDepth(int x, int y, const std::shared_ptr<FrameBuffer>& frameBuffer=nullptr) { return Command::GetPixelDepth(x, y, frameBuffer); }
 
     static void BeginScene(const std::shared_ptr<Viewport>& viewport, const std::shared_ptr<FrameBuffer>& frameBuffer=nullptr);
     static void Submit(const std::shared_ptr<Element>& rendererElement, const std::shared_ptr<Shader>& shader, unsigned int nInstances = 1);
     static void Submit(const std::string& nameOfElement, const std::string& nameOfShader, unsigned int nInstances = 1);
     static void EndScene() {}
 
-    static float GetPixelDepth(int x, int y, const std::shared_ptr<FrameBuffer>& frameBuffer=nullptr);
 
 private:
     static std::unique_ptr<API> s_api;

@@ -15,6 +15,15 @@
 class LearnOpenGLLayer : public Layer
 {
 public:
+    enum class PostProcess
+    {
+        None, 
+        Gray, 
+        Smooth, 
+        Edge
+    };
+
+public:
     LearnOpenGLLayer();
 
     void OnEvent(Event& e) override;
@@ -89,9 +98,13 @@ private:
 
     bool m_showSky = true;
     bool m_showGround= true;
+    
+    PostProcess m_pp = PostProcess::None;
 
-    const unsigned int m_numOfInstance = 20000;
+    const unsigned int m_numOfInstance = 2000;
 
-    std::shared_ptr<FrameBuffer> m_frameBuffer = FrameBuffer::Create(1920, 1080);
+    unsigned int m_samples = 4;
+    std::shared_ptr<FrameBuffer> m_fbSS = FrameBuffer::Create(1920, 1080, 1);  // framebufferSingleSample
+    std::shared_ptr<FrameBuffer> m_fbMS = FrameBuffer::Create(1920, 1080, m_samples);  // framebufferMultiSample
 };
 

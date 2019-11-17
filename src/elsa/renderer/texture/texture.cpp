@@ -19,12 +19,23 @@ std::shared_ptr<Texture> Texture::LoadFromFile(const std::string& imagePath)
 }
 
 
-std::shared_ptr<Texture> Texture::Set(int width, int height, Format format)
+std::shared_ptr<Texture> Texture::Set(unsigned int width, unsigned int height, unsigned int samples, Format format)
 {
-    m_width = width;
-    m_height = height;
-    m_format = format;
-
-    return _AllocateStorage();
+    Reset(width, height, samples, format);
+    return shared_from_this();
 }
 
+void Texture::Reset(unsigned int width, unsigned int height, unsigned int samples, Format format)
+{
+    if(width==m_width && height==m_height && samples==m_samples && format==m_format)
+    {
+        return;
+    }
+
+    m_width = width;
+    m_height = height;
+    m_samples = samples;
+    m_format = format;
+
+    _AllocateStorage();
+}

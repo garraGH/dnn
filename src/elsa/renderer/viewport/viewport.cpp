@@ -82,12 +82,12 @@ void Viewport::SetBackgroundDepth(float depth)
 
 std::array<float, 4> Viewport::GetRange() const
 {
-    if(m_type == Type::Fixed)
+    if(m_type == Type::Percentage)
     {
-        return m_range;
+        return { m_range[0]*m_windowSize[0], m_range[1]*m_windowSize[1], m_range[2]*m_windowSize[0], m_range[3]*m_windowSize[1]};
     }
 
-    return { m_range[0]*m_windowSize[0], m_range[1]*m_windowSize[1], m_range[2]*m_windowSize[0], m_range[3]*m_windowSize[1]};
+    return m_range;
 }
 
 const std::array<float, 4>& Viewport::GetBackgroundColor() const
@@ -143,6 +143,11 @@ void Viewport::OnEvent(Event& e)
 
 bool Viewport::_OnWindowResizeEvent(WindowResizeEvent& e)
 {
+    if(m_type == Type::Constant)
+    {
+        return false;
+    }
+
     m_windowSize[0] = e.GetWidth();
     m_windowSize[1] = e.GetHeight();
     if(m_type == Type::Percentage)

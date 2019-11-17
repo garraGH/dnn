@@ -24,12 +24,12 @@ void main()
 uniform sampler2D u_Skybox;
 in vec3 v_Near;
 in vec3 v_Far;
-out vec4 o_Color;
+out vec4 f_Color;
 
 void main()
 {
     vec3 dir = normalize(v_Far-v_Near);
     float latitude = acos(dir.y)/PI;
     float longitude = atan(dir.x, -dir.z)/TWO_PI;
-    o_Color = texture(u_Skybox, vec2(longitude, -latitude));
+    f_Color = texture(u_Skybox, vec2(longitude, -latitude));
 }

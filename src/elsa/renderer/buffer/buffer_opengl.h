@@ -48,22 +48,32 @@ public:
 class OpenGLRenderBuffer : public RenderBuffer
 {
 public:
-    OpenGLRenderBuffer(unsigned int maxWidth, unsigned int maxHeight);
+    OpenGLRenderBuffer(unsigned int width, unsigned int height, unsigned int samples=4, const std::string& name="unnamed");
     ~OpenGLRenderBuffer();
 
     virtual void Bind(unsigned int slot=0) override;
     virtual void Unbind() const override;
 
 protected:
+    virtual void _Reset() override;
+
+private:
+    void _Create();
+    void _Delete();
 };
 
 class OpenGLFrameBuffer : public FrameBuffer
 {
 public:
-    OpenGLFrameBuffer(unsigned int maxWidth, unsigned int maxHeight);
+    OpenGLFrameBuffer(unsigned int width, unsigned int height, unsigned int samples=4, const std::string& name="unnamed");
     ~OpenGLFrameBuffer();
+
     virtual void Bind(unsigned int slot=0) override;
     virtual void Unbind() const override;
+
+protected:
+    virtual void _Reset() override;
+
 };
 
 class OpenGLBufferArray : public BufferArray

@@ -19,7 +19,8 @@ public:
     
     virtual void SetViewport(const std::shared_ptr<Viewport>& viewport) override;
     virtual void SetFrameBuffer(const std::shared_ptr<FrameBuffer>& frameBuffer) override;
-    virtual void SetBackgroundColor(float r, float g, float b, float a) override;
+    virtual void BlitFrameBuffer(const std::shared_ptr<FrameBuffer>& from, const std::shared_ptr<FrameBuffer>& to) override;
+    virtual void SetBackground(const glm::vec4& color, float depth, float stencil) override;
     virtual void DrawElements(const std::shared_ptr<BufferArray>& bufferArray, unsigned int nInstances) override;
     virtual void SetPolygonMode(Renderer::PolygonMode mode) override;
     virtual float GetPixelDepth(int x, int y, const std::shared_ptr<FrameBuffer>& frameBuffer) override;

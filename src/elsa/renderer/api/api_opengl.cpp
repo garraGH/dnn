@@ -34,6 +34,7 @@ void OpenGLAPI::SetViewport(const std::shared_ptr<Viewport>& viewport)
     glDepthFunc(GL_LEQUAL);
     glEnable(GL_DEPTH_WRITEMASK);
     glEnable(GL_BLEND);
+    glEnable(GL_MULTISAMPLE);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_DST_ALPHA);
 }
 
@@ -42,17 +43,26 @@ void OpenGLAPI::SetFrameBuffer(const std::shared_ptr<FrameBuffer>& frameBuffer)
     glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer == nullptr? 0 : frameBuffer->ID());
 }
 
-void OpenGLAPI::SetBackgroundColor(float r, float g, float b, float a)
+void OpenGLAPI::BlitFrameBuffer(const std::shared_ptr<FrameBuffer>& from, const std::shared_ptr<FrameBuffer>& to)
 {
-    glClearColor(r, g, b, a);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, from->ID());
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, to->ID());
+    unsigned int w = from->GetWidth();
+    unsigned int h = from->GetHeight();
+    glBlitFramebuffer(0, 0, w, h, 0, 0, w, h, GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT, GL_NEAREST);
+}
+
+void OpenGLAPI::SetBackground(const glm::vec4& color, float depth, float stencil)
+{
+    glClearColor(color.r, color.g, color.b, color.a);
+    glClearDepth(depth);
+    glClearStencil(stencil);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 }
 
 void OpenGLAPI::DrawElements(const std::shared_ptr<BufferArray>& bufferArray, unsigned int nInstances)
 {
-//     nInstances == 1?
-//         glDrawElements(GL_TRIANGLES, bufferArray->IndexCount(), bufferArray->IndexType(), nullptr) :
-        glDrawElementsInstanced(GL_TRIANGLES, bufferArray->IndexCount(), bufferArray->IndexType(), nullptr, nInstances);
+    glDrawElementsInstanced(GL_TRIANGLES, bufferArray->IndexCount(), bufferArray->IndexType(), nullptr, nInstances);
 }
 
 void OpenGLAPI::SetPolygonMode(Renderer::PolygonMode mode)

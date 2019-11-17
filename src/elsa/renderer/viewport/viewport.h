@@ -20,8 +20,9 @@ class Viewport
 public:
     enum class Type
     {
-        Percentage, 
-        Fixed, 
+        Percentage, // relative to windowsize
+        Fixed,      // actual viewportsize, can be autoresized
+        Constant,   // actual viewportsize, cannot be autoresized
     };
 
 

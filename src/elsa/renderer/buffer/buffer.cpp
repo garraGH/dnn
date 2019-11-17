@@ -38,24 +38,24 @@ std::shared_ptr<Buffer> Buffer::CreateIndex(unsigned int size, const void* data)
     }
 }
 
-std::shared_ptr<RenderBuffer> RenderBuffer::Create(unsigned int maxWidth, unsigned int maxHeight)
+std::shared_ptr<RenderBuffer> RenderBuffer::Create(unsigned int width, unsigned int height, unsigned int samples, const std::string& name)
 {
     switch(Renderer::GetAPIType())
     {
         case Renderer::API::OpenGL:
-            return std::make_shared<OpenGLRenderBuffer>(maxWidth, maxHeight);
+            return std::make_shared<OpenGLRenderBuffer>(width, height, samples, name);
         default:
             CORE_ASSERT(false, "RenderBuffer::Create: API is currently not supported!");
             return nullptr;
     }
 }
 
-std::shared_ptr<FrameBuffer> FrameBuffer::Create(unsigned int maxWidth, unsigned int maxHeight)
+std::shared_ptr<FrameBuffer> FrameBuffer::Create(unsigned int width, unsigned int height, unsigned int samples, const std::string& name)
 {
     switch(Renderer::GetAPIType())
     {
         case Renderer::API::OpenGL:
-            return std::make_shared<OpenGLFrameBuffer>(maxWidth, maxHeight);
+            return std::make_shared<OpenGLFrameBuffer>(width, height, samples, name);
         default:
             CORE_ASSERT(false, "FrameBuffer::Create: API is currently not supported!");
             return nullptr;
@@ -191,3 +191,50 @@ void Buffer::Layout::_calculateOffsetAndStride(Element& e)
     m_stride += e.Size();
 }
 
+
+//////////////////////////////////////////////////////////////////////
+RenderBuffer::RenderBuffer(unsigned int width, unsigned int height, unsigned int samples, const std::string& name)
+    : RenderObject(name)
+    , m_width(width)
+    , m_height(height)
+    , m_samples(samples)
+{
+
+}
+
+void RenderBuffer::Reset(unsigned int width, unsigned int height, unsigned int samples)
+{
+    if(width==m_width && height==m_height && samples==m_samples)
+    {
+        return;
+    }
+
+    m_width = width;
+    m_height = height; 
+    m_samples = samples;
+
+    _Reset();
+} 
+
+/////////////////////////////////////////////////////////////////////////
+FrameBuffer::FrameBuffer(unsigned int width, unsigned int height, unsigned int samples, const std::string& name) 
+    : RenderObject(name)
+    , m_width(width)
+    , m_height(height)
+    , m_samples(samples)
+{
+}
+
+void FrameBuffer::Reset(unsigned int width, unsigned int height, unsigned int samples)
+{
+    if(width==m_width && height==m_height && samples==m_samples)
+    {
+        return;
+    }
+
+    m_width = width;
+    m_height = height;
+    m_samples = samples;
+
+    _Reset();
+}  

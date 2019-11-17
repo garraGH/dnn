@@ -114,19 +114,38 @@ GLenum OpenGLIndexBuffer::GetType()
     return _TypeFrom(e.Type());
 }
 //////////////////////////////////////////////////////////////////////
-OpenGLRenderBuffer::OpenGLRenderBuffer(unsigned int maxWidth, unsigned int maxHeight)
-    : RenderBuffer(maxWidth, maxHeight)
+OpenGLRenderBuffer::OpenGLRenderBuffer(unsigned int width, unsigned int height, unsigned int samples, const std::string& name)
+    : RenderBuffer(width, height, samples, name)
 {
-    glGenRenderbuffers(1, &m_id);
-    glBindRenderbuffer(GL_RENDERBUFFER, m_id);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, m_maxWidth, m_maxHeight);
-    CORE_INFO("Create OpenGLRenderBuffer id({}), size({}x{})", m_id, maxWidth, maxHeight);
+    _Create();
 }
 
 OpenGLRenderBuffer::~OpenGLRenderBuffer()
 {
+    _Delete();
+}
+
+void OpenGLRenderBuffer::_Create()
+{
+    glGenRenderbuffers(1, &m_id);
+    glBindRenderbuffer(GL_RENDERBUFFER, m_id);
+    m_samples == 1?
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, m_width, m_height) :
+        glRenderbufferStorageMultisample(GL_RENDERBUFFER, m_samples, GL_DEPTH24_STENCIL8, m_width, m_height);
+
+    CORE_INFO("Create OpenGLRenderBuffer id({}), size({}x{}), samples({})", m_id, m_width, m_height, m_samples);
+}
+
+void OpenGLRenderBuffer::_Delete()
+{
     glDeleteRenderbuffers(1, &m_id);
-    CORE_INFO("Delete OpenGLRenderBuffer id({}), size({}x{})", m_id, m_maxWidth, m_maxHeight);
+    CORE_INFO("Delete OpenGLRenderBuffer id({}), size({}x{})", m_id, m_width, m_height);
+}
+
+void OpenGLRenderBuffer::_Reset()
+{
+    _Delete();
+    _Create();
 }
 
 void OpenGLRenderBuffer::Bind(unsigned int slot)
@@ -140,26 +159,26 @@ void OpenGLRenderBuffer::Unbind() const
 }
 
 //////////////////////////////////////////////////////////////////////
-OpenGLFrameBuffer::OpenGLFrameBuffer(unsigned int maxWidth, unsigned int maxHeight)
-    : FrameBuffer(maxWidth, maxHeight)
+OpenGLFrameBuffer::OpenGLFrameBuffer(unsigned int width, unsigned int height, unsigned int samples, const std::string& name)
+    : FrameBuffer(width, height, samples, name)
 {
-    m_colorBuffer = Texture2D::Create("ColorBuffer")->Set(m_maxWidth, m_maxHeight, Texture::Format::RGB8);
-    m_depthStencilBuffer = RenderBuffer::Create(m_maxWidth, m_maxHeight);
-    glCreateFramebuffers(1, &m_id);
-    glNamedFramebufferTexture(m_id, GL_COLOR_ATTACHMENT0, m_colorBuffer->ID(), 0);
-    glNamedFramebufferRenderbuffer(m_id, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_depthStencilBuffer->ID());
+    glGenFramebuffers(1, &m_id);
+    glBindFramebuffer(GL_FRAMEBUFFER, m_id);
+    CORE_INFO("Create OpenGLFrameBuffer: id({}), size({}x{}), samples({})", m_id, m_width, m_height, m_samples);
+    m_colorBuffer = Texture2D::Create(m_name+"_ColorBuffer")->Set(m_width, m_height, m_samples, Texture::Format::RGB8);
+    m_depthStencilBuffer = RenderBuffer::Create(m_width, m_height, m_samples, m_name+"_DenpthStencilBuffer");
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_samples==1? GL_TEXTURE_2D:GL_TEXTURE_2D_MULTISAMPLE, m_colorBuffer->ID(), 0);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_depthStencilBuffer->ID());
     if(glCheckNamedFramebufferStatus(m_id, GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
     {
-        CORE_ASSERT(false, "FrameBuffer is not complete!");
+        CORE_ASSERT(false, "Create OpenGLFrameBuffer: FrameBuffer is not complete!");
     }
-
-    CORE_INFO("Create OpenGLFrameBuffer id({}), size({}x{})", m_id, maxWidth, maxHeight);
 }
 
 OpenGLFrameBuffer::~OpenGLFrameBuffer()
 {
     glDeleteFramebuffers(1, &m_id);
-    CORE_INFO("Delete OpenGLFrameBuffer id({}), size({}x{})", m_id, m_maxWidth, m_maxHeight);
+    CORE_INFO("Delete OpenGLFrameBuffer id({}), size({}x{})", m_id, m_width, m_height);
 }
 
 void OpenGLFrameBuffer::Bind(unsigned int slot)
@@ -170,6 +189,20 @@ void OpenGLFrameBuffer::Bind(unsigned int slot)
 void OpenGLFrameBuffer::Unbind() const
 {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void OpenGLFrameBuffer::_Reset() 
+{
+    CORE_INFO("OpenGLFrameBuffer::_Reset: id({}), size({}x{}), samples({})", m_id, m_width, m_height, m_samples);
+    m_colorBuffer->Reset(m_width, m_height, m_samples, Texture::Format::RGB8);
+    m_depthStencilBuffer->Reset(m_width, m_height, m_samples);
+
+    glNamedFramebufferTexture(m_id, GL_COLOR_ATTACHMENT0, m_colorBuffer->ID(), 0);
+    glNamedFramebufferRenderbuffer(m_id, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_depthStencilBuffer->ID());
+    if(glCheckNamedFramebufferStatus(m_id, GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+    {
+        CORE_ASSERT(false, "OpengGLFrameBuffer::_Reset: FrameBuffer is not complete!");
+    }
 }
 
 

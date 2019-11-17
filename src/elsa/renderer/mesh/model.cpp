@@ -53,7 +53,7 @@ void Model::_ProcessNode(aiNode* node, const aiScene* scene)
 }
 void Model::_ProcessMesh(const aiScene* scene, const aiMesh* mesh, unsigned int nthMesh)
 {
-    double scale(100.0);
+    double scale(10.0);
 //     scene->mMetaData->Get("UnitScaleFactor", scale);
 
     std::string meshName = mesh->mName.C_Str();

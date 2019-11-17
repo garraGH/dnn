@@ -25,9 +25,9 @@ LearnOpenGLLayer::LearnOpenGLLayer()
     _PrepareOffscreenPlane();
     _PrepareUnitCubic();
     _PrepareGroundPlane();
-    m_viewport->GetCamera()->SetFrameBuffer(m_frameBuffer);
+    m_viewport->GetCamera()->SetFrameBuffer(m_fbSS);
     m_viewport->GetCamera()->SetTarget(glm::vec3(0, 8, 0));
-//     _PrepareModel();
+    _PrepareModel();
 }
 
 void LearnOpenGLLayer::OnEvent(Event& e)
@@ -41,8 +41,8 @@ void LearnOpenGLLayer::OnEvent(Event& e)
 
 bool LearnOpenGLLayer::_OnWindowResizeEvent(WindowResizeEvent& e)
 {
-    m_rightTopTexCoord->x = e.GetWidth()/(float)m_frameBuffer->GetCurWidth();
-    m_rightTopTexCoord->y = e.GetHeight()/(float)m_frameBuffer->GetCurHeight();
+    m_rightTopTexCoord->x = e.GetWidth()/(float)m_fbSS->GetWidth();
+    m_rightTopTexCoord->y = e.GetHeight()/(float)m_fbSS->GetHeight();
     return false;
 }
 
@@ -50,8 +50,9 @@ void LearnOpenGLLayer::OnUpdate(float deltaTime)
 {
     _UpdateMaterialAttributes();
 
-    Renderer::BeginScene(m_viewport, m_frameBuffer);
-//     m_crysisNanoSuit->Draw(m_shaderPos);
+    Renderer::BeginScene(m_viewport, m_fbMS);
+//     Renderer::BeginScene(m_viewport);
+    m_crysisNanoSuit->Draw(m_shaderPos);
 //     m_bulb->Draw(m_shaderColor);
 //     m_handLight->Draw(m_shaderColor);
     if(m_showGround)
@@ -63,10 +64,12 @@ void LearnOpenGLLayer::OnUpdate(float deltaTime)
     Renderer::Submit("UnitCubic", "Blinn-Phong", m_numOfInstance);
     Renderer::EndScene();
 
+    Renderer::BlitFrameBuffer(m_fbMS, m_fbSS);
+
     Renderer::BeginScene(m_viewport);
     Renderer::Submit("Offscreen", "Offscreen");
     Renderer::EndScene();
-
+ 
     m_viewport->OnUpdate(deltaTime);
 }
 
@@ -86,6 +89,29 @@ void LearnOpenGLLayer::OnImGuiRender()
     if(ImGui::RadioButton("ShowGround", m_showGround))
     {
         m_showGround = !m_showGround;
+    }
+
+    ImGui::Separator();
+    if(ImGui::InputInt("Samples", (int*)&m_samples))
+    {
+        unsigned int w = m_fbMS->GetWidth();
+        unsigned int h = m_fbMS->GetHeight();
+        m_fbMS->Reset(w, h, m_samples);
+    }
+    if(ImGui::CollapsingHeader("PostProcess"))
+    {
+#define RadioButton(x) \
+        if(ImGui::RadioButton(#x, m_pp == PostProcess::x)) \
+        {                                                  \
+            m_pp = PostProcess::x;                         \
+            Renderer::Resources::Get<MA>("PostProcess")->UpdateData(&m_pp); \
+        }                                                                   \
+
+        RadioButton(None);
+        RadioButton(Gray);
+        RadioButton(Smooth);
+        RadioButton(Edge);
+#undef RadioButton
     }
 
     ImGui::Separator();
@@ -163,15 +189,6 @@ void LearnOpenGLLayer::_PrepareModel()
     m_handLight = Renderer::Resources::Create<Model>("HandLight")->LoadFromFile("/home/garra/study/dnn/assets/mesh/HandLight/hand_light.blend");
     m_shaderPos = Renderer::Resources::Create<Shader>("Pos")->LoadFromFile("/home/garra/study/dnn/assets/shader/Model.glsl");
     Renderer::Resources::Create<Shader>("Default")->LoadFromFile("/home/garra/study/dnn/assets/shader/Default.glsl");
-
-//     m_viewport->GetCamera()->SetPosition(glm::vec3(0, 50, 50));
-//     auto [mMin, mMax] = m_model->GetAABB();
-//     std::shared_ptr<Camera> cam = m_viewport->GetCamera();
-//     float dx = mMax.x-mMin.x;
-//     float dy = mMax.y-mMin.y;
-//     float dw = 2.0*sqrt(dx*dx+dy*dy);
-//     cam->SetWidth(dw);
-//     cam->SetPosition(glm::vec3(0, dy*2, dw*2));
 }
 
 void LearnOpenGLLayer::_PrepareUnitCubic()
@@ -399,12 +416,15 @@ void LearnOpenGLLayer::_PrepareOffscreenPlane()
 {
     using MA = Material::Attribute;
     std::shared_ptr<MA> maRightTopTexCoord = Renderer::Resources::Create<MA>("RightTopTexCoord")->SetType(MA::Type::Float2);
+    std::shared_ptr<MA> maPostProcess = Renderer::Resources::Create<MA>("PostProcess")->Set(MA::Type::Int1, 1, &m_pp);
     std::shared_ptr<Material>  mtr = Renderer::Resources::Create<Material>("Offscreen");
     mtr->Set("u_RightTopTexCoord", maRightTopTexCoord);
-    mtr->AddTexture("u_Offscreen", m_frameBuffer->GetColorBuffer());
+    mtr->Set("u_PostProcess", maPostProcess);
+    mtr->AddTexture("u_Offscreen", m_fbSS->GetColorBuffer());
     m_rightTopTexCoord = reinterpret_cast<glm::vec2*>(maRightTopTexCoord->GetData());
+    *m_rightTopTexCoord = glm::vec2(1, 1);
     std::array<float, 4> r = m_viewport->GetRange();
-    *m_rightTopTexCoord = glm::vec2(r[2]/m_frameBuffer->GetCurWidth(), r[3]/m_frameBuffer->GetCurHeight());
+    *m_rightTopTexCoord = glm::vec2(r[2]/m_fbSS->GetWidth(), r[3]/m_fbSS->GetHeight());
 
     float vertices[] = 
     {
