@@ -291,6 +291,12 @@ void Camera::OnUpdate(float deltaTime)
             Rotate({0, 0, +deltaTime*m_speedRotat});
         }
     }
+
+    if(m_bMiddleButtonPressed)
+    {
+        Translate(m_speedOfRoamTranslation*deltaTime);
+        SetTarget(_RotateAroundTargetOnHorizontalPlane(m_target, m_position, m_speedOfRoamRotation*deltaTime));
+    }
 }
 
 
@@ -324,7 +330,8 @@ bool Camera::_OnMouseScrolled(MouseScrolledEvent& e)
 
 bool Camera::_OnMouseButtonPressed(MouseButtonPressedEvent& e)
 {
-    m_bLeftButtonPressed = e.GetMouseButton() == MOUSE_BUTTON_LEFT ;
+    m_bLeftButtonPressed = e.GetMouseButton() == MOUSE_BUTTON_LEFT;
+    m_bMiddleButtonPressed = (e.GetMouseButton()==MOUSE_BUTTON_MIDDLE);
     m_bRightButtonPressed = e.GetMouseButton() == MOUSE_BUTTON_RIGHT;
     
     m_cursorScreenPntWhenButtonPressed = Input::GetMousePosition();
@@ -333,6 +340,10 @@ bool Camera::_OnMouseButtonPressed(MouseButtonPressedEvent& e)
     m_cameraWorldPositionWhenButtonPressed = m_position;
     m_cameraWorldTargetWhenButtonPressed = m_target;
     
+    if(m_bMiddleButtonPressed)
+    {
+        _Roam();
+    }
     return false;
 }
 
@@ -340,17 +351,20 @@ bool Camera::_OnMouseButtonPressed(MouseButtonPressedEvent& e)
 #define PI 3.14159265
 bool Camera::_OnMouseMoved(MouseMovedEvent& e)
 {
-    if(!(m_bLeftButtonPressed||m_bRightButtonPressed))
+    if(!(m_bLeftButtonPressed || m_bMiddleButtonPressed || m_bRightButtonPressed))
     {
         return false;
     }
 
-    SetPosition(m_cameraWorldPositionWhenButtonPressed);
-    SetTarget(m_cameraWorldTargetWhenButtonPressed);
 
     if(m_bRightButtonPressed)
     {
         _RotateAroundPosOfButtonPressed(e);
+    }
+
+    if(m_bMiddleButtonPressed)
+    {
+        _Roam();
     }
 
     if(m_bLeftButtonPressed)
@@ -367,6 +381,34 @@ void Camera::_DragScene()
     glm::vec3 offset = worldPosOfCurrentCursor-m_worldPosOfCursorWhenButtonPressed;
     SetPosition(m_cameraWorldPositionWhenButtonPressed-offset);
     SetTarget(m_cameraWorldTargetWhenButtonPressed-offset);
+}
+
+void Camera::_Roam()
+{
+    glm::vec3 pos = m_position;
+    glm::vec3 tar = m_target;
+
+    SetPosition(m_cameraWorldPositionWhenButtonPressed);
+    SetTarget(m_cameraWorldTargetWhenButtonPressed);
+
+
+    glm::vec3 worldCenterPos = _GetWorldPosOnHorizontalPlane({m_windowSize[0]/2, m_windowSize[1]/2});
+    if(Input::IsKeyPressed(KEY_LEFT_CONTROL))
+    {
+        unsigned int x = m_cursorScreenPntWhenButtonPressed.first;
+        unsigned int y = Input::GetMouseY();
+        m_speedOfRoamTranslation = _GetWorldPosOnHorizontalPlane({x, y})-worldCenterPos;
+        m_speedOfRoamRotation = 2.0*Input::GetMouseX()/m_windowSize[0]-1.0;
+    }
+    else
+    {
+        glm::vec3 worldPosOfCurrentCursor = _GetWorldPosOfCurrentCursorOnHorizontalPlane();
+        m_speedOfRoamTranslation = worldPosOfCurrentCursor-worldCenterPos;
+        m_speedOfRoamRotation = 0;
+    }
+
+    SetPosition(pos);
+    SetTarget(tar);
 }
 
 glm::vec3 Camera::_RotateAroundTargetOnHorizontalPlane(const glm::vec3& pos, const glm::vec3& target, float theta)
@@ -398,6 +440,9 @@ glm::vec3 Camera::_RotateAroundTargetOnVerticalPlane(const glm::vec3& pos, const
 
 void Camera::_RotateAroundPosOfButtonPressed(MouseMovedEvent& e)
 {
+    SetPosition(m_cameraWorldPositionWhenButtonPressed);
+    SetTarget(m_cameraWorldTargetWhenButtonPressed);
+
     float dx = +e.GetX()-m_cursorScreenPntWhenButtonPressed.first;
     float dy = -e.GetY()+m_cursorScreenPntWhenButtonPressed.second;
     dx *= PI/m_windowSize[0];
@@ -423,13 +468,15 @@ void Camera::_RotateAroundPosOfButtonPressed(MouseMovedEvent& e)
 
 glm::vec3 Camera::_GetWorldPosOfCurrentCursorOnDragPlane()
 {
+    SetPosition(m_cameraWorldPositionWhenButtonPressed);
+    SetTarget(m_cameraWorldTargetWhenButtonPressed);
+
     return Input::IsKeyPressed(KEY_LEFT_CONTROL)? _GetWorldPosOfCurrentCursorOnVerticalPlane() : _GetWorldPosOfCurrentCursorOnHorizontalPlane();
 }
 
-glm::vec3 Camera::_GetWorldPosOfCurrentCursorOnHorizontalPlane()
+glm::vec3 Camera::_GetWorldPosOnHorizontalPlane(const glm::vec2& pntOnScreen)
 {
-    auto [x, y] = Input::GetMousePosition();
-    glm::vec3 worldPosOfCurrentCursor = Screen2World({x, y});
+    glm::vec3 worldPosOfCurrentCursor = Screen2World(pntOnScreen);
     glm::vec3 dirInWorldSpace = glm::normalize(worldPosOfCurrentCursor-m_cameraWorldPositionWhenButtonPressed);
     float f = (m_worldPosOfCursorWhenButtonPressed.y-m_cameraWorldPositionWhenButtonPressed.y)/dirInWorldSpace.y;
 
@@ -439,6 +486,12 @@ glm::vec3 Camera::_GetWorldPosOfCurrentCursorOnHorizontalPlane()
     worldPosOnDragPlane.z = dirInWorldSpace.z*f+m_cameraWorldPositionWhenButtonPressed.z;
 
     return worldPosOnDragPlane;
+}
+
+glm::vec3 Camera::_GetWorldPosOfCurrentCursorOnHorizontalPlane()
+{
+    auto [x, y] = Input::GetMousePosition();
+    return _GetWorldPosOnHorizontalPlane({x, y});
 }
 
 glm::vec3 Camera::_GetWorldPosOfCurrentCursorOnVerticalPlane()
@@ -461,7 +514,15 @@ glm::vec3 Camera::_GetWorldPosOfCurrentCursorOnVerticalPlane()
 bool Camera::_OnMouseButtonReleased(MouseButtonReleasedEvent& e)
 {
     m_bLeftButtonPressed &= !(e.GetMouseButton() == MOUSE_BUTTON_LEFT);
+    m_bMiddleButtonPressed &= !(e.GetMouseButton() == MOUSE_BUTTON_MIDDLE);
     m_bRightButtonPressed &= !(e.GetMouseButton() == MOUSE_BUTTON_RIGHT);
+
+    if(!m_bMiddleButtonPressed)
+    {
+        m_speedOfRoamRotation = 0;
+        m_speedOfRoamTranslation = glm::vec3(0.0f);
+    }
+
     return false;
 }
 

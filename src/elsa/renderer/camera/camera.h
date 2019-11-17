@@ -153,12 +153,14 @@ protected:
     bool _OnMouseMoved(MouseMovedEvent& e);
     bool _OnWindowResize(WindowResizeEvent& e);
     void _DragScene();
+    void _Roam();
     void _RotateAroundPosOfButtonPressed(MouseMovedEvent& e);
     glm::vec3 _RotateAroundTargetOnHorizontalPlane(const glm::vec3& pos, const glm::vec3& target, float theta);
     glm::vec3 _RotateAroundTargetOnVerticalPlane(const glm::vec3& pos, const glm::vec3& target, float theta);
     glm::vec3 _GetWorldPosOfCurrentCursorOnDragPlane();
     glm::vec3 _GetWorldPosOfCurrentCursorOnHorizontalPlane();
     glm::vec3 _GetWorldPosOfCurrentCursorOnVerticalPlane();
+    glm::vec3 _GetWorldPosOnHorizontalPlane(const glm::vec2& pntOnScreen);
 
 private:
     std::string m_name;
@@ -194,8 +196,13 @@ private:
     float m_speedRotat = 20.0f;
     float m_speedScale = 0.2f;
 
+
     bool m_bLeftButtonPressed = false;
+    bool m_bMiddleButtonPressed = false;
     bool m_bRightButtonPressed = false;
+    float m_speedOfRoamRotation = 0.0f;
+    glm::vec3 m_speedOfRoamTranslation = glm::vec3(0.0f);
+
     std::pair<float, float> m_cursorScreenPntWhenButtonPressed;
     glm::vec3 m_worldPosOfCursorWhenButtonPressed;
     glm::vec3 m_cameraWorldPositionWhenButtonPressed;
