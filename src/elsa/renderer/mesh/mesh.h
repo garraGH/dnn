@@ -24,48 +24,55 @@ namespace Elsa {
 class Mesh : public Asset, public std::enable_shared_from_this<Mesh>
 {
 public:
-    class Vertexes
+//     class Vertexes
+//     {
+//     public:
+//         enum class DataLayout
+//         {
+// 
+//         };
+// 
+//         class Vertex
+//         {
+//         public:
+//         protected:
+//         private:
+//             glm::vec3 m_pos;        // position
+//             glm::vec3 m_nor;        // normal
+//             glm::vec2 m_uv;         // texcoordinate
+//         };
+//     public:
+//         Vertexes();
+//     protected:
+//     private:
+//         int m_count;
+//         void* m_data;
+//         DataLayout m_dataLayout;
+//     };
+// 
+//     class Indices
+//     {
+//         enum class DataType
+//         {
+//             Int8, 
+//             Int16, 
+//             Int32, 
+//         };
+// 
+//     public:
+//     protected:
+//     private:
+//         int m_count;
+//         void* m_data;
+//         DataType m_dataType;
+//     };
+    struct Vertex
     {
-    public:
-        enum class DataLayout
-        {
-
-        };
-
-        class Vertex
-        {
-        public:
-        protected:
-        private:
-            glm::vec3 m_pos;        // position
-            glm::vec3 m_nor;        // normal
-            glm::vec2 m_uv;         // texcoordinate
-        };
-    public:
-        Vertexes();
-    protected:
-    private:
-        int m_count;
-        void* m_data;
-        DataLayout m_dataLayout;
+        glm::vec3 pos;
+        glm::vec3 nor;
+        glm::vec2 uv;
     };
 
-    class Indices
-    {
-        enum class DataType
-        {
-            Int8, 
-            Int16, 
-            Int32, 
-        };
-
-    public:
-    protected:
-    private:
-        int m_count;
-        void* m_data;
-        DataType m_dataType;
-    };
 public:
     Mesh(const std::string& name="unnamed") : Asset(name) {} 
     virtual void Bind(const std::shared_ptr<Shader>& shader) = 0;
@@ -81,14 +88,14 @@ public:
 
     void SetVertexNumber(unsigned int nVertexes);
     void SetIndexNumber(unsigned int nIndeices);
-    void PushVertex(const glm::vec3& vtx);
+    void PushVertex(const Vertex& vtx);
     void PushIndex(unsigned int index);
     void SetAABB(float x0, float y0, float z0, float x1, float y1, float z1);
     std::pair<glm::vec3, glm::vec3> GetAABB() const;
 
     void Build();
 
-    const std::vector<glm::vec3>& GetVertices() const { return m_vertices; }
+    const std::vector<Vertex>& GetVertices() const { return m_vertices; }
 protected:
     bool m_dirty = true;
     std::shared_ptr<Shader> m_shader = nullptr;
@@ -96,7 +103,7 @@ protected:
     std::shared_ptr<Transform> m_transform = std::make_shared<Transform>();
     std::shared_ptr<Material> m_material = nullptr;
 
-    std::vector<glm::vec3> m_vertices;
+    std::vector<Vertex> m_vertices;
     std::vector<unsigned int> m_indices;
     glm::vec3 m_min = glm::vec3(0);
     glm::vec3 m_max = glm::vec3(1);

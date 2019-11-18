@@ -52,7 +52,11 @@ void LearnOpenGLLayer::OnUpdate(float deltaTime)
 
     Renderer::BeginScene(m_viewport, m_fbMS);
 //     Renderer::BeginScene(m_viewport);
-    m_crysisNanoSuit->Draw(m_shaderPos);
+//     m_crysisNanoSuit->Draw(m_shaderPos);
+//     m_crysisNanoSuit->Draw(m_shaderBlinnPhong);
+//     m_trailer->Draw(m_shaderBlinnPhong);
+        m_silkingMachine->Draw(m_shaderBlinnPhong);
+//         m_horse->Draw(m_shaderBlinnPhong);
 //     m_bulb->Draw(m_shaderColor);
 //     m_handLight->Draw(m_shaderColor);
     if(m_showGround)
@@ -61,7 +65,7 @@ void LearnOpenGLLayer::OnUpdate(float deltaTime)
     if(m_showSky)
         Renderer::Submit("Skybox", "Skybox");
 
-    Renderer::Submit("UnitCubic", "Blinn-Phong", m_numOfInstance);
+    Renderer::Submit("UnitCubic", "Blinn-Phong-Instance", m_numOfInstance);
     Renderer::EndScene();
 
     Renderer::BlitFrameBuffer(m_fbMS, m_fbSS);
@@ -184,11 +188,13 @@ void LearnOpenGLLayer::OnImGuiRender()
 void LearnOpenGLLayer::_PrepareModel()
 {
     m_crysisNanoSuit = Renderer::Resources::Create<Model>("CysisNanoSuit")->LoadFromFile("/home/garra/study/dnn/assets/mesh/CysisNanoSuit/scene.fbx");
+    m_silkingMachine = Renderer::Resources::Create<Model>("SilkingMachine")->LoadFromFile("/home/garra/study/dnn/assets/mesh/SilkingMachine/SilkingMachine.fbx");
+    m_horse = Renderer::Resources::Create<Model>("Horse")->LoadFromFile("/home/garra/study/dnn/assets/mesh/Horse/Horse.fbx");
     m_trailer = Renderer::Resources::Create<Model>("Trailer")->LoadFromFile("/home/garra/study/dnn/assets/mesh/Trailer/Alena_Shek.obj");
-    m_bulb = Renderer::Resources::Create<Model>("Bulb")->LoadFromFile("/home/garra/study/dnn/assets/mesh/Bulb/Bulbs.3ds");
-    m_handLight = Renderer::Resources::Create<Model>("HandLight")->LoadFromFile("/home/garra/study/dnn/assets/mesh/HandLight/hand_light.blend");
-    m_shaderPos = Renderer::Resources::Create<Shader>("Pos")->LoadFromFile("/home/garra/study/dnn/assets/shader/Model.glsl");
-    Renderer::Resources::Create<Shader>("Default")->LoadFromFile("/home/garra/study/dnn/assets/shader/Default.glsl");
+//     m_bulb = Renderer::Resources::Create<Model>("Bulb")->LoadFromFile("/home/garra/study/dnn/assets/mesh/Bulb/Bulbs.3ds");
+//     m_handLight = Renderer::Resources::Create<Model>("HandLight")->LoadFromFile("/home/garra/study/dnn/assets/mesh/HandLight/hand_light.blend");
+//     m_shaderPos = Renderer::Resources::Create<Shader>("Pos")->LoadFromFile("/home/garra/study/dnn/assets/shader/Model.glsl");
+//     Renderer::Resources::Create<Shader>("Default")->LoadFromFile("/home/garra/study/dnn/assets/shader/Default.glsl");
 }
 
 void LearnOpenGLLayer::_PrepareUnitCubic()
@@ -380,7 +386,9 @@ void LearnOpenGLLayer::_PrepareUnitCubic()
     mtr->Set("u_FlashLight.innerCone", maFLightInnerCone);
     mtr->Set("u_FlashLight.outerCone", maFLightOuterCone);
 
-    Renderer::Resources::Create<Shader>("Blinn-Phong")->LoadFromFile("/home/garra/study/dnn/assets/shader/Blinn-Phong.glsl");
+    Renderer::Resources::Create<Shader>("Blinn-Phong-Instance")->Define("_INSTANCE_")->LoadFromFile("/home/garra/study/dnn/assets/shader/Blinn-Phong.glsl");
+    m_shaderBlinnPhong = Renderer::Resources::Create<Shader>("Blinn-Phong")->LoadFromFile("/home/garra/study/dnn/assets/shader/Blinn-Phong.glsl");
+
     Renderer::Resources::Create<Renderer::Element>("UnitCubic")->Set(mesh, mtr);
 
 }

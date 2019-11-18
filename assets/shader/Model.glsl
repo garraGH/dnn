@@ -15,9 +15,10 @@ void main()
 
 #type fragment
 #version 460 core
-out vec4 o_Color;
 in vec4 v_Position;
+out vec4 f_Color;
+
 void main()
 {
-   o_Color = v_Position;
+   f_Color = v_Position;
 }

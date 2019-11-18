@@ -45,6 +45,7 @@ public:
     virtual std::string GetTypeName() const { return "Shader"; }
 
     int GetLocation(const std::string& name);
+    std::shared_ptr<Shader> Define(const std::string& macro);
 
     static std::shared_ptr<Shader> Create(const std::string& name);
 
@@ -57,6 +58,7 @@ protected:
     Type _TypeFromString(const std::string& type) const;
 
 protected:
+    std::string m_macros;
     std::string m_srcFile;
     std::map<const std::string, int> m_locations;
 };

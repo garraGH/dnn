@@ -50,7 +50,7 @@ void Mesh::SetVertexNumber(unsigned int numVertices)
 }
 
 
-void Mesh::PushVertex(const glm::vec3& vtx)
+void Mesh::PushVertex(const Vertex& vtx)
 {
     m_vertices.push_back(vtx);
 }
@@ -78,9 +78,14 @@ std::pair<glm::vec3, glm::vec3> Mesh::GetAABB() const
 
 void Mesh::Build()
 {
-    Buffer::Layout layoutVextex = { {Buffer::Element::DataType::Float3, "a_Position", false}, };
+    Buffer::Layout layoutVextex = { 
+        { Buffer::Element::DataType::Float3, "a_Position", false }, 
+        { Buffer::Element::DataType::Float3, "a_Normal", false }, 
+        { Buffer::Element::DataType::Float2, "a_TexCoord", false }
+    };
+
     INFO("Mesh::Build: {} numVertices: {}, numIndices: {}", m_name, m_vertices.size(), m_indices.size());
-    std::shared_ptr<Buffer> vb = Buffer::CreateVertex(m_vertices.size()*sizeof(glm::vec3), &m_vertices[0]);
+    std::shared_ptr<Buffer> vb = Buffer::CreateVertex(m_vertices.size()*sizeof(Vertex), &m_vertices[0]);
     vb->SetLayout(layoutVextex);
 
     std::shared_ptr<Buffer> ib = Buffer::CreateIndex(m_indices.size()*sizeof(unsigned int), &m_indices[0]);

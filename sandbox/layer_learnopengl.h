@@ -48,11 +48,14 @@ protected:
 private:
     std::shared_ptr<Viewport> m_viewport = Viewport::Create("LearnOpenGL_Viewport_Main");
     std::shared_ptr<Model> m_crysisNanoSuit = nullptr;
+    std::shared_ptr<Model> m_silkingMachine = nullptr;
+    std::shared_ptr<Model> m_horse = nullptr;
     std::shared_ptr<Model> m_trailer = nullptr;
     std::shared_ptr<Model> m_bulb = nullptr;
     std::shared_ptr<Model> m_handLight = nullptr;
     std::shared_ptr<Shader> m_shaderPos = nullptr;
     std::shared_ptr<Shader> m_shaderColor = nullptr;
+    std::shared_ptr<Shader> m_shaderBlinnPhong = nullptr;
 
     struct 
     {

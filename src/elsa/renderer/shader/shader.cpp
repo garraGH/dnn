@@ -26,6 +26,11 @@ std::shared_ptr<Shader> Shader::Create(const std::string& name)
     }
 }
 
+std::shared_ptr<Shader> Shader::Define(const std::string& macro)
+{
+    m_macros += "#define "+macro+"\n";
+    return shared_from_this();
+}
 
 int Shader::GetLocation(const std::string& name)
 {
@@ -82,6 +87,7 @@ std::unordered_map<Shader::Type, std::string> Shader::_SplitShaders(const std::s
     std::unordered_map<Type, std::string> splitShaderSources;
 
     const char* typeToken = "#type";
+    const char* versionToken = "#version";
     size_t typeTokenLength = strlen(typeToken);
     size_t pos = sources.find(typeToken, 0);
 
@@ -93,9 +99,12 @@ std::unordered_map<Shader::Type, std::string> Shader::_SplitShaders(const std::s
         std::string type = sources.substr(begin, eol-begin);
         trim(type);
         transform(type.begin(), type.end(), type.begin(), toupper);
+        pos = sources.find(versionToken, eol);
+        eol = sources.find_first_of("\r\n", pos);
         size_t nextLinePos = sources.find_first_not_of("\r\n", eol);
+        splitShaderSources[_TypeFromString(type)] = sources.substr(pos, nextLinePos-pos)+m_macros;
         pos = sources.find(typeToken, nextLinePos);
-        splitShaderSources[_TypeFromString(type)] = sources.substr(nextLinePos, pos-(nextLinePos == std::string::npos? sources.size()-1 : nextLinePos));
+        splitShaderSources[_TypeFromString(type)] += sources.substr(nextLinePos, pos-(nextLinePos == std::string::npos? sources.size()-1 : nextLinePos));
     }
 
     return splitShaderSources;

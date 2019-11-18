@@ -53,7 +53,7 @@ void Model::_ProcessNode(aiNode* node, const aiScene* scene)
 }
 void Model::_ProcessMesh(const aiScene* scene, const aiMesh* mesh, unsigned int nthMesh)
 {
-    double scale(10.0);
+    double scale(1.0);
 //     scene->mMetaData->Get("UnitScaleFactor", scale);
 
     std::string meshName = mesh->mName.C_Str();
@@ -67,7 +67,12 @@ void Model::_ProcessMesh(const aiScene* scene, const aiMesh* mesh, unsigned int 
     
     for(unsigned int i=0; i<mesh->mNumVertices; i++)
     {
-        elsaMesh->PushVertex(glm::vec3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z)/float(scale));
+        Elsa::Mesh::Vertex vtx;
+        vtx.pos = glm::vec3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z)/float(scale);
+        vtx.nor = glm::vec3(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z);
+        vtx.uv = mesh->mTextureCoords[0]? glm::vec2(mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y) : glm::vec2(0.0f);
+//         INFO("{}, {}, {}", glm::to_string(vtx.pos), glm::to_string(vtx.nor), glm::to_string(vtx.uv));
+        elsaMesh->PushVertex(vtx);
     }
     elsaMesh->SetIndexNumber(mesh->mNumFaces*3);
 //     unsigned int k = 0;
@@ -89,9 +94,130 @@ void Model::_ProcessMesh(const aiScene* scene, const aiMesh* mesh, unsigned int 
     std::string eleName = "re_"+elsaMesh->GetName();
     std::shared_ptr<Renderer::Element> ele = Renderer::Resources::Create<Renderer::Element>(eleName);
     ele->SetMesh(elsaMesh);
+    std::string textureBasePath = "/home/garra/study/dnn/assets/texture/";
+    std::shared_ptr<Material> mtr = Renderer::Resources::Create<Material>("mtr_"+m_name+"_"+std::to_string(nthMesh));
+    using MA = Material::Attribute;
+    mtr->Set("u_Material.ambientReflectance", Renderer::Resources::Get<MA>("MaterialAmbientReflectance"));
+    mtr->Set("u_Material.diffuseReflectance", Renderer::Resources::Get<MA>("MaterialDiffuseReflectance"));
+    mtr->Set("u_Material.specularReflectance", Renderer::Resources::Get<MA>("MaterialSpecularReflectance"));
+    mtr->Set("u_Material.emissiveColor", Renderer::Resources::Get<MA>("MaterialEmissiveColor"));
+    mtr->Set("u_Material.shininess", Renderer::Resources::Get<MA>("MaterialShininess"));
+
+    // AmbientColor
+    mtr->Set("u_AmbientColor", Renderer::Resources::Get<MA>("AmbientColor"));
+
+    // DirectionalLight
+    mtr->Set("u_DirectionalLight[0].color", Renderer::Resources::Get<MA>("DLightColor"));
+    mtr->Set("u_DirectionalLight[0].direction", Renderer::Resources::Get<MA>("DLightDirection"));
+
+    // PointLight
+    mtr->Set("u_PointLight[0].position", Renderer::Resources::Get<MA>("PLightPosition"));
+    mtr->Set("u_PointLight[0].color", Renderer::Resources::Get<MA>("PLightColor"));
+    mtr->Set("u_PointLight[0].attenuationCoefficients", Renderer::Resources::Get<MA>("PLightCoefs"));
+
+    // SpotLight
+    mtr->Set("u_SpotLight[0].position", Renderer::Resources::Get<MA>("SLightPosition"));
+    mtr->Set("u_SpotLight[0].direction", Renderer::Resources::Get<MA>("SLightDirection"));
+    mtr->Set("u_SpotLight[0].attenuationCoefficients", Renderer::Resources::Get<MA>("SLightCoefs"));
+    mtr->Set("u_SpotLight[0].color", Renderer::Resources::Get<MA>("SLightColor"));
+    mtr->Set("u_SpotLight[0].innerCone", Renderer::Resources::Get<MA>("SLightInnerCone"));
+    mtr->Set("u_SpotLight[0].outerCone", Renderer::Resources::Get<MA>("SLightOuterCone"));
+    
+    // FlashLight
+    mtr->Set("u_FlashLight.position", Renderer::Resources::Get<MA>("FLightPosition"));
+    mtr->Set("u_FlashLight.direction", Renderer::Resources::Get<MA>("FLightDirection"));
+    mtr->Set("u_FlashLight.attenuationCoefficients", Renderer::Resources::Get<MA>("FLightCoefs"));
+    mtr->Set("u_FlashLight.color", Renderer::Resources::Get<MA>("FLightColor"));
+    mtr->Set("u_FlashLight.innerCone", Renderer::Resources::Get<MA>("FLightInnerCone"));
+    mtr->Set("u_FlashLight.outerCone", Renderer::Resources::Get<MA>("FLightOuterCone"));
+    if(mesh->mMaterialIndex >= 0)
+    {
+        aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
+        aiTextureType type = aiTextureType_DIFFUSE;
+        for(unsigned int i=0; i<material->GetTextureCount(type); i++)
+        {
+            aiString texturePath;
+            material->GetTexture(type, 0, &texturePath);
+            std::string temp = texturePath.C_Str();
+            size_t pos = temp.find_last_of("/\\");
+            std::string textureNameWithExtension = pos == std::string::npos? temp : temp.substr(pos+1);
+            INFO("DiffuseTexture: {}", textureNameWithExtension);
+            std::string textureNameWithoutExtension = textureNameWithExtension.substr(0, textureNameWithExtension.find('.'));
+            std::shared_ptr<Texture> tex = Renderer::Resources::Create<Texture2D>(textureNameWithoutExtension)->LoadFromFile(textureBasePath+textureNameWithExtension);
+            mtr->AddTexture("u_Material.diffuseMap", tex);
+        }
+        type = aiTextureType_SPECULAR;
+        for(unsigned int i=0; i<material->GetTextureCount(type); i++)
+        {
+            aiString texturePath;
+            material->GetTexture(type, 0, &texturePath);
+            std::string temp = texturePath.C_Str();
+            size_t pos = temp.find_last_of("/\\");
+            std::string textureNameWithExtension = pos == std::string::npos? temp : temp.substr(pos+1);
+            INFO("SpecularTexture: {}", textureNameWithExtension);
+            std::string textureNameWithoutExtension = textureNameWithExtension.substr(0, textureNameWithExtension.find('.'));
+            std::shared_ptr<Texture> tex = Renderer::Resources::Create<Texture2D>(textureNameWithoutExtension)->LoadFromFile(textureBasePath+textureNameWithExtension);
+            mtr->AddTexture("u_Material.specularMap", tex);
+        }
+        _ListTexture(material, aiTextureType_HEIGHT);
+        _ListTexture(material, aiTextureType_AMBIENT);
+        _ListTexture(material, aiTextureType_DIFFUSE);
+        _ListTexture(material, aiTextureType_NORMALS);
+        _ListTexture(material, aiTextureType_OPACITY);
+        _ListTexture(material, aiTextureType_EMISSIVE);
+        _ListTexture(material, aiTextureType_LIGHTMAP);
+        _ListTexture(material, aiTextureType_SPECULAR);
+        _ListTexture(material, aiTextureType_METALNESS);
+        _ListTexture(material, aiTextureType_SHININESS);
+        _ListTexture(material, aiTextureType_REFLECTION);
+        _ListTexture(material, aiTextureType_DISPLACEMENT);
+        _ListTexture(material, aiTextureType_BASE_COLOR);
+        _ListTexture(material, aiTextureType_NORMAL_CAMERA);
+        _ListTexture(material, aiTextureType_EMISSION_COLOR);
+        _ListTexture(material, aiTextureType_DIFFUSE_ROUGHNESS);
+    }                                                        j
+    ele->SetMaterial(mtr);
     m_renderElements.push_back(ele);
 }
 
+const std::string Model::_TextureType(aiTextureType type) const
+{
+    switch(type)
+    {
+        case aiTextureType_HEIGHT: return "HEIGHT";
+        case aiTextureType_AMBIENT: return "AMBIENT";
+        case aiTextureType_DIFFUSE: return "DIFFUSE";
+        case aiTextureType_NORMALS: return "NORMALS";
+        case aiTextureType_OPACITY: return "OPACITY";
+        case aiTextureType_EMISSIVE: return "EMISSIVE";
+        case aiTextureType_LIGHTMAP: return "LIGHTMAP";
+        case aiTextureType_SPECULAR: return "SPECULAR";
+        case aiTextureType_METALNESS: return "METALNESS";
+        case aiTextureType_SHININESS: return "SHININESS";
+        case aiTextureType_REFLECTION: return "REFLECTION";
+        case aiTextureType_DISPLACEMENT: return "DISPLACEMENT";
+        case aiTextureType_BASE_COLOR: return "BASE_COLOR";
+        case aiTextureType_NORMAL_CAMERA: return "NORMAL_CAMERA";
+        case aiTextureType_EMISSION_COLOR: return "EMISSION_COLOR";
+        case aiTextureType_AMBIENT_OCCLUSION: return "AMBIENT_OCCLUSION";
+        case aiTextureType_DIFFUSE_ROUGHNESS: return "DIFFUSE_ROUGHNESS";
+        default: return "UNKNOWN";
+    }
+}
+
+void Model::_ListTexture(aiMaterial* material, aiTextureType type) const
+{
+    for(unsigned int i=0; i<material->GetTextureCount(type); i++)
+    {
+        aiString texturePath;
+        material->GetTexture(type, 0, &texturePath);
+        std::string temp = texturePath.C_Str();
+        size_t pos = temp.find_last_of("/\\");
+        std::string textureNameWithExtension = pos == std::string::npos? temp : temp.substr(pos+1);
+        INFO("{}: {}", _TextureType(type), textureNameWithExtension);
+    }
+
+}
 void Model::_ProcessMaterial(aiMaterial* mtr, aiTextureType type, const std::string& typeName)
 {
 
@@ -112,7 +238,7 @@ void Model::Export(const glm::mat4& vp)
         auto vertices = mesh->GetVertices();
         for(auto v : vertices)
         {
-            INFO("{}:{}", glm::to_string(v), glm::to_string(vp*glm::vec4(v, 1)));
+            INFO("{}:{}", glm::to_string(v.pos), glm::to_string(vp*glm::vec4(v.pos, 1)));
             break;
         }
         break;

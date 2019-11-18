@@ -77,6 +77,9 @@ protected:
     void _ProcessMesh(const aiScene* scene, const aiMesh* mesh, unsigned int nthMesh);
     void _ProcessMaterial(aiMaterial* mtr, aiTextureType type, const std::string& typeName);
 
+    void _ListTexture(aiMaterial* material, aiTextureType type) const;
+    const std::string _TextureType(aiTextureType type) const;
+
 private:
     std::vector<std::shared_ptr<MeshData>> m_meshdata;
     std::vector<std::shared_ptr<Elsa::Mesh>> m_meshes;
