@@ -32,14 +32,29 @@ std::shared_ptr<Shader> Shader::Define(const std::string& macro)
     return shared_from_this();
 }
 
-int Shader::GetLocation(const std::string& name)
+int Shader::GetAttributeLocation(const std::string& name)
 {
-    auto result = m_locations.find(name);
-    int location =  result != m_locations.end()? result->second : _UpdateLocations(name);
-//     INFO("Shader::GetLocation: {}, {}", name, location);
+    auto result = m_attributeLocations.find(name);
+    int location = result != m_attributeLocations.end()? result->second : _GetAttributeLocation(name);
+//     INFO("Shader::GetAttributeLocation: {}, {}", name, location);
     return location;
 }
 
+int Shader::GetUniformLocation(const std::string& name)
+{
+    auto result = m_uniformLocations.find(name);
+    int location =  result != m_uniformLocations.end()? result->second : _GetUniformLocation(name);
+//     INFO("Shader::GetUniformLocation: {}, {}", name, location);
+    return location;
+}
+
+unsigned int Shader::GetUniformBlockIndex(const std::string& name)
+{
+    auto result = m_uniformBlockIndices.find(name);
+    unsigned int index = result != m_uniformBlockIndices.end()? result->second : _GetUniformBlockIndex(name);
+//     INFO("Shader::GetUniformBlockIndex: {}, {}", name, index);
+    return index;
+}
 
 std::string Shader::_ReadFile(const std::string& srcFile) const
 {

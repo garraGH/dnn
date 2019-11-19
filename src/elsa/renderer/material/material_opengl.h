@@ -20,6 +20,7 @@ public:
     static std::shared_ptr<Material> Create(const std::string& name);
 
 private:
-    void _BindAttribute(const std::shared_ptr<Shader>& shader);
-    void _BindTexture(const std::shared_ptr<Shader>& shader);
+    void _BindUniforms(const std::shared_ptr<Shader>& shader);
+    void _BindTextures(const std::shared_ptr<Shader>& shader);
+    void _BindUniformBuffers(const std::shared_ptr<Shader>& shader);
 };

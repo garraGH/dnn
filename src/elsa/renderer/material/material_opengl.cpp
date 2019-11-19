@@ -30,70 +30,88 @@ void OpenGLMaterial::Bind(const std::shared_ptr<Shader>& shader)
     m_shader = shader;
     m_dirty = false;
 
-    _BindAttribute(shader);
-    _BindTexture(shader);
+    _BindUniforms(shader);
+    _BindTextures(shader);
+    _BindUniformBuffers(shader);
 }
 
-void OpenGLMaterial::_BindAttribute(const std::shared_ptr<Shader>& shader)
+void OpenGLMaterial::_BindUniforms(const std::shared_ptr<Shader>& shader)
 {
-    using MAT = Material::Attribute::Type;
-    for(auto& a : m_attributes)
+    using MUT = Material::Uniform::Type;
+    for(auto& u : m_uniforms)
     {
-        int location = m_shader->GetLocation(a.first);
-//         INFO("OpenGLMaterial::Bind: {}, {}", a.first, location);
+        int location = m_shader->GetUniformLocation(u.first);
+//         INFO("OpenGLMaterial::Bind: {}, {}", u.first, location);
         if(location == -1)
         {
             continue;
         }
 
-        int count = a.second->GetCount();
-        const void* data = a.second->GetData();
-        bool transpose = a.second->NeedTranspose();
+        int count = u.second->GetCount();
+        const void* data = u.second->GetData();
+        bool transpose = u.second->NeedTranspose();
 
-        switch(a.second->GetType())
+        switch(u.second->GetType())
         {
-            case MAT::Float1: glUniform1fv (location, count, (GLfloat*)data); break; 
-            case MAT::Float2: glUniform2fv (location, count, (GLfloat*)data); break;
-            case MAT::Float3: glUniform3fv (location, count, (GLfloat*)data); break;
-            case MAT::Float4: glUniform4fv (location, count, (GLfloat*)data); break;
-            case MAT::Int1:   glUniform1iv (location, count, (GLint*  )data); break;
-            case MAT::Int2:   glUniform2iv (location, count, (GLint*  )data); break;
-            case MAT::Int3:   glUniform3iv (location, count, (GLint*  )data); break;
-            case MAT::Int4:   glUniform4iv (location, count, (GLint*  )data); break;
-            case MAT::UInt1:  glUniform1uiv(location, count, (GLuint* )data); break;
-            case MAT::UInt2:  glUniform2uiv(location, count, (GLuint* )data); break;
-            case MAT::UInt3:  glUniform3uiv(location, count, (GLuint* )data); break;
-            case MAT::UInt4:  glUniform4uiv(location, count, (GLuint* )data); break;
-            case MAT::Mat2x2: glUniformMatrix2fv  (location, count, transpose, (GLfloat*)data); break;
-            case MAT::Mat2x3: glUniformMatrix2x3fv(location, count, transpose, (GLfloat*)data); break;
-            case MAT::Mat2x4: glUniformMatrix2x4fv(location, count, transpose, (GLfloat*)data); break;
-            case MAT::Mat3x2: glUniformMatrix3x2fv(location, count, transpose, (GLfloat*)data); break;
-            case MAT::Mat3x3: glUniformMatrix3fv  (location, count, transpose, (GLfloat*)data); break;
-            case MAT::Mat3x4: glUniformMatrix3x4fv(location, count, transpose, (GLfloat*)data); break;
-            case MAT::Mat4x2: glUniformMatrix4x2fv(location, count, transpose, (GLfloat*)data); break;
-            case MAT::Mat4x3: glUniformMatrix4x3fv(location, count, transpose, (GLfloat*)data); break;
-            case MAT::Mat4x4: glUniformMatrix4fv  (location, count, transpose, (GLfloat*)data); break;
+            case MUT::Float1: glUniform1fv (location, count, (GLfloat*)data); break; 
+            case MUT::Float2: glUniform2fv (location, count, (GLfloat*)data); break;
+            case MUT::Float3: glUniform3fv (location, count, (GLfloat*)data); break;
+            case MUT::Float4: glUniform4fv (location, count, (GLfloat*)data); break;
+            case MUT::Int1:   glUniform1iv (location, count, (GLint*  )data); break;
+            case MUT::Int2:   glUniform2iv (location, count, (GLint*  )data); break;
+            case MUT::Int3:   glUniform3iv (location, count, (GLint*  )data); break;
+            case MUT::Int4:   glUniform4iv (location, count, (GLint*  )data); break;
+            case MUT::UInt1:  glUniform1uiv(location, count, (GLuint* )data); break;
+            case MUT::UInt2:  glUniform2uiv(location, count, (GLuint* )data); break;
+            case MUT::UInt3:  glUniform3uiv(location, count, (GLuint* )data); break;
+            case MUT::UInt4:  glUniform4uiv(location, count, (GLuint* )data); break;
+            case MUT::Mat2x2: glUniformMatrix2fv  (location, count, transpose, (GLfloat*)data); break;
+            case MUT::Mat2x3: glUniformMatrix2x3fv(location, count, transpose, (GLfloat*)data); break;
+            case MUT::Mat2x4: glUniformMatrix2x4fv(location, count, transpose, (GLfloat*)data); break;
+            case MUT::Mat3x2: glUniformMatrix3x2fv(location, count, transpose, (GLfloat*)data); break;
+            case MUT::Mat3x3: glUniformMatrix3fv  (location, count, transpose, (GLfloat*)data); break;
+            case MUT::Mat3x4: glUniformMatrix3x4fv(location, count, transpose, (GLfloat*)data); break;
+            case MUT::Mat4x2: glUniformMatrix4x2fv(location, count, transpose, (GLfloat*)data); break;
+            case MUT::Mat4x3: glUniformMatrix4x3fv(location, count, transpose, (GLfloat*)data); break;
+            case MUT::Mat4x4: glUniformMatrix4fv  (location, count, transpose, (GLfloat*)data); break;
                                                                                               
             default: CORE_ASSERT(false, "OpenGLMaterial::_BindAttribute: Unknown MaterialAttributeType!");                     
         }                                                                                     
     }
 }
 
-void OpenGLMaterial::_BindTexture(const std::shared_ptr<Shader>& shader)
+void OpenGLMaterial::_BindTextures(const std::shared_ptr<Shader>& shader)
 {
     int slot = 0;
     for(auto& tex : m_textures)
     {
-        int location = m_shader->GetLocation(tex.first);
+        int location = m_shader->GetUniformLocation(tex.first);
         if(location == -1)
         {
             continue;
         }
 
         tex.second->Bind(slot);
-        glUniform1i(location, slot);
-        slot++;
+        glUniform1i(location, slot++);
     }
 }
 
+void OpenGLMaterial::_BindUniformBuffers(const std::shared_ptr<Shader>& shader)
+{
+    unsigned int bindingPoint = 0;
+    for(auto ub : m_uniformBuffers)
+    {
+        GLuint indexOfUniformBlock = m_shader->GetUniformBlockIndex(ub.first);
+        if(indexOfUniformBlock == GL_INVALID_INDEX)
+        {
+            continue;
+        }
+        ub.second->Bind();
+        glBindBufferBase(GL_UNIFORM_BUFFER, bindingPoint, ub.second->ID());
+        ub.second->Unbind();
+        glUniformBlockBinding(shader->ID(), indexOfUniformBlock, bindingPoint);
+        INFO("ub: {}, indexOfUniformBlock: {}, bindingPoint: {}", ub.first, indexOfUniformBlock, bindingPoint);
+        bindingPoint++;
+    }
+}
 

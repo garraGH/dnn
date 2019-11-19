@@ -43,7 +43,9 @@ protected:
     void _PrepareOffscreenPlane();
     void _PrepareModel();
     void _PrepareUnitCubic();
-    void _UpdateMaterialAttributes();
+    void _UpdateMaterialUniforms();
+
+    void _PrepareUniformBuffers();
 
 private:
     std::shared_ptr<Viewport> m_viewport = Viewport::Create("LearnOpenGL_Viewport_Main");

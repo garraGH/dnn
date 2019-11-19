@@ -25,14 +25,14 @@ Pattern::Pattern()
 
 void Pattern::_PrepareResources()
 {
-    using MA = Material::Attribute;
-    std::shared_ptr<MA> maColor = Renderer::Resources::Create<MA>("Color")->Set(MA::Type::Float4);
-    std::shared_ptr<MA> maTiles = Renderer::Resources::Create<MA>("Tiles")->Set(MA::Type::Float2);
-    std::shared_ptr<MA> maTime = Renderer::Resources::Create<MA>("Time")->Set(MA::Type::Float1);
+    using MU = Material::Uniform;
+    std::shared_ptr<MU> maColor = Renderer::Resources::Create<MU>("Color")->Set(MU::Type::Float4);
+    std::shared_ptr<MU> maTiles = Renderer::Resources::Create<MU>("Tiles")->Set(MU::Type::Float2);
+    std::shared_ptr<MU> maTime = Renderer::Resources::Create<MU>("Time")->Set(MU::Type::Float1);
     std::shared_ptr<Material> mtr = Renderer::Resources::Create<Material>("Pattern");
-    mtr->Set("u_Color", maColor);
-    mtr->Set("u_Tiles", maTiles);
-    mtr->Set("u_Time", maTime);
+    mtr->SetUniform("u_Color", maColor);
+    mtr->SetUniform("u_Tiles", maTiles);
+    mtr->SetUniform("u_Time", maTime);
 
     m_time = (float*)maTime->GetData();
     m_color = (float*)maColor->GetData();

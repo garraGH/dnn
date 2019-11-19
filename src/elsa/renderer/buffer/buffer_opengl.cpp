@@ -61,7 +61,7 @@ void OpenGLVertexBuffer::Bind(const std::shared_ptr<Shader>& shader)
     int location = 0;
     for(const auto e : m_layout)
     {
-        location = shader->GetLocation(e.Name());
+        location = shader->GetAttributeLocation(e.Name());
         if(location == -1)
         {
             continue;
@@ -272,4 +272,41 @@ unsigned int OpenGLBufferArray::IndexCount() const
 unsigned int OpenGLBufferArray::IndexType() const
 {
     return static_cast<OpenGLIndexBuffer*>(m_indexBuffer.get())->GetType();
+}
+
+/////////////////////////////////////////////////////////////////////////////////////
+OpenGLUniformBuffer::OpenGLUniformBuffer(const std::string& name)
+    : UniformBuffer(name)
+{
+    glGenBuffers(1, &m_id);
+}
+
+OpenGLUniformBuffer::~OpenGLUniformBuffer()
+{
+    glDeleteBuffers(1, &m_id);
+}
+
+
+void OpenGLUniformBuffer::Bind(unsigned int slot)
+{
+    glBindBuffer(GL_UNIFORM_BUFFER, m_id);
+}
+
+void OpenGLUniformBuffer::Unbind() const
+{
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+}
+
+void OpenGLUniformBuffer::Upload(const std::string& name, const void* data)
+{
+    glBindBuffer(GL_UNIFORM_BUFFER, m_id);
+    glBufferSubData(GL_UNIFORM_BUFFER, m_layouts[name].x, m_layouts[name].y, data);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+}
+
+void OpenGLUniformBuffer::_Allocate() const
+{
+    glBindBuffer(GL_UNIFORM_BUFFER, m_id);
+    glBufferData(GL_UNIFORM_BUFFER, m_size, nullptr, GL_DYNAMIC_DRAW);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }

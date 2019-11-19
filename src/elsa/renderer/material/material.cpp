@@ -23,7 +23,7 @@ std::shared_ptr<Material> Material::Create(const std::string& name)
     }
 }
 
-int Material::Attribute::_TypeSize() const
+int Material::Uniform::_TypeSize() const
 {
     switch(m_type)
     {
@@ -48,17 +48,17 @@ int Material::Attribute::_TypeSize() const
         case Type::Mat4x2: return 4*2*sizeof(float);
         case Type::Mat4x3: return 4*3*sizeof(float);
         case Type::Mat4x4: return 4*4*sizeof(float);
-        default: CORE_ASSERT(false, "Unknown AttributeType!"); return 0;
+        default: CORE_ASSERT(false, "Unknown UniformType!"); return 0;
     }
 }
 
-void Material::Attribute::_AllocateData()
+void Material::Uniform::_AllocateData()
 {
     int size = m_count*_TypeSize();
     m_data = std::shared_ptr<char>(new char[size], [](char* p) { delete[] p; });
 }
 
-std::shared_ptr<Material::Attribute> Material::Attribute::Set(Type type, int cnt, const void* data, bool transpose)
+std::shared_ptr<Material::Uniform> Material::Uniform::Set(Type type, int cnt, const void* data, bool transpose)
 { 
     m_type = type;
     m_count = cnt;
@@ -66,13 +66,13 @@ std::shared_ptr<Material::Attribute> Material::Attribute::Set(Type type, int cnt
     return SetData(data);
 }
 
-std::shared_ptr<Material::Attribute> Material::Attribute::SetType(Type type)
+std::shared_ptr<Material::Uniform> Material::Uniform::SetType(Type type)
 {
     m_type = type;
     return shared_from_this();
 }
 
-std::shared_ptr<Material::Attribute> Material::Attribute::SetData(const void* data)
+std::shared_ptr<Material::Uniform> Material::Uniform::SetData(const void* data)
 {
     if(data != nullptr)
     {
@@ -82,19 +82,19 @@ std::shared_ptr<Material::Attribute> Material::Attribute::SetData(const void* da
     return shared_from_this();
 }
 
-std::shared_ptr<Material::Attribute> Material::Attribute::SetCount(int cnt)
+std::shared_ptr<Material::Uniform> Material::Uniform::SetCount(int cnt)
 {
     m_count = cnt;
     return shared_from_this();
 }
 
-std::shared_ptr<Material::Attribute> Material::Attribute::SetTranspose(bool transpose)
+std::shared_ptr<Material::Uniform> Material::Uniform::SetTranspose(bool transpose)
 { 
     m_transpose = transpose;
     return shared_from_this();
 }
 
-void* Material::Attribute::GetData() 
+void* Material::Uniform::GetData() 
 { 
     if(!m_data)
     {
@@ -105,9 +105,9 @@ void* Material::Attribute::GetData()
     return m_data.get();
 }
 
-void Material::Attribute::UpdateData(const void* data)
+void Material::Uniform::UpdateData(const void* data)
 {
-    CORE_ASSERT(data, "Material::Attribute::UpdateData: nullptr!");
+    CORE_ASSERT(data, "Material::Uniform::UpdateData: nullptr!");
     int size = m_count*_TypeSize();
     memcpy(GetData(), data, size);
 }

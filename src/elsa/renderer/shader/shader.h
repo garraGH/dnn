@@ -44,13 +44,18 @@ public:
 
     virtual std::string GetTypeName() const { return "Shader"; }
 
-    int GetLocation(const std::string& name);
+    int GetAttributeLocation(const std::string& name);
+    int GetUniformLocation(const std::string& name);
+    unsigned int GetUniformBlockIndex(const std::string& name);
+
     std::shared_ptr<Shader> Define(const std::string& macro);
 
     static std::shared_ptr<Shader> Create(const std::string& name);
 
 protected:
-    virtual int _UpdateLocations(const std::string& name) = 0;
+    virtual int _GetUniformLocation(const std::string& name) = 0;
+    virtual int _GetAttributeLocation(const std::string& name) = 0;
+    virtual unsigned int _GetUniformBlockIndex(const std::string& name) = 0;
     virtual void _Compile(const std::unordered_map<Type, std::string>& splitShaderSources) = 0;
 
     std::string _ReadFile(const std::string& srcFile) const ;
@@ -60,5 +65,7 @@ protected:
 protected:
     std::string m_macros;
     std::string m_srcFile;
-    std::map<const std::string, int> m_locations;
+    std::map<const std::string, int> m_attributeLocations;
+    std::map<const std::string, int> m_uniformLocations;
+    std::map<const std::string, unsigned int> m_uniformBlockIndices;
 };

@@ -147,3 +147,21 @@ protected:
     std::vector<std::shared_ptr<Buffer>> m_vertexBuffers;
 };
 
+class UniformBuffer : public RenderObject, public std::enable_shared_from_this<UniformBuffer>
+{
+public:
+    UniformBuffer(const std::string& name) : RenderObject(name) {}
+    std::shared_ptr<UniformBuffer> SetSize(int size);
+    virtual void Upload(const std::string& name, const void* data) = 0;
+
+    void Push(const std::string& name, const glm::ivec2& layout);
+
+    static std::shared_ptr<UniformBuffer> Create(const std::string& name="unnamed");
+
+protected:
+    virtual void _Allocate() const = 0;
+
+protected:
+    int m_size = 0;
+    std::map<std::string, glm::ivec2> m_layouts;
+};

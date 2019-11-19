@@ -56,10 +56,10 @@ void Renderer::Element::RenderedBy(const std::shared_ptr<Shader>& shader, unsign
 
     shader->Bind();
 //     if(s_camera->IsDirty())
-    {
-        shader->SetWorld2ClipMatrix(s_camera->World2Clip());
-    }
-
+//     {
+//         shader->SetWorld2ClipMatrix(s_camera->World2Clip());
+//     }
+// 
     if(m_material)
     {
         m_material->Bind(shader);

@@ -29,7 +29,10 @@ public:
     virtual std::shared_ptr<Shader> LoadFromSource(const std::string& srcVertex, const std::string& srcFragment) override;
 
 protected:
-    virtual int _UpdateLocations(const std::string& name) override;
+    virtual int _GetAttributeLocation(const std::string& name) override;
+    virtual int _GetUniformLocation(const std::string& name) override;
+    virtual unsigned int _GetUniformBlockIndex(const std::string& name) override;
+
     virtual void _Compile(const std::unordered_map<Type, std::string>& splitShaderSources) override;
     
     std::string _GetStringType(Type type) const ;

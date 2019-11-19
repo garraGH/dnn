@@ -28,12 +28,12 @@ ShapingFunctions::ShapingFunctions()
 void ShapingFunctions::_PrepareResources()
 {
 
-    using MA = Material::Attribute;
+    using MU = Material::Uniform;
     Renderer::Resources::Create<Shader>("ShapingFunctions")->LoadFromFile("/home/garra/study/dnn/assets/shader/ShapingFunctions.glsl");
-    std::shared_ptr<MA> maResolution = Renderer::Resources::Create<MA>("Resolution")->Set(MA::Type::Float2, 1, glm::value_ptr(glm::vec2(1000, 1000)));
-    std::shared_ptr<MA> maCoefficient = Renderer::Resources::Create<MA>("Coefficient")->Set(MA::Type::Float4, 1, glm::value_ptr(glm::vec4(1, 0, 0, 0)));
-    std::shared_ptr<MA> maFunction = Renderer::Resources::Create<MA>("Function")->SetType(MA::Type::Int1);
-    std::shared_ptr<MA> maOrder = Renderer::Resources::Create<MA>("Order")->SetType(MA::Type::Int1);
+    std::shared_ptr<MU> maResolution = Renderer::Resources::Create<MU>("Resolution")->Set(MU::Type::Float2, 1, glm::value_ptr(glm::vec2(1000, 1000)));
+    std::shared_ptr<MU> maCoefficient = Renderer::Resources::Create<MU>("Coefficient")->Set(MU::Type::Float4, 1, glm::value_ptr(glm::vec4(1, 0, 0, 0)));
+    std::shared_ptr<MU> maFunction = Renderer::Resources::Create<MU>("Function")->SetType(MU::Type::Int1);
+    std::shared_ptr<MU> maOrder = Renderer::Resources::Create<MU>("Order")->SetType(MU::Type::Int1);
 
     m_function = (Function*)maFunction->GetData();
     *m_function = Function::Linear;
@@ -41,10 +41,10 @@ void ShapingFunctions::_PrepareResources()
     *order = 1;
 
     std::shared_ptr<Material> mtrCanava = Renderer::Resources::Create<Material>("ShapingFunctions");
-    mtrCanava->Set("u_Resolution", maResolution);
-    mtrCanava->Set("u_Function", maFunction);
-    mtrCanava->Set("u_Coefficient", maCoefficient);
-    mtrCanava->Set("u_Order", maOrder);
+    mtrCanava->SetUniform("u_Resolution", maResolution);
+    mtrCanava->SetUniform("u_Function", maFunction);
+    mtrCanava->SetUniform("u_Coefficient", maCoefficient);
+    mtrCanava->SetUniform("u_Order", maOrder);
 }
 
 std::shared_ptr<Material> ShapingFunctions::GetMaterial() const
@@ -59,8 +59,8 @@ std::shared_ptr<Shader> ShapingFunctions::GetShader() const
 
 void ShapingFunctions::OnImGuiRender()
 {
-    float* param = (float*)Renderer::Resources::Get<Material::Attribute>("Coefficient")->GetData();
-    int* order = (int*)Renderer::Resources::Get<Material::Attribute>("Order")->GetData();
+    float* param = (float*)Renderer::Resources::Get<Material::Uniform>("Coefficient")->GetData();
+    int* order = (int*)Renderer::Resources::Get<Material::Uniform>("Order")->GetData();
 
     _ShapingFunction_Linear(param);
     _ShapingFunction_Step(param);

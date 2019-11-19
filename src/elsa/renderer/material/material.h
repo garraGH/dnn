@@ -18,23 +18,24 @@
 #include "../texture/texture.h"
 #include "logger.h"
 #include "../../core.h"
+#include "../buffer/buffer.h"
 
 class Material : public Asset, public std::enable_shared_from_this<Material>
 {
 public:
-    class Attribute : public Asset, public std::enable_shared_from_this<Attribute>
+    class Uniform : public Asset, public std::enable_shared_from_this<Uniform>
     {
     public:
         enum class Type { Unknown = -1, Float1, Float2, Float3, Float4, Int1, Int2, Int3, Int4, UInt1, UInt2, UInt3, UInt4, Mat2x2, Mat2x3, Mat2x4, Mat3x2, Mat3x3, Mat3x4, Mat4x2, Mat4x3, Mat4x4 };
 
-        Attribute(const std::string& name) : Asset(name) {}
-        static std::shared_ptr<Attribute> Create(const std::string& name) { return std::make_shared<Attribute>(name); }
+        Uniform(const std::string& name) : Asset(name) {}
+        static std::shared_ptr<Uniform> Create(const std::string& name) { return std::make_shared<Uniform>(name); }
 
-        std::shared_ptr<Attribute> Set(Type type, int cnt=1, const void* data=nullptr, bool transpose=false);
-        std::shared_ptr<Attribute> SetType(Type type);
-        std::shared_ptr<Attribute> SetData(const void* data);
-        std::shared_ptr<Attribute> SetCount(int cnt);
-        std::shared_ptr<Attribute> SetTranspose(bool transpose);
+        std::shared_ptr<Uniform> Set(Type type, int cnt=1, const void* data=nullptr, bool transpose=false);
+        std::shared_ptr<Uniform> SetType(Type type);
+        std::shared_ptr<Uniform> SetData(const void* data);
+        std::shared_ptr<Uniform> SetCount(int cnt);
+        std::shared_ptr<Uniform> SetTranspose(bool transpose);
         void UpdateData(const void* data);
 
         void* GetData();
@@ -58,8 +59,9 @@ public:
 
 public:
     Material(const std::string& name="unnamed") : Asset(name) {}
-    std::shared_ptr<Material> Set(const std::string& name, const std::shared_ptr<Attribute>& attribute) { m_attributes[name] = attribute; m_dirty = true; return shared_from_this(); }
-    std::shared_ptr<Material> AddTexture(const std::string& name, const std::shared_ptr<Texture>& tex) { m_textures[name] = tex; m_dirty = true; return shared_from_this(); }
+    std::shared_ptr<Material> SetUniform(const std::string& name, const std::shared_ptr<Uniform>& uniform) { m_uniforms[name] = uniform; m_dirty = true; return shared_from_this(); }
+    std::shared_ptr<Material> SetTexture(const std::string& name, const std::shared_ptr<Texture>& tex) { m_textures[name] = tex; m_dirty = true; return shared_from_this(); }
+    std::shared_ptr<Material> SetUniformBuffer(const std::string& name, const std::shared_ptr<UniformBuffer>& ub) { m_uniformBuffers[name] = ub; m_dirty = true; return shared_from_this(); }
     
     virtual void Bind(const std::shared_ptr<Shader>& shader) = 0;
     virtual std::string GetTypeName() const { return "Material"; }
@@ -67,7 +69,9 @@ public:
 
 protected:
     std::shared_ptr<Shader> m_shader = nullptr;
-    std::map< const std::string, std::shared_ptr<Attribute> > m_attributes;
+    std::map< const std::string, std::shared_ptr<Uniform> > m_uniforms;
     std::map< const std::string, std::shared_ptr<Texture> > m_textures;
+    std::map< const std::string, std::shared_ptr<UniformBuffer> > m_uniformBuffers;
+
     bool m_dirty = true;
 };

@@ -25,13 +25,13 @@ Matrix::Matrix()
 
 void Matrix::_PrepareResources()
 {
-    using MA = Material::Attribute;
-    std::shared_ptr<MA> maResolution = Renderer::Resources::Create<MA>("Resolution")->Set(MA::Type::Float2, 1, glm::value_ptr(glm::vec2(1000, 1000)));
-    std::shared_ptr<MA> maRadius = Renderer::Resources::Create<MA>("Radius")->Set(MA::Type::Float1);
-    std::shared_ptr<MA> maTime = Renderer::Resources::Create<MA>("Time")->Set(MA::Type::Float1);
-    std::shared_ptr<MA> maStyle = Renderer::Resources::Create<MA>("Style")->Set(MA::Type::Int1);
-    std::shared_ptr<MA> maSpeed = Renderer::Resources::Create<MA>("Speed")->Set(MA::Type::Float1);
-    std::shared_ptr<MA> maShowSDF = Renderer::Resources::Create<MA>("ShowSDF")->Set(MA::Type::Int1, 1, &m_showSDF);
+    using MU = Material::Uniform;
+    std::shared_ptr<MU> maResolution = Renderer::Resources::Create<MU>("Resolution")->Set(MU::Type::Float2, 1, glm::value_ptr(glm::vec2(1000, 1000)));
+    std::shared_ptr<MU> maRadius = Renderer::Resources::Create<MU>("Radius")->Set(MU::Type::Float1);
+    std::shared_ptr<MU> maTime = Renderer::Resources::Create<MU>("Time")->Set(MU::Type::Float1);
+    std::shared_ptr<MU> maStyle = Renderer::Resources::Create<MU>("Style")->Set(MU::Type::Int1);
+    std::shared_ptr<MU> maSpeed = Renderer::Resources::Create<MU>("Speed")->Set(MU::Type::Float1);
+    std::shared_ptr<MU> maShowSDF = Renderer::Resources::Create<MU>("ShowSDF")->Set(MU::Type::Int1, 1, &m_showSDF);
 
     m_radius = (float*)maRadius->GetData();
     *m_radius = 0.35;
@@ -43,12 +43,12 @@ void Matrix::_PrepareResources()
     *m_speed = 0.1;
 
     std::shared_ptr<Material> mtrMatrix = Renderer::Resources::Create<Material>("Matrix");
-    mtrMatrix->Set("u_Resolution", maResolution);
-    mtrMatrix->Set("u_Radius", maRadius);
-    mtrMatrix->Set("u_Time", maTime);
-    mtrMatrix->Set("u_Style", maStyle);
-    mtrMatrix->Set("u_Speed", maSpeed);
-    mtrMatrix->Set("u_ShowSDF", maShowSDF);
+    mtrMatrix->SetUniform("u_Resolution", maResolution);
+    mtrMatrix->SetUniform("u_Radius", maRadius);
+    mtrMatrix->SetUniform("u_Time", maTime);
+    mtrMatrix->SetUniform("u_Style", maStyle);
+    mtrMatrix->SetUniform("u_Speed", maSpeed);
+    mtrMatrix->SetUniform("u_ShowSDF", maShowSDF);
 
 
     Renderer::Resources::Create<Shader>("Matrix")->LoadFromFile("/home/garra/study/dnn/assets/shader/Matrix.glsl");
@@ -67,7 +67,7 @@ std::shared_ptr<Shader> Matrix::GetShader() const
 void Matrix::OnUpdate(float deltaTime)
 {
     float t = m_timer->GetElapsedTime();
-    Renderer::Resources::Get<Material::Attribute>("Time")->UpdateData(&t);
+    Renderer::Resources::Get<Material::Uniform>("Time")->UpdateData(&t);
 }
 
 void Matrix::OnImGuiRender()
@@ -97,7 +97,7 @@ void Matrix::OnImGuiRender()
     if(ImGui::RadioButton("ShowSDF", m_showSDF))
     {
         m_showSDF = !m_showSDF;
-        Renderer::Resources::Get<Material::Attribute>("ShowSDF")->UpdateData(&m_showSDF);
+        Renderer::Resources::Get<Material::Uniform>("ShowSDF")->UpdateData(&m_showSDF);
     }
     ImGui::Separator();
     ImGui::PushItemWidth(200);

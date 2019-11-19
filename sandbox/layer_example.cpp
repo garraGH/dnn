@@ -113,12 +113,12 @@ void ExampleLayer::_PrepareResources()
     Renderer::Resources::Create<Elsa::Mesh>("mesh_tri")->Set(indexBuffer_tri, {vertexBuffer_tri});
     Renderer::Resources::Create<Elsa::Mesh>("mesh_quad")->Set(indexBuffer_quad, {positionBuffer_quad, colorBuffer_quad});
 
-    using MA = Material::Attribute;
-    Renderer::Resources::Create<MA>("red")->Set(MA::Type::Float4, 1, glm::value_ptr(glm::vec4(1, 0.1, 0.2, 1)));
-    Renderer::Resources::Create<MA>("green")->Set(MA::Type::Float4, 1, glm::value_ptr(glm::vec4(0.1, 1, 0.2, 1)));
-    Renderer::Resources::Create<MA>("blue")->Set(MA::Type::Float4, 1, glm::value_ptr(glm::vec4(0.1, 0.2, 1, 1)));
-    Renderer::Resources::Create<Material>("mtr_tri")->Set("u_Color", Renderer::Resources::Get<MA>("green"));
-    Renderer::Resources::Create<Material>("mtr_quad")->Set("u_Color", Renderer::Resources::Get<MA>("red"));
+    using MU = Material::Uniform;
+    Renderer::Resources::Create<MU>("red")->Set(MU::Type::Float4, 1, glm::value_ptr(glm::vec4(1, 0.1, 0.2, 1)));
+    Renderer::Resources::Create<MU>("green")->Set(MU::Type::Float4, 1, glm::value_ptr(glm::vec4(0.1, 1, 0.2, 1)));
+    Renderer::Resources::Create<MU>("blue")->Set(MU::Type::Float4, 1, glm::value_ptr(glm::vec4(0.1, 0.2, 1, 1)));
+    Renderer::Resources::Create<Material>("mtr_tri")->SetUniform("u_Color", Renderer::Resources::Get<MU>("green"));
+    Renderer::Resources::Create<Material>("mtr_quad")->SetUniform("u_Color", Renderer::Resources::Get<MU>("red"));
     Renderer::Resources::Create<Shader>("Basic")->LoadFromFile("/home/garra/study/dnn/assets/shader/Basic.glsl");
     Renderer::Resources::Create<Renderer::Element>("ele_tri")->Set(Renderer::Resources::Get<Elsa::Mesh>("mesh_tri"), Renderer::Resources::Get<Material>("mtr_tri"));
     Renderer::Resources::Create<Renderer::Element>("ele_quad")->Set(Renderer::Resources::Get<Elsa::Mesh>("mesh_quad"), Renderer::Resources::Get<Material>("mtr_quad"));
@@ -201,9 +201,9 @@ void ExampleLayer::_UpdateQuads(float deltaTime)
 {
     _TransformQuads(deltaTime);
 
-    using MA = Material::Attribute;
-    std::shared_ptr<MA> red = Renderer::Resources::Get<MA>("red");
-    std::shared_ptr<MA> blue = Renderer::Resources::Get<MA>("blue");
+    using MU = Material::Uniform;
+    std::shared_ptr<MU> red = Renderer::Resources::Get<MU>("red");
+    std::shared_ptr<MU> blue = Renderer::Resources::Get<MU>("blue");
     std::shared_ptr<Material> mtr_quad = Renderer::Resources::Get<Material>("mtr_quad");
     std::shared_ptr<Elsa::Mesh> mesh_tri = Renderer::Resources::Get<Elsa::Mesh>("mesh_tri");
     std::shared_ptr<Elsa::Mesh> mesh_quad = Renderer::Resources::Get<Elsa::Mesh>("mesh_quad");
@@ -214,7 +214,7 @@ void ExampleLayer::_UpdateQuads(float deltaTime)
         for(int j=0; j<5; j++)
         {
             mesh_quad->SetTransform(tf_quad);
-            mtr_quad->Set("u_Color", (i+j)%2? red : blue);
+            mtr_quad->SetUniform("u_Color", (i+j)%2? red : blue);
             Renderer::Submit("ele_quad", "Basic");
             tf_quad->Translate({ 0.15f, 0, 0 });
         }
@@ -227,7 +227,7 @@ void ExampleLayer::_UpdateQuads(float deltaTime)
 void ExampleLayer::_UpdateTri(float deltaTime)
 {
     Renderer::Resources::Get<Elsa::Mesh>("mesh_tri")->SetTransform(Renderer::Resources::Get<Transform>("tf_tri"));
-    Renderer::Resources::Get<Material>("mtr_tri")->Set("u_Color", Renderer::Resources::Get<Material::Attribute>("green"));
+    Renderer::Resources::Get<Material>("mtr_tri")->SetUniform("u_Color", Renderer::Resources::Get<Material::Uniform>("green"));
     Renderer::Submit("ele_tri", "Basic");
 }
 
@@ -250,9 +250,9 @@ void ExampleLayer::OnUpdate(float deltaTime)
 
 void ExampleLayer::OnImGuiRender()
 {
-    using MA = Material::Attribute;
-    std::shared_ptr<MA> red = Renderer::Resources::Get<MA>("red");
-    std::shared_ptr<MA> green = Renderer::Resources::Get<MA>("green");
+    using MU = Material::Uniform;
+    std::shared_ptr<MU> red = Renderer::Resources::Get<MU>("red");
+    std::shared_ptr<MU> green = Renderer::Resources::Get<MU>("green");
 
     for(int i=0; i<4; i++)
     {

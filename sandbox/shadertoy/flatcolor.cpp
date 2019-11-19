@@ -26,10 +26,10 @@ FlatColor::FlatColor()
 
 void FlatColor::_PrepareResources()
 {
-    using MA = Material::Attribute;
-    std::shared_ptr<MA> maColor = Renderer::Resources::Create<MA>("Color")->Set(MA::Type::Float4, 1, glm::value_ptr(glm::vec4(1, 0, 0, 0)));
+    using MU = Material::Uniform;
+    std::shared_ptr<MU> maColor = Renderer::Resources::Create<MU>("Color")->Set(MU::Type::Float4, 1, glm::value_ptr(glm::vec4(1, 0, 0, 0)));
     Renderer::Resources::Create<Shader>("FlatColor")->LoadFromFile("/home/garra/study/dnn/assets/shader/FlatColor.glsl");
-    Renderer::Resources::Create<Material>("FlatColor")->Set("u_Color", maColor);
+    Renderer::Resources::Create<Material>("FlatColor")->SetUniform("u_Color", maColor);
 }
 
 
@@ -45,6 +45,6 @@ std::shared_ptr<Shader> FlatColor::GetShader() const
 
 void FlatColor::OnImGuiRender()
 {
-    ImGui::ColorPicker4("FlatColor", (float*)Renderer::Resources::Get<Material::Attribute>("Color")->GetData());
+    ImGui::ColorPicker4("FlatColor", (float*)Renderer::Resources::Get<Material::Uniform>("Color")->GetData());
 }
 

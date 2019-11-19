@@ -25,20 +25,20 @@ Shapes::Shapes()
 
 void Shapes::_PrepareResources()
 {
-    using MA = Material::Attribute;
-    std::shared_ptr<MA> maResolution = Renderer::Resources::Create<MA>("Resolution")->Set(MA::Type::Float2, 1, glm::value_ptr(glm::vec2(1000, 1000)));
-    std::shared_ptr<MA> maStyle = Renderer::Resources::Create<MA>("Style")->Set(MA::Type::Int1);
-    std::shared_ptr<MA> maOperator = Renderer::Resources::Create<MA>("Operator")->Set(MA::Type::Int1);
-    std::shared_ptr<MA> maMode = Renderer::Resources::Create<MA>("Mode")->Set(MA::Type::Int1);
-    std::shared_ptr<MA> maLineWidth = Renderer::Resources::Create<MA>("LineWidth")->Set(MA::Type::Float1);
-    std::shared_ptr<MA> maTorusWidth = Renderer::Resources::Create<MA>("TorusWidth")->Set(MA::Type::Float1);
-    std::shared_ptr<MA> maNumber = Renderer::Resources::Create<MA>("Number")->Set(MA::Type::Float1);
-    std::shared_ptr<MA> maRoundRadius = Renderer::Resources::Create<MA>("RoundRadius")->Set(MA::Type::Float1);
-    std::shared_ptr<MA> maSawTooth = Renderer::Resources::Create<MA>("SawTooth")->Set(MA::Type::Float1);
+    using MU = Material::Uniform;
+    std::shared_ptr<MU> maResolution = Renderer::Resources::Create<MU>("Resolution")->Set(MU::Type::Float2, 1, glm::value_ptr(glm::vec2(1000, 1000)));
+    std::shared_ptr<MU> maStyle = Renderer::Resources::Create<MU>("Style")->Set(MU::Type::Int1);
+    std::shared_ptr<MU> maOperator = Renderer::Resources::Create<MU>("Operator")->Set(MU::Type::Int1);
+    std::shared_ptr<MU> maMode = Renderer::Resources::Create<MU>("Mode")->Set(MU::Type::Int1);
+    std::shared_ptr<MU> maLineWidth = Renderer::Resources::Create<MU>("LineWidth")->Set(MU::Type::Float1);
+    std::shared_ptr<MU> maTorusWidth = Renderer::Resources::Create<MU>("TorusWidth")->Set(MU::Type::Float1);
+    std::shared_ptr<MU> maNumber = Renderer::Resources::Create<MU>("Number")->Set(MU::Type::Float1);
+    std::shared_ptr<MU> maRoundRadius = Renderer::Resources::Create<MU>("RoundRadius")->Set(MU::Type::Float1);
+    std::shared_ptr<MU> maSawTooth = Renderer::Resources::Create<MU>("SawTooth")->Set(MU::Type::Float1);
 
 
-    std::shared_ptr<MA> maPoints = Renderer::Resources::Create<MA>("Points")->Set(MA::Type::Float2, 2);
-    std::shared_ptr<MA> maColors = Renderer::Resources::Create<MA>("Colors")->Set(MA::Type::Float4, 2);
+    std::shared_ptr<MU> maPoints = Renderer::Resources::Create<MU>("Points")->Set(MU::Type::Float2, 2);
+    std::shared_ptr<MU> maColors = Renderer::Resources::Create<MU>("Colors")->Set(MU::Type::Float4, 2);
 
     m_style = (Style*)maStyle->GetData();
     *m_style = Style::Box;
@@ -74,17 +74,17 @@ void Shapes::_PrepareResources()
 
     Renderer::Resources::Create<Shader>("Shapes")->LoadFromFile("/home/garra/study/dnn/assets/shader/Shapes.glsl");
     std::shared_ptr<Material> mtrShapes = Renderer::Resources::Create<Material>("Shapes");
-    mtrShapes->Set("u_Resolution", maResolution);
-    mtrShapes->Set("u_Style", maStyle);
-    mtrShapes->Set("u_Operator", maOperator);
-    mtrShapes->Set("u_Mode", maMode);
-    mtrShapes->Set("u_Points", maPoints);
-    mtrShapes->Set("u_Colors", maColors);
-    mtrShapes->Set("u_LineWidth", maLineWidth);
-    mtrShapes->Set("u_TorusWidth", maTorusWidth);
-    mtrShapes->Set("u_Number", maNumber);
-    mtrShapes->Set("u_RoundRadius", maRoundRadius);
-    mtrShapes->Set("u_SawTooth", maSawTooth);
+    mtrShapes->SetUniform("u_Resolution", maResolution);
+    mtrShapes->SetUniform("u_Style", maStyle);
+    mtrShapes->SetUniform("u_Operator", maOperator);
+    mtrShapes->SetUniform("u_Mode", maMode);
+    mtrShapes->SetUniform("u_Points", maPoints);
+    mtrShapes->SetUniform("u_Colors", maColors);
+    mtrShapes->SetUniform("u_LineWidth", maLineWidth);
+    mtrShapes->SetUniform("u_TorusWidth", maTorusWidth);
+    mtrShapes->SetUniform("u_Number", maNumber);
+    mtrShapes->SetUniform("u_RoundRadius", maRoundRadius);
+    mtrShapes->SetUniform("u_SawTooth", maSawTooth);
 }
 
 std::shared_ptr<Material> Shapes::GetMaterial() const

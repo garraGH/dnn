@@ -62,6 +62,18 @@ std::shared_ptr<FrameBuffer> FrameBuffer::Create(unsigned int width, unsigned in
     }
 }
 
+std::shared_ptr<UniformBuffer> UniformBuffer::Create(const std::string& name)
+{
+    switch(Renderer::GetAPIType())
+    {
+        case Renderer::API::OpenGL:
+            return std::make_shared<OpenGLUniformBuffer>(name);
+        default:
+            CORE_ASSERT(false, "FrameBuffer::Create: API is currently not supported!");
+            return nullptr;
+    }
+}
+
 std::shared_ptr<BufferArray> BufferArray::Create()
 {
     switch(Renderer::GetAPIType())
@@ -238,3 +250,18 @@ void FrameBuffer::Reset(unsigned int width, unsigned int height, unsigned int sa
 
     _Reset();
 }  
+
+/////////////////////////////////////////////////////////////////////////
+std::shared_ptr<UniformBuffer> UniformBuffer::SetSize(int size)
+{
+    m_size = size;
+    _Allocate();
+    return shared_from_this();
+}
+
+void UniformBuffer::Push(const std::string& name, const glm::ivec2& layout)
+{
+    CORE_ASSERT(layout.x+layout.y<=m_size, "Memory overflow!");
+    m_layouts[name] = layout;
+}
+

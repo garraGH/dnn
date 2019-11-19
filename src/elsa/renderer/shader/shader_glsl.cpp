@@ -149,10 +149,10 @@ void GLSLProgram::_Compile(const std::unordered_map<Type, std::string>& splitSha
 void GLSLProgram::_Upload(const char* name, const glm::mat4& matrix)
 {
     Bind();
-    int location = GetLocation(name);
+    int location = GetUniformLocation(name);
     if(location != -1)
     {
-        glad_glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(matrix));
+        glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(matrix));
     }
 }
 
@@ -166,19 +166,23 @@ void GLSLProgram::SetModel2WorldMatrix(const glm::mat4& m2w)
     _Upload("u_Model2World", m2w);
 }
 
-int GLSLProgram::_UpdateLocations(const std::string& name)
+int GLSLProgram::_GetAttributeLocation(const std::string& name)
 {
-    int location = glad_glGetAttribLocation(m_id, name.c_str());
-    if(location != -1)
-    {
-        m_locations[name] = location;
-        return location;
-    }
-
-    location = glad_glGetUniformLocation(m_id, name.c_str());
-    if(location != -1)
-    {
-        m_locations[name] = location;
-    }
+    int location = glGetAttribLocation(m_id, name.c_str());
+    m_attributeLocations[name] = location;
     return location;
+}
+
+int GLSLProgram::_GetUniformLocation(const std::string& name)
+{
+    int location = glGetUniformLocation(m_id, name.c_str());
+    m_uniformLocations[name] = location;
+    return location;
+}
+
+unsigned int GLSLProgram::_GetUniformBlockIndex(const std::string& name)
+{
+    unsigned int index = glGetUniformBlockIndex(m_id, name.c_str());
+    m_uniformBlockIndices[name] = index;
+    return index;
 }

@@ -94,3 +94,18 @@ public:
     virtual unsigned int IndexType() const override;
 
 };
+
+class OpenGLUniformBuffer : public UniformBuffer
+{
+public:
+    OpenGLUniformBuffer(const std::string& name);
+    ~OpenGLUniformBuffer();
+
+    virtual void Upload(const std::string& name, const void* data) override;
+
+    virtual void Bind(unsigned int slot=0) override;
+    virtual void Unbind() const override;
+     
+protected:
+    virtual void _Allocate() const override;
+};

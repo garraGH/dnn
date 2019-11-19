@@ -25,8 +25,14 @@ void main()
 
 in vec3 v_Near;
 in vec3 v_Far;
-out vec4 o_Color;
-uniform mat4 u_World2Clip;
+out vec4 f_Color;
+// uniform mat4 u_World2Clip;
+layout(std140) uniform Transform
+{
+    mat4 world2Clip;
+}
+u_Transform;
+
 float CheckerBoard(vec2 I, float s)
 {
     return float((int(floor(I.x*s))+int(floor(I.y*s)))%2);
@@ -34,7 +40,8 @@ float CheckerBoard(vec2 I, float s)
 
 float ComputeDepth(vec3 pos_ws)
 {
-    vec4 pos_cs = u_World2Clip*vec4(pos_ws, 1.0);
+//     vec4 pos_cs = u_World2Clip*vec4(pos_ws, 1.0);
+    vec4 pos_cs = u_Transform.world2Clip*vec4(pos_ws, 1.0);
     float depth_cs = pos_cs.z/pos_cs.w;
     float far = gl_DepthRange.far;
     float near = gl_DepthRange.near;
@@ -50,6 +57,6 @@ void main()
     float c = CheckerBoard(I.xz, 1)*0.3+CheckerBoard(I.xz, 10)*0.2+CheckerBoard(I.xz, 100)*0.1+0.1;
     float spotlight = min(1.0, 1.5-0.02*length(I.xz));
     c *= spotlight*float(t>=0);
-    o_Color = vec4(vec3(c), 1);
+    f_Color = vec4(vec3(c), 1);
     gl_FragDepth = ComputeDepth(I);
 }

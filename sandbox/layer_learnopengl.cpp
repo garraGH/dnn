@@ -21,12 +21,13 @@ std::shared_ptr<LearnOpenGLLayer> LearnOpenGLLayer::Create()
 LearnOpenGLLayer::LearnOpenGLLayer()
     : Layer( "LearnOpenGLLayer" )
 {
+    m_viewport->GetCamera()->SetFrameBuffer(m_fbSS);
+    m_viewport->GetCamera()->SetTarget(glm::vec3(0, 8, 0));
+    _PrepareUniformBuffers();
     _PrepareSkybox();
     _PrepareOffscreenPlane();
     _PrepareUnitCubic();
     _PrepareGroundPlane();
-    m_viewport->GetCamera()->SetFrameBuffer(m_fbSS);
-    m_viewport->GetCamera()->SetTarget(glm::vec3(0, 8, 0));
     _PrepareModel();
 }
 
@@ -48,14 +49,14 @@ bool LearnOpenGLLayer::_OnWindowResizeEvent(WindowResizeEvent& e)
 
 void LearnOpenGLLayer::OnUpdate(float deltaTime)
 {
-    _UpdateMaterialAttributes();
+    _UpdateMaterialUniforms();
 
     Renderer::BeginScene(m_viewport, m_fbMS);
 //     Renderer::BeginScene(m_viewport);
 //     m_crysisNanoSuit->Draw(m_shaderPos);
-//     m_crysisNanoSuit->Draw(m_shaderBlinnPhong);
+    m_crysisNanoSuit->Draw(m_shaderBlinnPhong);
 //     m_trailer->Draw(m_shaderBlinnPhong);
-        m_silkingMachine->Draw(m_shaderBlinnPhong);
+//         m_silkingMachine->Draw(m_shaderBlinnPhong);
 //         m_horse->Draw(m_shaderBlinnPhong);
 //     m_bulb->Draw(m_shaderColor);
 //     m_handLight->Draw(m_shaderColor);
@@ -79,7 +80,7 @@ void LearnOpenGLLayer::OnUpdate(float deltaTime)
 
 void LearnOpenGLLayer::OnImGuiRender()
 {
-    using MA = Material::Attribute;
+    using MU = Material::Uniform;
     m_viewport->OnImGuiRender();
 
     ImGui::Begin("LearnOpenGLLayer");
@@ -108,7 +109,7 @@ void LearnOpenGLLayer::OnImGuiRender()
         if(ImGui::RadioButton(#x, m_pp == PostProcess::x)) \
         {                                                  \
             m_pp = PostProcess::x;                         \
-            Renderer::Resources::Get<MA>("PostProcess")->UpdateData(&m_pp); \
+            Renderer::Resources::Get<MU>("PostProcess")->UpdateData(&m_pp); \
         }                                                                   \
 
         RadioButton(None);
@@ -157,12 +158,12 @@ void LearnOpenGLLayer::OnImGuiRender()
             if(ImGui::SliderFloat("InnerCone", &m_spotLight.innerCone, 0, 90))
             {
                 float innerCone = std::cos(glm::radians(m_spotLight.innerCone));
-                Renderer::Resources::Get<MA>("SLightInnerCone")->UpdateData(&innerCone);
+                Renderer::Resources::Get<MU>("SLightInnerCone")->UpdateData(&innerCone);
             }
             if(ImGui::SliderFloat("OuterCone", &m_spotLight.outerCone, 0, 120))
             {
                 float outerCone = std::cos(glm::radians(m_spotLight.outerCone));
-                Renderer::Resources::Get<MA>("SLightOuterCone")->UpdateData(&outerCone);
+                Renderer::Resources::Get<MU>("SLightOuterCone")->UpdateData(&outerCone);
             }
         }
         if(ImGui::CollapsingHeader("FlashLight"))
@@ -172,12 +173,12 @@ void LearnOpenGLLayer::OnImGuiRender()
             if(ImGui::SliderFloat("InnerCone", &m_flashLight.innerCone, 0, 90))
             {
                 float innerCone = std::cos(glm::radians(m_flashLight.innerCone));
-                Renderer::Resources::Get<MA>("FLightInnerCone")->UpdateData(&innerCone);
+                Renderer::Resources::Get<MU>("FLightInnerCone")->UpdateData(&innerCone);
             }
             if(ImGui::SliderFloat("OuterCone", &m_flashLight.outerCone, 0, 120))
             {
                 float outerCone = std::cos(glm::radians(m_flashLight.outerCone));
-                Renderer::Resources::Get<MA>("FLightOuterCone")->UpdateData(&outerCone);
+                Renderer::Resources::Get<MU>("FLightOuterCone")->UpdateData(&outerCone);
             }
         }
     }
@@ -188,9 +189,9 @@ void LearnOpenGLLayer::OnImGuiRender()
 void LearnOpenGLLayer::_PrepareModel()
 {
     m_crysisNanoSuit = Renderer::Resources::Create<Model>("CysisNanoSuit")->LoadFromFile("/home/garra/study/dnn/assets/mesh/CysisNanoSuit/scene.fbx");
-    m_silkingMachine = Renderer::Resources::Create<Model>("SilkingMachine")->LoadFromFile("/home/garra/study/dnn/assets/mesh/SilkingMachine/SilkingMachine.fbx");
-    m_horse = Renderer::Resources::Create<Model>("Horse")->LoadFromFile("/home/garra/study/dnn/assets/mesh/Horse/Horse.fbx");
-    m_trailer = Renderer::Resources::Create<Model>("Trailer")->LoadFromFile("/home/garra/study/dnn/assets/mesh/Trailer/Alena_Shek.obj");
+//     m_silkingMachine = Renderer::Resources::Create<Model>("SilkingMachine")->LoadFromFile("/home/garra/study/dnn/assets/mesh/SilkingMachine/SilkingMachine.fbx");
+//     m_horse = Renderer::Resources::Create<Model>("Horse")->LoadFromFile("/home/garra/study/dnn/assets/mesh/Horse/Horse.fbx");
+//     m_trailer = Renderer::Resources::Create<Model>("Trailer")->LoadFromFile("/home/garra/study/dnn/assets/mesh/Trailer/Alena_Shek.obj");
 //     m_bulb = Renderer::Resources::Create<Model>("Bulb")->LoadFromFile("/home/garra/study/dnn/assets/mesh/Bulb/Bulbs.3ds");
 //     m_handLight = Renderer::Resources::Create<Model>("HandLight")->LoadFromFile("/home/garra/study/dnn/assets/mesh/HandLight/hand_light.blend");
 //     m_shaderPos = Renderer::Resources::Create<Shader>("Pos")->LoadFromFile("/home/garra/study/dnn/assets/shader/Model.glsl");
@@ -285,16 +286,16 @@ void LearnOpenGLLayer::_PrepareUnitCubic()
     std::shared_ptr<Buffer> indexBuffer = Buffer::CreateIndex(sizeof(indices), indices)->SetLayout(layoutIndex);
     std::shared_ptr<Buffer> instanceBuffer = Buffer::CreateVertex(m_numOfInstance*sizeof(glm::mat4), matM2W)->SetLayout(layoutInstance);
     std::shared_ptr<Elsa::Mesh> mesh= Renderer::Resources::Create<Elsa::Mesh>("UnitCubic")->Set(indexBuffer, {vertexBuffer, instanceBuffer});
-    using MA = Material::Attribute;
+    using MU = Material::Uniform;
 
 
-    std::shared_ptr<MA> maMaterialAmbientReflectance = Renderer::Resources::Create<MA>("MaterialAmbientReflectance")->Set(MA::Type::Float3, 1, glm::value_ptr(glm::vec3(0.1f)));
-    std::shared_ptr<MA> maMaterialDiffuseReflectance = Renderer::Resources::Create<MA>("MaterialDiffuseReflectance")->Set(MA::Type::Float3, 1, glm::value_ptr(glm::vec3(0.5f)));
-    std::shared_ptr<MA> maMaterialSpecularReflectance = Renderer::Resources::Create<MA>("MaterialSpecularReflectance")->Set(MA::Type::Float3, 1, glm::value_ptr(glm::vec3(1.0f)));
-    std::shared_ptr<MA> maMaterialEmissiveColor = Renderer::Resources::Create<MA>("MaterialEmissiveColor")->Set(MA::Type::Float3, 1, glm::value_ptr(glm::vec3(0.1f)));
-    std::shared_ptr<MA> maMaterialShininess = Renderer::Resources::Create<MA>("MaterialShininess")->SetType(MA::Type::Float1);
+    std::shared_ptr<MU> maMaterialAmbientReflectance = Renderer::Resources::Create<MU>("MaterialAmbientReflectance")->Set(MU::Type::Float3, 1, glm::value_ptr(glm::vec3(0.1f)));
+    std::shared_ptr<MU> maMaterialDiffuseReflectance = Renderer::Resources::Create<MU>("MaterialDiffuseReflectance")->Set(MU::Type::Float3, 1, glm::value_ptr(glm::vec3(0.5f)));
+    std::shared_ptr<MU> maMaterialSpecularReflectance = Renderer::Resources::Create<MU>("MaterialSpecularReflectance")->Set(MU::Type::Float3, 1, glm::value_ptr(glm::vec3(1.0f)));
+    std::shared_ptr<MU> maMaterialEmissiveColor = Renderer::Resources::Create<MU>("MaterialEmissiveColor")->Set(MU::Type::Float3, 1, glm::value_ptr(glm::vec3(0.1f)));
+    std::shared_ptr<MU> maMaterialShininess = Renderer::Resources::Create<MU>("MaterialShininess")->SetType(MU::Type::Float1);
 
-    std::shared_ptr<MA> maCameraPosition = Renderer::Resources::Create<MA>("CameraPosition")->Set(MA::Type::Float3, 1, glm::value_ptr(glm::vec3(2.0f)));
+    std::shared_ptr<MU> maCameraPosition = Renderer::Resources::Create<MU>("CameraPosition")->Set(MU::Type::Float3, 1, glm::value_ptr(glm::vec3(2.0f)));
 
 
     m_material.ambientReflectance = reinterpret_cast<glm::vec3*>(maMaterialAmbientReflectance->GetData());
@@ -309,88 +310,103 @@ void LearnOpenGLLayer::_PrepareUnitCubic()
 
 
     // AmbientColor
-    std::shared_ptr<MA> maAmbientColor = Renderer::Resources::Create<MA>("AmbientColor")->Set(MA::Type::Float3, 1, glm::value_ptr(glm::vec3(0.1f)));
+    std::shared_ptr<MU> maAmbientColor = Renderer::Resources::Create<MU>("AmbientColor")->Set(MU::Type::Float3, 1, glm::value_ptr(glm::vec3(0.1f)));
     m_ambientColor = reinterpret_cast<glm::vec3*>(maAmbientColor->GetData());
 
     // DirectionalLight
-    std::shared_ptr<MA> maDLightColor = Renderer::Resources::Create<MA>("DLightColor")->Set(MA::Type::Float3, 1, glm::value_ptr(glm::vec3(1.0f)));
-    std::shared_ptr<MA> maDLightDirection = Renderer::Resources::Create<MA>("DLightDirection")->Set(MA::Type::Float3, 1, glm::value_ptr(glm::vec3(-1, -2, -3)));
+    std::shared_ptr<MU> maDLightColor = Renderer::Resources::Create<MU>("DLightColor")->Set(MU::Type::Float3, 1, glm::value_ptr(glm::vec3(1.0f)));
+    std::shared_ptr<MU> maDLightDirection = Renderer::Resources::Create<MU>("DLightDirection")->Set(MU::Type::Float3, 1, glm::value_ptr(glm::vec3(-1, -2, -3)));
     m_directionalLight.color = reinterpret_cast<glm::vec3*>(maDLightColor->GetData());
     m_directionalLight.direction = reinterpret_cast<glm::vec3*>(maDLightDirection->GetData());
 
     // PointLight
-    std::shared_ptr<MA> maPLightColor = Renderer::Resources::Create<MA>("PLightColor")->Set(MA::Type::Float3, 1, glm::value_ptr(glm::vec3(0.1, 0.8, 0.2)));
-    std::shared_ptr<MA> maPLightPosition = Renderer::Resources::Create<MA>("PLightPosition")->Set(MA::Type::Float3, 1, glm::value_ptr(glm::vec3(0, 2, 0)));
-    std::shared_ptr<MA> maPLightCoefs = Renderer::Resources::Create<MA>("PLightCoefs")->Set(MA::Type::Float3, 1, glm::value_ptr(glm::vec3(1.0, 1.0, 2.0)));
+    std::shared_ptr<MU> maPLightColor = Renderer::Resources::Create<MU>("PLightColor")->Set(MU::Type::Float3, 1, glm::value_ptr(glm::vec3(0.1, 0.8, 0.2)));
+    std::shared_ptr<MU> maPLightPosition = Renderer::Resources::Create<MU>("PLightPosition")->Set(MU::Type::Float3, 1, glm::value_ptr(glm::vec3(0, 2, 0)));
+    std::shared_ptr<MU> maPLightCoefs = Renderer::Resources::Create<MU>("PLightCoefs")->Set(MU::Type::Float3, 1, glm::value_ptr(glm::vec3(1.0, 1.0, 2.0)));
     m_pointLight.color = reinterpret_cast<glm::vec3*>(maPLightColor->GetData());
     m_pointLight.position = reinterpret_cast<glm::vec3*>(maPLightPosition->GetData());
     m_pointLight.attenuationCoefficients = reinterpret_cast<glm::vec3*>(maPLightCoefs->GetData());
 
     // SpotLight
-    std::shared_ptr<MA> maSLightColor = Renderer::Resources::Create<MA>("SLightColor")->Set(MA::Type::Float3, 1, glm::value_ptr(glm::vec3(0.1, 0.1, 0.9)));
-    std::shared_ptr<MA> maSLightPosition = Renderer::Resources::Create<MA>("SLightPosition")->Set(MA::Type::Float3, 1, glm::value_ptr(glm::vec3(0, 0, 2)));
-    std::shared_ptr<MA> maSLightCoefs = Renderer::Resources::Create<MA>("SLightCoefs")->Set(MA::Type::Float3, 1, glm::value_ptr(glm::vec3(1.0, 1.0, 2.0)));
-    std::shared_ptr<MA> maSLightDirection = Renderer::Resources::Create<MA>("SLightDirection")->Set(MA::Type::Float3, 1, glm::value_ptr(glm::vec3(0, 0, -1)));
-    std::shared_ptr<MA> maSLightInnerCone = Renderer::Resources::Create<MA>("SLightInnerCone")->Set(MA::Type::Float1, 1, &m_spotLight.innerCone);
-    std::shared_ptr<MA> maSLightOuterCone = Renderer::Resources::Create<MA>("SLightOuterCone")->Set(MA::Type::Float1, 1, &m_spotLight.outerCone);
+    std::shared_ptr<MU> maSLightColor = Renderer::Resources::Create<MU>("SLightColor")->Set(MU::Type::Float3, 1, glm::value_ptr(glm::vec3(0.1, 0.1, 0.9)));
+    std::shared_ptr<MU> maSLightPosition = Renderer::Resources::Create<MU>("SLightPosition")->Set(MU::Type::Float3, 1, glm::value_ptr(glm::vec3(0, 0, 2)));
+    std::shared_ptr<MU> maSLightCoefs = Renderer::Resources::Create<MU>("SLightCoefs")->Set(MU::Type::Float3, 1, glm::value_ptr(glm::vec3(1.0, 1.0, 2.0)));
+    std::shared_ptr<MU> maSLightDirection = Renderer::Resources::Create<MU>("SLightDirection")->Set(MU::Type::Float3, 1, glm::value_ptr(glm::vec3(0, 0, -1)));
+    std::shared_ptr<MU> maSLightInnerCone = Renderer::Resources::Create<MU>("SLightInnerCone")->Set(MU::Type::Float1, 1, &m_spotLight.innerCone);
+    std::shared_ptr<MU> maSLightOuterCone = Renderer::Resources::Create<MU>("SLightOuterCone")->Set(MU::Type::Float1, 1, &m_spotLight.outerCone);
     m_spotLight.color = reinterpret_cast<glm::vec3*>(maSLightColor->GetData());
     m_spotLight.position = reinterpret_cast<glm::vec3*>(maSLightPosition->GetData());
     m_spotLight.attenuationCoefficients = reinterpret_cast<glm::vec3*>(maSLightCoefs->GetData());
     m_spotLight.direction = reinterpret_cast<glm::vec3*>(maSLightDirection->GetData());
 
     // FlashLight
-    std::shared_ptr<MA> maFLightColor = Renderer::Resources::Create<MA>("FLightColor")->Set(MA::Type::Float3, 1, glm::value_ptr(glm::vec3(0.8, 0.1, 0.2)));
-    std::shared_ptr<MA> maFLightPosition = Renderer::Resources::Create<MA>("FLightPosition")->Set(MA::Type::Float3, 1, glm::value_ptr(m_viewport->GetCamera()->GetPosition()));
-    std::shared_ptr<MA> maFLightCoefs = Renderer::Resources::Create<MA>("FLightCoefs")->Set(MA::Type::Float3, 1, glm::value_ptr(glm::vec3(1.0, 1.0, 2.0)));
-    std::shared_ptr<MA> maFLightDirection = Renderer::Resources::Create<MA>("FLightDirection")->Set(MA::Type::Float3, 1, glm::value_ptr(m_viewport->GetCamera()->GetDirection()));
-    std::shared_ptr<MA> maFLightInnerCone = Renderer::Resources::Create<MA>("FLightInnerCone")->Set(MA::Type::Float1, 1, &m_flashLight.innerCone);
-    std::shared_ptr<MA> maFLightOuterCone = Renderer::Resources::Create<MA>("FLightOuterCone")->Set(MA::Type::Float1, 1, &m_flashLight.outerCone);
+    std::shared_ptr<MU> maFLightColor = Renderer::Resources::Create<MU>("FLightColor")->Set(MU::Type::Float3, 1, glm::value_ptr(glm::vec3(0.8, 0.1, 0.2)));
+    std::shared_ptr<MU> maFLightPosition = Renderer::Resources::Create<MU>("FLightPosition")->Set(MU::Type::Float3, 1, glm::value_ptr(m_viewport->GetCamera()->GetPosition()));
+    std::shared_ptr<MU> maFLightCoefs = Renderer::Resources::Create<MU>("FLightCoefs")->Set(MU::Type::Float3, 1, glm::value_ptr(glm::vec3(1.0, 1.0, 2.0)));
+    std::shared_ptr<MU> maFLightDirection = Renderer::Resources::Create<MU>("FLightDirection")->Set(MU::Type::Float3, 1, glm::value_ptr(m_viewport->GetCamera()->GetDirection()));
+    std::shared_ptr<MU> maFLightInnerCone = Renderer::Resources::Create<MU>("FLightInnerCone")->Set(MU::Type::Float1, 1, &m_flashLight.innerCone);
+    std::shared_ptr<MU> maFLightOuterCone = Renderer::Resources::Create<MU>("FLightOuterCone")->Set(MU::Type::Float1, 1, &m_flashLight.outerCone);
     m_flashLight.color = reinterpret_cast<glm::vec3*>(maFLightColor->GetData());
     m_flashLight.attenuationCoefficients = reinterpret_cast<glm::vec3*>(maFLightCoefs->GetData());
 
     std::shared_ptr<Material> mtr = Renderer::Resources::Create<Material>("UnitCubic");
-    mtr->Set("u_Material.ambientReflectance", maMaterialAmbientReflectance);
-    mtr->Set("u_Material.diffuseReflectance", maMaterialDiffuseReflectance);
-    mtr->Set("u_Material.specularReflectance", maMaterialSpecularReflectance);
-    mtr->Set("u_Material.emissiveColor", maMaterialEmissiveColor);
-    mtr->Set("u_Material.shininess", maMaterialShininess);
-    mtr->AddTexture("u_Material.diffuseMap", m_material.diffuseMap);
-    mtr->AddTexture("u_Material.specularMap", m_material.specularMap);
-    mtr->AddTexture("u_Material.emissiveMap", m_material.emissiveMap);
+    mtr->SetUniform("u_Material.ambientReflectance", maMaterialAmbientReflectance);
+    mtr->SetUniform("u_Material.diffuseReflectance", maMaterialDiffuseReflectance);
+    mtr->SetUniform("u_Material.specularReflectance", maMaterialSpecularReflectance);
+    mtr->SetUniform("u_Material.emissiveColor", maMaterialEmissiveColor);
+    mtr->SetUniform("u_Material.shininess", maMaterialShininess);
+    mtr->SetTexture("u_Material.diffuseMap", m_material.diffuseMap);
+    mtr->SetTexture("u_Material.specularMap", m_material.specularMap);
+    mtr->SetTexture("u_Material.emissiveMap", m_material.emissiveMap);
 
     // AmbientColor
-    mtr->Set("u_AmbientColor", maAmbientColor);
+    mtr->SetUniform("u_AmbientColor", maAmbientColor);
 
     // DirectionalLight
-    mtr->Set("u_DirectionalLight[0].color", maDLightColor);
-    mtr->Set("u_DirectionalLight[0].direction", maDLightDirection);
+    mtr->SetUniform("u_DirectionalLight[0].color", maDLightColor);
+    mtr->SetUniform("u_DirectionalLight[0].direction", maDLightDirection);
 
     // PointLight
-    mtr->Set("u_PointLight[0].position", maPLightPosition);
-    mtr->Set("u_PointLight[0].color", maPLightColor);
-    mtr->Set("u_PointLight[0].attenuationCoefficients", maPLightCoefs);
+    mtr->SetUniform("u_PointLight[0].position", maPLightPosition);
+    mtr->SetUniform("u_PointLight[0].color", maPLightColor);
+    mtr->SetUniform("u_PointLight[0].attenuationCoefficients", maPLightCoefs);
 
     // SpotLight
-    mtr->Set("u_SpotLight[0].position", maSLightPosition);
-    mtr->Set("u_SpotLight[0].direction", maSLightDirection);
-    mtr->Set("u_SpotLight[0].attenuationCoefficients", maSLightCoefs);
-    mtr->Set("u_SpotLight[0].color", maSLightColor);
-    mtr->Set("u_SpotLight[0].innerCone", maSLightInnerCone);
-    mtr->Set("u_SpotLight[0].outerCone", maSLightOuterCone);
+    mtr->SetUniform("u_SpotLight[0].position", maSLightPosition);
+    mtr->SetUniform("u_SpotLight[0].direction", maSLightDirection);
+    mtr->SetUniform("u_SpotLight[0].attenuationCoefficients", maSLightCoefs);
+    mtr->SetUniform("u_SpotLight[0].color", maSLightColor);
+    mtr->SetUniform("u_SpotLight[0].innerCone", maSLightInnerCone);
+    mtr->SetUniform("u_SpotLight[0].outerCone", maSLightOuterCone);
     
     // FlashLight
-    mtr->Set("u_FlashLight.position", maFLightPosition);
-    mtr->Set("u_FlashLight.direction", maFLightDirection);
-    mtr->Set("u_FlashLight.attenuationCoefficients", maFLightCoefs);
-    mtr->Set("u_FlashLight.color", maFLightColor);
-    mtr->Set("u_FlashLight.innerCone", maFLightInnerCone);
-    mtr->Set("u_FlashLight.outerCone", maFLightOuterCone);
+    mtr->SetUniform("u_FlashLight.position", maFLightPosition);
+    mtr->SetUniform("u_FlashLight.direction", maFLightDirection);
+    mtr->SetUniform("u_FlashLight.attenuationCoefficients", maFLightCoefs);
+    mtr->SetUniform("u_FlashLight.color", maFLightColor);
+    mtr->SetUniform("u_FlashLight.innerCone", maFLightInnerCone);
+    mtr->SetUniform("u_FlashLight.outerCone", maFLightOuterCone);
+
+    mtr->SetUniformBuffer("Transform", Renderer::Resources::Get<UniformBuffer>("Transform"));
+    mtr->SetUniformBuffer("Light", Renderer::Resources::Get<UniformBuffer>("Light"));
 
     Renderer::Resources::Create<Shader>("Blinn-Phong-Instance")->Define("_INSTANCE_")->LoadFromFile("/home/garra/study/dnn/assets/shader/Blinn-Phong.glsl");
     m_shaderBlinnPhong = Renderer::Resources::Create<Shader>("Blinn-Phong")->LoadFromFile("/home/garra/study/dnn/assets/shader/Blinn-Phong.glsl");
 
     Renderer::Resources::Create<Renderer::Element>("UnitCubic")->Set(mesh, mtr);
 
+
+    unsigned int id = m_shaderBlinnPhong->ID();
+    GLuint index = glGetUniformBlockIndex(id, "Light");
+    INFO("Light: index {}", index);
+    if(GL_INVALID_INDEX != index)
+    {
+        GLint size = 0;
+        glGetActiveUniformBlockiv(id, index, GL_UNIFORM_BLOCK_DATA_SIZE, &size);
+        INFO("BlockDataSize: {}", size);
+    }
+
+//     STOP
 }
 
 void LearnOpenGLLayer::_PrepareSkybox()
@@ -410,25 +426,25 @@ void LearnOpenGLLayer::_PrepareSkybox()
     std::shared_ptr<Elsa::Mesh> mesh= Renderer::Resources::Create<Elsa::Mesh>("BackgroundPlane")->Set(ib, {vb});
     std::shared_ptr<Texture> tex = Renderer::Resources::Create<Texture2D>("Skybox");
     tex->LoadFromFile("/home/garra/study/dnn/assets/texture/skybox/autumn-crossing_3.jpg");
-    using MA = Material::Attribute;
-    std::shared_ptr<MA> maNearCorners = Renderer::Resources::Create<MA>("NearCorners")->Set(MA::Type::Float3, 4);
-    std::shared_ptr<MA> maFarCorners = Renderer::Resources::Create<MA>("FarCorners")->Set(MA::Type::Float3, 4);
-    std::shared_ptr<MA> maCornersDirection = Renderer::Resources::Create<MA>("CornersDirection")->Set(MA::Type::Float3, 4);
-    std::shared_ptr<Material> mtr = Renderer::Resources::Create<Material>("Skybox")->AddTexture("u_Skybox", tex);
-    mtr->Set("u_NearCorners", maNearCorners)->Set("u_FarCorners", maFarCorners);
+    using MU = Material::Uniform;
+    std::shared_ptr<MU> maNearCorners = Renderer::Resources::Create<MU>("NearCorners")->Set(MU::Type::Float3, 4);
+    std::shared_ptr<MU> maFarCorners = Renderer::Resources::Create<MU>("FarCorners")->Set(MU::Type::Float3, 4);
+    std::shared_ptr<MU> maCornersDirection = Renderer::Resources::Create<MU>("CornersDirection")->Set(MU::Type::Float3, 4);
+    std::shared_ptr<Material> mtr = Renderer::Resources::Create<Material>("Skybox")->SetTexture("u_Skybox", tex);
+    mtr->SetUniform("u_NearCorners", maNearCorners)->SetUniform("u_FarCorners", maFarCorners);
     Renderer::Resources::Create<Renderer::Element>("Skybox")->Set(mesh, mtr);
     Renderer::Resources::Create<Shader>("Skybox")->LoadFromFile("/home/garra/study/dnn/assets/shader/Skybox.glsl");
 }
 
 void LearnOpenGLLayer::_PrepareOffscreenPlane()
 {
-    using MA = Material::Attribute;
-    std::shared_ptr<MA> maRightTopTexCoord = Renderer::Resources::Create<MA>("RightTopTexCoord")->SetType(MA::Type::Float2);
-    std::shared_ptr<MA> maPostProcess = Renderer::Resources::Create<MA>("PostProcess")->Set(MA::Type::Int1, 1, &m_pp);
+    using MU = Material::Uniform;
+    std::shared_ptr<MU> maRightTopTexCoord = Renderer::Resources::Create<MU>("RightTopTexCoord")->SetType(MU::Type::Float2);
+    std::shared_ptr<MU> maPostProcess = Renderer::Resources::Create<MU>("PostProcess")->Set(MU::Type::Int1, 1, &m_pp);
     std::shared_ptr<Material>  mtr = Renderer::Resources::Create<Material>("Offscreen");
-    mtr->Set("u_RightTopTexCoord", maRightTopTexCoord);
-    mtr->Set("u_PostProcess", maPostProcess);
-    mtr->AddTexture("u_Offscreen", m_fbSS->GetColorBuffer());
+    mtr->SetUniform("u_RightTopTexCoord", maRightTopTexCoord);
+    mtr->SetUniform("u_PostProcess", maPostProcess);
+    mtr->SetTexture("u_Offscreen", m_fbSS->GetColorBuffer());
     m_rightTopTexCoord = reinterpret_cast<glm::vec2*>(maRightTopTexCoord->GetData());
     *m_rightTopTexCoord = glm::vec2(1, 1);
     std::array<float, 4> r = m_viewport->GetRange();
@@ -454,22 +470,91 @@ void LearnOpenGLLayer::_PrepareOffscreenPlane()
 
 void LearnOpenGLLayer::_PrepareGroundPlane()
 {
-    using MA = Material::Attribute;
+    using MU = Material::Uniform;
     std::shared_ptr<Material> mtr = Renderer::Resources::Create<Material>("GroundPlane");
-    mtr->Set("u_NearCorners", Renderer::Resources::Get<MA>("NearCorners"));
-    mtr->Set("u_FarCorners", Renderer::Resources::Get<MA>("FarCorners"));
+    mtr->SetUniform("u_NearCorners", Renderer::Resources::Get<MU>("NearCorners"));
+    mtr->SetUniform("u_FarCorners", Renderer::Resources::Get<MU>("FarCorners"));
+    mtr->SetUniformBuffer("Transform", Renderer::Resources::Get<UniformBuffer>("Transform"));
     Renderer::Resources::Create<Renderer::Element>("GroundPlane")->SetMesh("BackgroundPlane")->SetMaterial(mtr);
     Renderer::Resources::Create<Shader>("GroundPlane")->LoadFromFile("/home/garra/study/dnn/assets/shader/GroundPlane.glsl");
 }
 
-void LearnOpenGLLayer::_UpdateMaterialAttributes()
+void LearnOpenGLLayer::_UpdateMaterialUniforms()
 {
-    using MA = Material::Attribute;
+    using MU = Material::Uniform;
     const std::shared_ptr<Camera>& cam = m_viewport->GetCamera();
-    Renderer::Resources::Get<MA>("CameraPosition")->UpdateData(&cam->GetPosition());
-    Renderer::Resources::Get<MA>("NearCorners")->UpdateData(&cam->GetNearCornersInWorldSpace()[0]);
-    Renderer::Resources::Get<MA>("FarCorners")->UpdateData(&cam->GetFarCornersInWorldSpace()[0]);
-    Renderer::Resources::Get<MA>("FLightPosition")->UpdateData(&cam->GetPosition());
+    Renderer::Resources::Get<MU>("CameraPosition")->UpdateData(&cam->GetPosition());
+    Renderer::Resources::Get<MU>("NearCorners")->UpdateData(&cam->GetNearCornersInWorldSpace()[0]);
+    Renderer::Resources::Get<MU>("FarCorners")->UpdateData(&cam->GetFarCornersInWorldSpace()[0]);
+    Renderer::Resources::Get<MU>("FLightPosition")->UpdateData(&cam->GetPosition());
     glm::vec3 dir = cam->GetDirection();
-    Renderer::Resources::Get<MA>("FLightDirection")->UpdateData(&dir);
+    Renderer::Resources::Get<MU>("FLightDirection")->UpdateData(&dir);
+    Renderer::Resources::Get<UniformBuffer>("Transform")->Upload("World2Clip", glm::value_ptr(m_viewport->GetCamera()->World2Clip()));
+}
+
+void LearnOpenGLLayer::_PrepareUniformBuffers()
+{
+    std::shared_ptr<UniformBuffer> ubTransform = Renderer::Resources::Create<UniformBuffer>("Transform")->SetSize(64);
+    ubTransform->Push("World2Clip", glm::vec2(0, 64));
+    ubTransform->Upload("World2Clip", glm::value_ptr(m_viewport->GetCamera()->World2Clip()));
+
+    std::shared_ptr<UniformBuffer> ubLight = Renderer::Resources::Create<UniformBuffer>("Light")->SetSize(240);
+    ubLight->Push("DirectionalLight", glm::vec2(0, 32));
+    ubLight->Push("PointLight", glm::vec2(32, 48));
+    ubLight->Push("SpotLight", glm::vec2(80, 80));
+    ubLight->Push("FlashLight", glm::vec2(160, 80));
+
+    struct Light
+    {
+        glm::vec4 clr;
+    };
+
+    struct DirectionalLight : public Light
+    {
+        glm::vec4 dir;
+    };
+
+    struct PointLight : public Light
+    {
+        glm::vec4 pos;
+        glm::vec4 coe;
+    };
+
+    struct SpotLight : public Light
+    {
+        glm::vec4 dir;
+        glm::vec4 pos;
+        glm::vec4 coe;
+        float innerCone;
+        float outerCone;
+        float pad[2];
+    };
+
+    DirectionalLight dLight;
+    PointLight pLight;
+    SpotLight sLight;
+    SpotLight fLight;
+    
+    dLight.clr = glm::vec4(1, 0, 0, 1);
+    dLight.dir = glm::vec4(0, 0, -1, 0);
+    pLight.clr = glm::vec4(0, 1, 0, 1);
+    pLight.pos = glm::vec4(0, 5, 10, 1);
+    pLight.coe = glm::vec4(1.0, 0.09, 0.032, 0.0);
+    sLight.clr = glm::vec4(0, 0, 1, 1);
+    sLight.pos = glm::vec4(0, 5, -10, 1);
+    sLight.dir = glm::vec4(0, 0, 1, 0);
+    sLight.coe = glm::vec4(1.0, 0.22, 0.20, 0.0);
+    sLight.innerCone = std::cos(glm::radians(30.0));
+    sLight.outerCone = std::cos(glm::radians(45.0));
+    fLight.clr = glm::vec4(1, 1, 1, 1);
+    fLight.pos = glm::vec4(m_viewport->GetCamera()->GetPosition(), 1);
+    fLight.dir = glm::vec4(m_viewport->GetCamera()->GetDirection(), 0);
+    fLight.coe = glm::vec4(1.0, 0.14, 0.07, 0.0);
+    fLight.innerCone = std::cos(glm::radians(20.0));
+    fLight.outerCone = std::cos(glm::radians(30.0));
+
+    ubLight->Upload("DirectionalLight", &dLight);
+    ubLight->Upload("PointLight", &pLight);
+    ubLight->Upload("SpotLight", &sLight);
+    ubLight->Upload("FlashLight", &fLight);
 }
