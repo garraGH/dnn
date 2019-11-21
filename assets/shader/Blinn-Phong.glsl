@@ -4,8 +4,8 @@
 layout(location = 0) in vec3 a_Position;
 layout(location = 1) in vec3 a_Normal;
 layout(location = 2) in vec2 a_TexCoord;
-#ifdef _INSTANCE_
-layout(location = 3) in mat4 a_Model2World;
+#ifdef INSTANCE
+    layout(location = 3) in mat4 a_Model2World;
 #endif
 uniform mat4 u_Model2World;
 
@@ -27,13 +27,18 @@ v_out;
 void main()
 {
     v_out.texCoord = a_TexCoord;
-    mat4 m2w = u_Model2World;
-#ifdef _INSTANCE_
-    m2w = a_Model2World*m2w;
-#endif
-    vec4 pos = m2w*vec4(a_Position, 1);
-    v_out.normal = mat3(transpose(inverse(m2w)))*a_Normal;
+    mat4 model2World = u_Model2World;
+    #ifdef INSTANCE
+    {
+        model2World = a_Model2World;
+    }
+    #endif
+    vec4 pos = model2World*vec4(a_Position, 1);
+//     v_out.normal = mat3(transpose(inverse(model2World)))*a_Normal;
+//     v_out.normal = (model2World*vec4(a_Normal, 0)).xyz;
+    v_out.normal = mat3(model2World)*a_Normal;
     v_out.fragPos = pos.xyz;
+
     gl_Position = u_Transform.world2Clip*pos;
 }
 
@@ -50,14 +55,37 @@ u_Camera1;
 
 struct Material
 {
-    vec3 ambientReflectance;
     vec3 diffuseReflectance;
+
+#ifdef SPECLUAR_REFLECTANCE
     vec3 specularReflectance;
+    float shininess;        
+#endif
+
+#ifdef EMISSIVE_COLOR
     vec3 emissiveColor;
-    float shininess;
+#endif
+
+#ifdef DIFFUSE_MAP
     sampler2D diffuseMap;
+#endif
+
+#ifdef SPECULAR_MAP
     sampler2D specularMap;
+#endif 
+
+#ifdef EMISSIVE_MAP
     sampler2D emissiveMap;
+#endif
+
+#ifdef NORMAL_MAP
+    sampler2D normalMap;
+#endif
+
+#ifdef HEIGHT_MAP
+    sampler2D heightMap;
+#endif
+
 };
 
 struct DirectionalLight
@@ -77,10 +105,10 @@ struct SpotLight
 {
     vec3 color;
     vec3 position;
-    vec3 attenuationCoefficients; // constant, linear, quadratic
     vec3 direction;
-    float innerCone;
-    float outerCone;
+    vec3 attenuationCoefficients; // constant, linear, quadratic
+    float cosInnerCone;
+    float cosOuterCone;
 };
 
 
@@ -102,16 +130,6 @@ u_Light;
 
 uniform Material u_Material;
 uniform Camera u_Camera;
-
-// #define MAX_DIRECTIONAL_LIGHTS 4
-// #define MAX_POINT_LIGHTS 100
-// #define MAX_SPOT_LIGHTS 100
-// 
-// uniform ivec3 u_NumOfLights = {1, 1, 1}; // (directional, point, spot)
-// uniform DirectionalLight u_DirectionalLight[MAX_DIRECTIONAL_LIGHTS];
-// uniform PointLight u_PointLight[MAX_POINT_LIGHTS];
-// uniform SpotLight u_SpotLight[MAX_SPOT_LIGHTS];
-// uniform SpotLight u_FlashLight;
 uniform vec3 u_AmbientColor = vec3(0.2f);
 
 in VS_OUT
@@ -125,91 +143,151 @@ f_in;
 out vec4 f_Color;
 
 
-vec3 CalculateAmbient()
+vec3 _DiffuseReflectance()
 {
-    vec3 diffuseTexel = texture(u_Material.diffuseMap, f_in.texCoord).rgb;
-    return u_AmbientColor*u_Material.ambientReflectance*diffuseTexel;
+    vec3 diffuseReflectance = u_Material.diffuseReflectance;
+    #ifdef DIFFUSE_MAP
+    {
+        diffuseReflectance *= texture(u_Material.diffuseMap, f_in.texCoord).rgb;
+    }
+    #endif
+    return diffuseReflectance;
 }
 
-vec3 CalculateEmission()
+vec3 _SpecularReflectance()
 {
-    return u_Material.emissiveColor*texture(u_Material.emissiveMap, f_in.texCoord).rgb;
+    #ifndef SPECULAR_REFLECTANCE
+    {
+        return vec3(0.0f);
+    }
+    #else
+    {
+        vec3 specularReflectance = u_Material.specularReflectance;
+        #ifdef SPECULAR_MAP
+        {
+            specularReflectance *= texture(u_Material.specularMap, f_in.texCoord).rgb;
+        }
+        #endif 
+        return specularReflectance;
+    }
+    #endif
 }
 
-void _CalculateDiffuseAndSpecular(in vec3 lightDir, out vec3 diffuse, out vec3 specular)
+vec3 _Normal()
 {
-    vec3 normal = normalize(f_in.normal);
-    vec3 viewDir = normalize(u_Camera.position-f_in.fragPos);
-    vec3 diffuseTexel = texture(u_Material.diffuseMap, f_in.texCoord).rgb;
-    vec3 specularTexel = texture(u_Material.specularMap, f_in.texCoord).rgb;
-    vec3 bisector = normalize(lightDir+viewDir);
-    float diff = max(dot(normal, lightDir), 0.0f);
-    float spec = pow(max(dot(bisector, normal), 0.0f), u_Material.shininess);
-    diffuse = diff*u_Material.diffuseReflectance*diffuseTexel;
-    specular = spec*u_Material.specularReflectance*specularTexel;
+    return f_in.normal;
 }
 
-vec3 CalculateDirectionalLight(in DirectionalLight light)
+vec3 _DiffuseReflectance(in vec3 lightDir)
 {
-    vec3 diffuse;
-    vec3 specular;
+    float strength = max(dot(_Normal(), lightDir), 0.0f);
+    return strength*_DiffuseReflectance();
+}
+
+vec3 _SpecularReflectance(in vec3 lightDir)
+{
+    #ifndef SPECLUAR_REFLECTANCE
+    {
+        return vec3(0.0f);
+    }
+    #else
+    {
+        vec3 normal = _Normal();
+        vec3 viewDir = normalize(u_Camera.position-f_in.fragPos);
+        float strengthBase = 0.0f;
+        #ifdef PHONG
+        {
+            vec3 reflectDir = -reflect(lightDir, normal);
+            strengthBase = max(dot(reflectDir, viewDir), 0.0f);
+        }
+        #else // default: Blinn-Phong
+        {
+            vec3 bisector = normalize(lightDir+viewDir);
+            strengthBase = max(dot(bisector, normal), 0.0f);
+        }
+        #endif
+        float strength = pow(strengthBase, u_Material.shininess);
+        return strength*_SpecularReflectance();
+    }
+    #endif
+}
+
+vec3 _Reflectance(in vec3 lightDir)
+{
+    return _DiffuseReflectance(lightDir)+_SpecularReflectance(lightDir);
+}
+
+vec3 Ambient()
+{
+    return u_AmbientColor*_DiffuseReflectance();
+}
+
+vec3 Emission()
+{
+    #ifndef EMISSIVE_COLOR
+    {
+        return vec3(0.0f);
+    }
+    #else
+    {
+        vec3 emissiveColor = u_Material.emissiveColor;
+        #ifdef EMISSIVE_MAP
+        {
+            emissiveColor *= texture(u_Material.emissiveMap, f_in.texCoord).rgb;
+        }
+        #endif
+        return emissiveColor;
+    }
+    #endif
+}
+
+float _Attenuation(in vec3 pos, in vec3 coef)
+{
+    float distance = length(pos-f_in.fragPos);
+    return 1.0/(coef.x+coef.y*distance+coef.z*(distance*distance));
+}
+
+float _SpotIntensity(in vec3 center, in vec3 dir, float inner, float outer)
+{
+    float theta = dot(dir, center);
+    return step(inner, theta);
+    return clamp(1-(theta-outer)/(inner-outer), 0.0, 1.0);
+}
+
+vec3 ColorFrom(in DirectionalLight light)
+{
     vec3 lightDir = -normalize(light.direction);
-    _CalculateDiffuseAndSpecular(lightDir, diffuse, specular);
-    return (diffuse+specular)*light.color;
+    vec3 reflectance = _Reflectance(lightDir);
+    return reflectance*light.color;
 }
 
-vec3 CalculatePointLight(in PointLight light)
+vec3 ColorFrom(in PointLight light)
 {
-    vec3 diffuse;
-    vec3 specular;
     vec3 lightDir = normalize(light.position-f_in.fragPos);
-    _CalculateDiffuseAndSpecular(lightDir, diffuse, specular);
-
-    float distance = length(light.position-f_in.fragPos);
-    float attenuation = 1.0/(light.attenuationCoefficients.x+light.attenuationCoefficients.y*distance+light.attenuationCoefficients.z*(distance*distance));
-    return attenuation*(diffuse+specular)*light.color;
+    vec3 reflectance = _Reflectance(lightDir);
+    float attenuation = _Attenuation(light.position, light.attenuationCoefficients);
+    return attenuation*reflectance*light.color;
 }
 
-vec3 CalculateSpotLight(in SpotLight light)
+vec3 ColorFrom(in SpotLight light)
 {
-    vec3 diffuse;
-    vec3 specular;
     vec3 lightDir = normalize(light.position-f_in.fragPos);
-    _CalculateDiffuseAndSpecular(lightDir, diffuse, specular);
-
-    float distance = length(light.position-f_in.fragPos);
-    float attenuation = 1.0/(light.attenuationCoefficients.x+light.attenuationCoefficients.y*distance+light.attenuationCoefficients.z*(distance*distance));
-
-    float theta = dot(lightDir, normalize(-light.direction));
-    float epsilon = light.innerCone-light.outerCone;
-    float intensity = clamp((theta-light.outerCone)/epsilon, 0.0, 1.0);
-
-    return attenuation*intensity*(diffuse+specular)*light.color;
+    vec3 reflectance = _Reflectance(lightDir);
+    float attenuation = _Attenuation(light.position, light.attenuationCoefficients);
+    float intensity = _SpotIntensity(-normalize(light.direction), lightDir, light.cosInnerCone, light.cosOuterCone);
+    return attenuation*intensity*reflectance*light.color;
 }
                                        
 
 void main()
 {
 
-    vec3 color = CalculateAmbient();
-//     for(int i=0; i<u_NumOfLights.x; i++)
-//     {
-//         color += CalculateDirectionalLight(u_DirectionalLight[i]);
-//     }
-//     for(int i=0; i<u_NumOfLights.y; i++)
-//     {
-//         color += CalculatePointLight(u_PointLight[i]);
-//     }
-//     for(int i=0; i<u_NumOfLights.z; i++)
-//     {
-//         color += CalculateSpotLight(u_SpotLight[i]);
-//     }
-//     color += CalculateSpotLight(u_FlashLight);
-    color += CalculateDirectionalLight(u_Light.dLight);
-    color += CalculatePointLight(u_Light.pLight);
-    color += CalculateSpotLight(u_Light.sLight);
-    color += CalculateSpotLight(u_Light.fLight);
-    color += CalculateEmission();
+    vec3 color = Ambient();
+    color += Emission();
+    color += ColorFrom(u_Light.dLight);
+    color += ColorFrom(u_Light.pLight);
+    color += ColorFrom(u_Light.sLight);
+    color += ColorFrom(u_Light.fLight);
 
     f_Color = vec4(color, 1.0);
 }

@@ -51,6 +51,38 @@ void Model::_ProcessNode(aiNode* node, const aiScene* scene)
         _ProcessNode(node->mChildren[i], scene);
     }
 }
+
+void Model::_DumpMeshInfo(const aiScene* scene, const aiMesh* mesh, const std::string& name)
+{
+    INFO("HasPositions: {}, num: {}", mesh->HasPositions()? "Yes" : "No", mesh->mNumVertices);
+    INFO("\tHasNormals: {}", mesh->HasNormals()? "Yes" : "No");
+    INFO("\tHasTangentsAndBitangents: {}", mesh->HasTangentsAndBitangents()? "Yes" : "No");
+    INFO("\tHasTextureCoords: {}, num: {}", mesh->HasTextureCoords(0)? "Yes" : "No", mesh->mNumUVComponents[0]);
+    INFO("\tHasVertexColors: {}", mesh->HasVertexColors(0)? "Yes" : "No");
+    INFO("HasFaces: {}, num: {}", mesh->HasFaces()? "Yes" : "No", mesh->mNumFaces);
+    INFO("HasBones: {}, num: {}", mesh->HasBones()? "Yes" : "No", mesh->mNumBones);
+
+    aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
+    INFO("Material: {}, {}", mesh->mMaterialIndex, material->GetName().C_Str());
+    INFO("Properties: {}", material->mNumProperties);
+
+    _ListTexture(material, aiTextureType_HEIGHT);
+    _ListTexture(material, aiTextureType_AMBIENT);
+    _ListTexture(material, aiTextureType_DIFFUSE);
+    _ListTexture(material, aiTextureType_NORMALS);
+    _ListTexture(material, aiTextureType_OPACITY);
+    _ListTexture(material, aiTextureType_EMISSIVE);
+    _ListTexture(material, aiTextureType_LIGHTMAP);
+    _ListTexture(material, aiTextureType_SPECULAR);
+    _ListTexture(material, aiTextureType_METALNESS);
+    _ListTexture(material, aiTextureType_SHININESS);
+    _ListTexture(material, aiTextureType_REFLECTION);
+    _ListTexture(material, aiTextureType_DISPLACEMENT);
+    _ListTexture(material, aiTextureType_BASE_COLOR);
+    _ListTexture(material, aiTextureType_NORMAL_CAMERA);
+    _ListTexture(material, aiTextureType_EMISSION_COLOR);
+    _ListTexture(material, aiTextureType_DIFFUSE_ROUGHNESS);
+}
 void Model::_ProcessMesh(const aiScene* scene, const aiMesh* mesh, unsigned int nthMesh)
 {
     double scale(1.0);
@@ -61,6 +93,7 @@ void Model::_ProcessMesh(const aiScene* scene, const aiMesh* mesh, unsigned int 
     meshName += std::to_string(nthMesh);
 //     INFO("Model::_ProcessMesh: {}, numVertices = {},\tnumFaces = {},\tscale = {}", meshName, mesh->mNumVertices, mesh->mNumFaces, scale);
     
+    _DumpMeshInfo(scene, mesh, meshName);
     std::shared_ptr<Elsa::Mesh> elsaMesh = Elsa::Mesh::Create(meshName);
     elsaMesh->SetVertexNumber(mesh->mNumVertices);
 
@@ -97,7 +130,6 @@ void Model::_ProcessMesh(const aiScene* scene, const aiMesh* mesh, unsigned int 
     std::string textureBasePath = "/home/garra/study/dnn/assets/texture/";
     std::shared_ptr<Material> mtr = Renderer::Resources::Create<Material>("mtr_"+m_name+"_"+std::to_string(nthMesh));
     using MU = Material::Uniform;
-    mtr->SetUniform("u_Material.ambientReflectance", Renderer::Resources::Get<MU>("MaterialAmbientReflectance"));
     mtr->SetUniform("u_Material.diffuseReflectance", Renderer::Resources::Get<MU>("MaterialDiffuseReflectance"));
     mtr->SetUniform("u_Material.specularReflectance", Renderer::Resources::Get<MU>("MaterialSpecularReflectance"));
     mtr->SetUniform("u_Material.emissiveColor", Renderer::Resources::Get<MU>("MaterialEmissiveColor"));
@@ -106,30 +138,6 @@ void Model::_ProcessMesh(const aiScene* scene, const aiMesh* mesh, unsigned int 
     // AmbientColor
     mtr->SetUniform("u_AmbientColor", Renderer::Resources::Get<MU>("AmbientColor"));
 
-//     // DirectionalLight
-//     mtr->SetUniform("u_DirectionalLight[0].color", Renderer::Resources::Get<MU>("DLightColor"));
-//     mtr->SetUniform("u_DirectionalLight[0].direction", Renderer::Resources::Get<MU>("DLightDirection"));
-// 
-//     // PointLight
-//     mtr->SetUniform("u_PointLight[0].position", Renderer::Resources::Get<MU>("PLightPosition"));
-//     mtr->SetUniform("u_PointLight[0].color", Renderer::Resources::Get<MU>("PLightColor"));
-//     mtr->SetUniform("u_PointLight[0].attenuationCoefficients", Renderer::Resources::Get<MU>("PLightCoefs"));
-// 
-//     // SpotLight
-//     mtr->SetUniform("u_SpotLight[0].position", Renderer::Resources::Get<MU>("SLightPosition"));
-//     mtr->SetUniform("u_SpotLight[0].direction", Renderer::Resources::Get<MU>("SLightDirection"));
-//     mtr->SetUniform("u_SpotLight[0].attenuationCoefficients", Renderer::Resources::Get<MU>("SLightCoefs"));
-//     mtr->SetUniform("u_SpotLight[0].color", Renderer::Resources::Get<MU>("SLightColor"));
-//     mtr->SetUniform("u_SpotLight[0].innerCone", Renderer::Resources::Get<MU>("SLightInnerCone"));
-//     mtr->SetUniform("u_SpotLight[0].outerCone", Renderer::Resources::Get<MU>("SLightOuterCone"));
-//     
-//     // FlashLight
-//     mtr->SetUniform("u_FlashLight.position", Renderer::Resources::Get<MU>("FLightPosition"));
-//     mtr->SetUniform("u_FlashLight.direction", Renderer::Resources::Get<MU>("FLightDirection"));
-//     mtr->SetUniform("u_FlashLight.attenuationCoefficients", Renderer::Resources::Get<MU>("FLightCoefs"));
-//     mtr->SetUniform("u_FlashLight.color", Renderer::Resources::Get<MU>("FLightColor"));
-//     mtr->SetUniform("u_FlashLight.innerCone", Renderer::Resources::Get<MU>("FLightInnerCone"));
-//     mtr->SetUniform("u_FlashLight.outerCone", Renderer::Resources::Get<MU>("FLightOuterCone"));
     if(mesh->mMaterialIndex >= 0)
     {
         aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
@@ -159,22 +167,6 @@ void Model::_ProcessMesh(const aiScene* scene, const aiMesh* mesh, unsigned int 
             std::shared_ptr<Texture> tex = Renderer::Resources::Create<Texture2D>(textureNameWithoutExtension)->LoadFromFile(textureBasePath+textureNameWithExtension);
             mtr->SetTexture("u_Material.specularMap", tex);
         }
-        _ListTexture(material, aiTextureType_HEIGHT);
-        _ListTexture(material, aiTextureType_AMBIENT);
-        _ListTexture(material, aiTextureType_DIFFUSE);
-        _ListTexture(material, aiTextureType_NORMALS);
-        _ListTexture(material, aiTextureType_OPACITY);
-        _ListTexture(material, aiTextureType_EMISSIVE);
-        _ListTexture(material, aiTextureType_LIGHTMAP);
-        _ListTexture(material, aiTextureType_SPECULAR);
-        _ListTexture(material, aiTextureType_METALNESS);
-        _ListTexture(material, aiTextureType_SHININESS);
-        _ListTexture(material, aiTextureType_REFLECTION);
-        _ListTexture(material, aiTextureType_DISPLACEMENT);
-        _ListTexture(material, aiTextureType_BASE_COLOR);
-        _ListTexture(material, aiTextureType_NORMAL_CAMERA);
-        _ListTexture(material, aiTextureType_EMISSION_COLOR);
-        _ListTexture(material, aiTextureType_DIFFUSE_ROUGHNESS);
     }                                                        
     mtr->SetUniformBuffer("Transform", Renderer::Resources::Get<UniformBuffer>("Transform"));
     mtr->SetUniformBuffer("Light", Renderer::Resources::Get<UniformBuffer>("Light"));
@@ -217,9 +209,12 @@ void Model::_ListTexture(aiMaterial* material, aiTextureType type) const
         size_t pos = temp.find_last_of("/\\");
         std::string textureNameWithExtension = pos == std::string::npos? temp : temp.substr(pos+1);
         INFO("{}: {}", _TextureType(type), textureNameWithExtension);
+        return;
     }
 
+    INFO("{}: {}", _TextureType(type), "NULL");
 }
+
 void Model::_ProcessMaterial(aiMaterial* mtr, aiTextureType type, const std::string& typeName)
 {
 

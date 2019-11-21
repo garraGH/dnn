@@ -81,6 +81,9 @@ protected:
     const std::string _TextureType(aiTextureType type) const;
 
 private:
+    void _DumpMeshInfo(const aiScene* scene, const aiMesh* mesh,  const std::string& name);
+
+private:
     std::vector<std::shared_ptr<MeshData>> m_meshdata;
     std::vector<std::shared_ptr<Elsa::Mesh>> m_meshes;
     std::vector<std::shared_ptr<Renderer::Element>> m_renderElements;

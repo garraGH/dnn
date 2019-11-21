@@ -61,7 +61,6 @@ private:
 
     struct 
     {
-        glm::vec3* ambientReflectance = nullptr;
         glm::vec3* diffuseReflectance = nullptr;
         glm::vec3* specularReflectance = nullptr;
         glm::vec3* emissiveColor = nullptr;
@@ -69,34 +68,41 @@ private:
         std::shared_ptr<Texture> diffuseMap = nullptr;
         std::shared_ptr<Texture> specularMap = nullptr;
         std::shared_ptr<Texture> emissiveMap = nullptr;
+        std::shared_ptr<Texture> normalMap = nullptr;
     }
     m_material; 
    
     struct Light
     {
-        glm::vec3* color = nullptr;
-        glm::vec3* position = nullptr;
+        glm::vec4 clr;
     };
 
     struct DirectionalLight : public Light
     {
-        glm::vec3* direction = nullptr;
-    }
-    m_directionalLight;
+        glm::vec4 dir;
+    };
 
     struct PointLight : public Light
     {
-        glm::vec3* attenuationCoefficients;
-    } 
-    m_pointLight;
+        glm::vec4 pos;
+        glm::vec4 coe;
+    };
 
-    struct SpotLight : public PointLight
+    struct SpotLight : public Light
     {
-        glm::vec3* direction = nullptr;
-        float innerCone = 6;
-        float outerCone = 10;
-    }
-    m_spotLight, m_flashLight;
+        glm::vec4 pos;
+        glm::vec4 dir;
+        glm::vec4 coe;
+        float cosInnerCone;
+        float cosOuterCone;
+        float degInnerCone;
+        float degOuterCone;
+    };
+
+    DirectionalLight m_dLight = { glm::vec4(1.0f), glm::vec4(0, 0, -1, 0)};
+    PointLight m_pLight = { glm::vec4(1, 0, 0, 1), glm::vec4(0, 5, 0, 1), glm::vec4(1.0, 0.09, 0.032, 0.0) };
+    SpotLight m_sLight = { glm::vec4(0, 1, 0, 1), glm::vec4(5, 0, 0, 1), glm::vec4(-1, 0, 0, 0), glm::vec4(1.0, 0.22, 0.20, 0.0), std::cos(glm::radians(15.0f)), std::cos(glm::radians(20.0f)), 15, 20 };
+    SpotLight m_fLight = { glm::vec4(0, 1, 0, 1), glm::vec4(5, 0, 0, 1), glm::vec4(-1, 0, 0, 0), glm::vec4(1.0, 0.22, 0.20, 0.0), std::cos(glm::radians(15.0f)), std::cos(glm::radians(20.0f)), 15, 20 };
 
     glm::vec3* m_ambientColor = nullptr;
     glm::vec2* m_rightTopTexCoord = nullptr;
