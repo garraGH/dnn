@@ -65,50 +65,51 @@ private:
         glm::vec3* specularReflectance = nullptr;
         glm::vec3* emissiveColor = nullptr;
         float* shininess = nullptr;
+        float* depthScale = nullptr;
         std::shared_ptr<Texture> diffuseMap = nullptr;
         std::shared_ptr<Texture> specularMap = nullptr;
         std::shared_ptr<Texture> emissiveMap = nullptr;
         std::shared_ptr<Texture> normalMap = nullptr;
+        std::shared_ptr<Texture> depthMap = nullptr;
     }
     m_material; 
-   
-    struct Light
+
+    struct DirectionalLight
     {
         glm::vec4 clr;
-    };
-
-    struct DirectionalLight : public Light
-    {
         glm::vec4 dir;
     };
 
-    struct PointLight : public Light
+    struct PointLight
     {
+        glm::vec4 clr;
         glm::vec4 pos;
         glm::vec4 coe;
     };
 
-    struct SpotLight : public Light
+    struct SpotLight
     {
-        glm::vec4 pos;
-        glm::vec4 dir;
-        glm::vec4 coe;
+        glm::vec3 clr;
         float cosInnerCone;
+        glm::vec3 pos;
         float cosOuterCone;
+        glm::vec3 dir;
         float degInnerCone;
+        glm::vec3 coe;
         float degOuterCone;
     };
 
     DirectionalLight m_dLight = { glm::vec4(1.0f), glm::vec4(0, 0, -1, 0)};
     PointLight m_pLight = { glm::vec4(1, 0, 0, 1), glm::vec4(0, 5, 0, 1), glm::vec4(1.0, 0.09, 0.032, 0.0) };
-    SpotLight m_sLight = { glm::vec4(0, 1, 0, 1), glm::vec4(5, 0, 0, 1), glm::vec4(-1, 0, 0, 0), glm::vec4(1.0, 0.22, 0.20, 0.0), std::cos(glm::radians(15.0f)), std::cos(glm::radians(20.0f)), 15, 20 };
-    SpotLight m_fLight = { glm::vec4(0, 1, 0, 1), glm::vec4(5, 0, 0, 1), glm::vec4(-1, 0, 0, 0), glm::vec4(1.0, 0.22, 0.20, 0.0), std::cos(glm::radians(15.0f)), std::cos(glm::radians(20.0f)), 15, 20 };
+    SpotLight m_sLight = { glm::vec3(0, 1, 0), std::cos(glm::radians(15.0f)), glm::vec3(2, 0, 0), std::cos(glm::radians(20.0f)), glm::vec3(-1, 0, 0), 15, glm::vec3(1.0, 0.22, 0.20), 20 };
+    SpotLight m_fLight = { glm::vec3(0, 1, 0), std::cos(glm::radians(15.0f)), glm::vec3(2, 0, 0), std::cos(glm::radians(20.0f)), glm::vec3(-1, 0, 0), 15, glm::vec3(1.0, 0.22, 0.20), 20 };
 
     glm::vec3* m_ambientColor = nullptr;
     glm::vec2* m_rightTopTexCoord = nullptr;
 
     bool m_showSky = true;
-    bool m_showGround= true;
+    bool m_showGround= false;
+    bool m_bUseNormalMap = true;
     
     PostProcess m_pp = PostProcess::None;
 

@@ -23,7 +23,7 @@
 class Shader : public RenderObject, public std::enable_shared_from_this<Shader>
 {
 public:
-    enum Type
+    enum class Type
     {
         UNKNOWN = -1, 
         VERTEX, 
@@ -32,6 +32,27 @@ public:
         COMPUTE, 
         TESSCONTROL, 
         TESSEVALUATION, 
+    };
+
+    enum class Macro
+    {
+        UNKOWN                  = -1, 
+        INSTANCE                = 0x01<<1,
+        DIFFUSE_REFLECTANCE     = 0x01<<2, 
+        SPECULAR_REFLECTANCE    = 0x01<<3, 
+        EMISSIVE_COLOR          = 0x01<<4, 
+        DIFFUSE_MAP             = 0x01<<5, 
+        SPECULAR_MAP            = 0x01<<6, 
+        EMISSIVE_MAP            = 0x01<<7, 
+        NORMAL_MAP              = 0x01<<8,
+        HEIGHT_MAP              = 0x01<<9, 
+        DISPLACEMENT_MAP        = 0x01<<10, 
+        PARALLAX_MAP            = DISPLACEMENT_MAP, 
+        AMBIENET_OCCLUSION_MAP  = 0x01<<11,  
+        REFLECTION_MAP          = 0x01<<12, 
+        SHININESS_MAP           = 0x01<<13, 
+        METALNESS_MAP           = 0x01<<14, 
+        ROUGHNESS_MAP           = 0x01<<15, 
     };
 
 public:
@@ -59,12 +80,12 @@ protected:
     virtual void _Compile(const std::unordered_map<Type, std::string>& splitShaderSources) = 0;
 
     std::string _ReadFile(const std::string& srcFile) const ;
-    std::unordered_map<Type, std::string> _SplitShaders(const std::string& sources) const;
+    std::unordered_map<Type, std::string> _SplitShaders(const std::string& sources);
     Type _TypeFromString(const std::string& type) const;
 
 protected:
-    std::string m_macros;
     std::string m_srcFile;
+    std::string m_macros;
     std::map<const std::string, int> m_attributeLocations;
     std::map<const std::string, int> m_uniformLocations;
     std::map<const std::string, unsigned int> m_uniformBlockIndices;

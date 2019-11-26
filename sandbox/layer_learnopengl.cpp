@@ -70,7 +70,7 @@ void LearnOpenGLLayer::OnUpdate(float deltaTime)
         Renderer::Submit("Skybox", "Skybox");
 
     Renderer::Submit("UnitCubic", "Blinn-Phong-Instance", m_numOfInstance);
-    Renderer::Submit("UnitCubic", "Blinn-Phong");
+    Renderer::Submit("UnitCubic", m_bUseNormalMap? "BlinnWithDiffuseNormalMap" : "BlinnWithDiffuseMap");
     Renderer::EndScene();                       
 
     Renderer::BlitFrameBuffer(m_fbMS, m_fbSS);
@@ -101,6 +101,11 @@ void LearnOpenGLLayer::OnImGuiRender()
     }
 
     ImGui::Separator();
+    if(ImGui::RadioButton("UseNormalMap", m_bUseNormalMap))
+    {
+        m_bUseNormalMap = !m_bUseNormalMap;
+    }
+
     if(ImGui::InputInt("Samples", (int*)&m_samples))
     {
         unsigned int w = m_fbMS->GetWidth();
@@ -167,8 +172,8 @@ void LearnOpenGLLayer::OnImGuiRender()
             bChanged |= ImGui::DragFloat3("Position", glm::value_ptr(m_sLight.pos), 0.1f, -10, 10);
             bChanged |= ImGui::DragFloat3("Direction", glm::value_ptr(m_sLight.dir), 0.1f, -1, 1);
             bChanged |= ImGui::InputFloat3("AttenuationCoefficents", glm::value_ptr(m_sLight.coe));
-            
-            if(ImGui::DragFloat("InnerCone", &m_sLight.degInnerCone, 1, 0, 30))
+
+            if(ImGui::DragFloat("InnerCone", &m_sLight.degInnerCone, 1, 0, 60))
             {
                 bChanged = true;
                 m_sLight.cosInnerCone = std::cos(glm::radians(m_sLight.degInnerCone));
@@ -178,7 +183,7 @@ void LearnOpenGLLayer::OnImGuiRender()
                     m_sLight.cosOuterCone = m_sLight.cosInnerCone;
                 }
             }
-            if(ImGui::DragFloat("OuterCone", &m_sLight.degOuterCone, 1, 0, 60))
+            if(ImGui::DragFloat("OuterCone", &m_sLight.degOuterCone, 1, 0, 90))
             {
                 bChanged = true;
                 m_sLight.cosOuterCone = std::cos(glm::radians(m_sLight.degOuterCone));
@@ -245,38 +250,38 @@ void LearnOpenGLLayer::_PrepareModel()
 
 void LearnOpenGLLayer::_PrepareUnitCubic()
 {
-    float vertices[] = 
+    float vertices[] =   // (a_PositionMS, a_NormalMS, a_TangentMS, a_TexCoord)
     {
-        // front
-        -1, -1, +1, 0, 0, +1, 0, 0,   
-        +1, -1, +1, 0, 0, +1, 1, 0, 
-        +1, +1, +1, 0, 0, +1, 1, 1, 
-        -1, +1, +1, 0, 0, +1, 0, 1, 
-        // back
-        +1, -1, -1, 0, 0, -1, 0, 0, 
-        -1, -1, -1, 0, 0, -1, 1, 0, 
-        -1, +1, -1, 0, 0, -1, 1, 1, 
-        +1, +1, -1, 0, 0, -1, 0, 1, 
-        // left
-        -1, -1, -1, -1, 0, 0, 0, 0, 
-        -1, -1, +1, -1, 0, 0, 1, 0, 
-        -1, +1, +1, -1, 0, 0, 1, 1, 
-        -1, +1, -1, -1, 0, 0, 0, 1, 
-        // right
-        +1, -1, +1, +1, 0, 0, 0, 0, 
-        +1, -1, -1, +1, 0, 0, 1, 0, 
-        +1, +1, -1, +1, 0, 0, 1, 1, 
-        +1, +1, +1, +1, 0, 0, 0, 1, 
-        // up
-        -1, +1, +1, 0, +1, 0, 0, 0, 
-        +1, +1, +1, 0, +1, 0, 1, 0, 
-        +1, +1, -1, 0, +1, 0, 1, 1, 
-        -1, +1, -1, 0, +1, 0, 0, 1, 
-        // down
-        -1, -1, -1, 0, -1, 0, 0, 0, 
-        +1, -1, -1, 0, -1, 0, 1, 0, 
-        +1, -1, +1, 0, -1, 0, 1, 1, 
-        -1, -1, +1, 0, -1, 0, 0, 1, 
+        // front 
+        -1, -1, +1,  0, 0, +1,  +1, 0, 0,  0, 0,   
+        +1, -1, +1,  0, 0, +1,  +1, 0, 0,  1, 0, 
+        +1, +1, +1,  0, 0, +1,  +1, 0, 0,  1, 1, 
+        -1, +1, +1,  0, 0, +1,  +1, 0, 0,  0, 1, 
+        // back                            
+        +1, -1, -1,  0, 0, -1,  -1, 0, 0,  0, 0, 
+        -1, -1, -1,  0, 0, -1,  -1, 0, 0,  1, 0, 
+        -1, +1, -1,  0, 0, -1,  -1, 0, 0,  1, 1, 
+        +1, +1, -1,  0, 0, -1,  -1, 0, 0,  0, 1, 
+        // left                            
+        -1, -1, -1,  -1, 0, 0,  0, 0, +1,  0, 0, 
+        -1, -1, +1,  -1, 0, 0,  0, 0, +1,  1, 0, 
+        -1, +1, +1,  -1, 0, 0,  0, 0, +1,  1, 1, 
+        -1, +1, -1,  -1, 0, 0,  0, 0, +1,  0, 1, 
+        // right                           
+        +1, -1, +1,  +1, 0, 0,  0, 0, -1,  0, 0, 
+        +1, -1, -1,  +1, 0, 0,  0, 0, -1,  1, 0, 
+        +1, +1, -1,  +1, 0, 0,  0, 0, -1,  1, 1, 
+        +1, +1, +1,  +1, 0, 0,  0, 0, -1,  0, 1, 
+        // up                              
+        -1, +1, +1,  0, +1, 0,  +1, 0, 0,  0, 0, 
+        +1, +1, +1,  0, +1, 0,  +1, 0, 0,  1, 0, 
+        +1, +1, -1,  0, +1, 0,  +1, 0, 0,  1, 1, 
+        -1, +1, -1,  0, +1, 0,  +1, 0, 0,  0, 1, 
+        // down                            
+        -1, -1, -1,  0, -1, 0,  -1, 0, 0,  0, 0, 
+        +1, -1, -1,  0, -1, 0,  -1, 0, 0,  1, 0, 
+        +1, -1, +1,  0, -1, 0,  -1, 0, 0,  1, 1, 
+        -1, -1, +1,  0, -1, 0,  -1, 0, 0,  0, 1, 
     };
 
     unsigned char indices[] = 
@@ -321,11 +326,12 @@ void LearnOpenGLLayer::_PrepareUnitCubic()
         matM2W[k++] = tf->Set(translation, rotation, scale)->Get();
     }
 
-    Buffer::Layout layoutVextex = { {Buffer::Element::DataType::Float3, "a_Position", false}, 
-                                    {Buffer::Element::DataType::Float3, "a_Normal", false},
+    Buffer::Layout layoutVextex = { {Buffer::Element::DataType::Float3, "a_PositionMS", false}, 
+                                    {Buffer::Element::DataType::Float3, "a_NormalMS", false},
+                                    {Buffer::Element::DataType::Float3, "a_TangentMS", false},
                                     {Buffer::Element::DataType::Float2, "a_TexCoord", false}  };
     Buffer::Layout layoutIndex = { {Buffer::Element::DataType::UChar} };
-    Buffer::Layout layoutInstance = { {Buffer::Element::DataType::Mat4, "a_Model2World", false, 1} };
+    Buffer::Layout layoutInstance = { {Buffer::Element::DataType::Mat4, "a_MS2WS", false, 1} };
 
     std::shared_ptr<Buffer> vertexBuffer = Buffer::CreateVertex(sizeof(vertices), vertices)->SetLayout(layoutVextex);
     std::shared_ptr<Buffer> indexBuffer = Buffer::CreateIndex(sizeof(indices), indices)->SetLayout(layoutIndex);
@@ -334,10 +340,11 @@ void LearnOpenGLLayer::_PrepareUnitCubic()
     using MU = Material::Uniform;
 
 
-    std::shared_ptr<MU> maMaterialDiffuseReflectance = Renderer::Resources::Create<MU>("MaterialDiffuseReflectance")->Set(MU::Type::Float3, 1, glm::value_ptr(glm::vec3(0.5f)));
+    std::shared_ptr<MU> maMaterialDiffuseReflectance = Renderer::Resources::Create<MU>("MaterialDiffuseReflectance")->Set(MU::Type::Float3, 1, glm::value_ptr(glm::vec3(0.8f)));
     std::shared_ptr<MU> maMaterialSpecularReflectance = Renderer::Resources::Create<MU>("MaterialSpecularReflectance")->Set(MU::Type::Float3, 1, glm::value_ptr(glm::vec3(1.0f)));
     std::shared_ptr<MU> maMaterialEmissiveColor = Renderer::Resources::Create<MU>("MaterialEmissiveColor")->Set(MU::Type::Float3, 1, glm::value_ptr(glm::vec3(0.1f)));
     std::shared_ptr<MU> maMaterialShininess = Renderer::Resources::Create<MU>("MaterialShininess")->SetType(MU::Type::Float1);
+    std::shared_ptr<MU> maMaterialDepthScale = Renderer::Resources::Create<MU>("MaterialDepthScale")->SetType(MU::Type::Float1);
 
     std::shared_ptr<MU> maCameraPosition = Renderer::Resources::Create<MU>("CameraPosition")->Set(MU::Type::Float3, 1, glm::value_ptr(glm::vec3(2.0f)));
 
@@ -346,36 +353,47 @@ void LearnOpenGLLayer::_PrepareUnitCubic()
     m_material.specularReflectance = reinterpret_cast<glm::vec3*>(maMaterialSpecularReflectance->GetData());
     m_material.emissiveColor = reinterpret_cast<glm::vec3*>(maMaterialEmissiveColor->GetData());
     m_material.shininess = reinterpret_cast<float*>(maMaterialShininess->GetData());
-    m_material.diffuseMap = Renderer::Resources::Create<Texture2D>("DiffuseMap")->LoadFromFile("/home/garra/study/dnn/assets/texture/brickwall.jpg");
-    m_material.normalMap = Renderer::Resources::Create<Texture2D>("NormalMap")->LoadFromFile("/home/garra/study/dnn/assets/texture/brickwall_normal.jpg");
+    *m_material.shininess = 32.0f;
+    m_material.depthScale = reinterpret_cast<float*>(maMaterialDepthScale->GetData());
+    *m_material.depthScale = 0.1f;
+    m_material.diffuseMap = Renderer::Resources::Create<Texture2D>("DiffuseMap")->LoadFromFile("/home/garra/study/dnn/assets/texture/wood.png");
+    m_material.normalMap = Renderer::Resources::Create<Texture2D>("NormalMap")->LoadFromFile("/home/garra/study/dnn/assets/texture/toy_box_normal.png");
+    m_material.depthMap = Renderer::Resources::Create<Texture2D>("DepthMap")->LoadFromFile("/home/garra/study/dnn/assets/texture/toy_box_disp.png");
+//     m_material.diffuseMap = Renderer::Resources::Create<Texture2D>("DiffuseMap")->LoadFromFile("/home/garra/study/dnn/assets/texture/bricks2.jpg");
+//     m_material.normalMap = Renderer::Resources::Create<Texture2D>("NormalMap")->LoadFromFile("/home/garra/study/dnn/assets/texture/bricks2_normal.jpg");
+//     m_material.depthMap = Renderer::Resources::Create<Texture2D>("DepthMap")->LoadFromFile("/home/garra/study/dnn/assets/texture/bricks2_disp.jpg");
 //     m_material.diffuseMap = Renderer::Resources::Create<Texture2D>("DiffuseMap")->LoadFromFile("/home/garra/study/dnn/assets/texture/container2.png");
 //     m_material.specularMap = Renderer::Resources::Create<Texture2D>("SpecularMap")->LoadFromFile("/home/garra/study/dnn/assets/texture/lighting_maps_specular_color.png");
 //     m_material.emissiveMap = Renderer::Resources::Create<Texture2D>("EmissiveMap")->LoadFromFile("/home/garra/study/dnn/assets/texture/matrix.jpg");
-    *m_material.shininess = 32.0f;
 
 
     // AmbientColor
-    std::shared_ptr<MU> maAmbientColor = Renderer::Resources::Create<MU>("AmbientColor")->Set(MU::Type::Float3, 1, glm::value_ptr(glm::vec3(1.0f)));
+    std::shared_ptr<MU> maAmbientColor = Renderer::Resources::Create<MU>("AmbientColor")->Set(MU::Type::Float3, 1, glm::value_ptr(glm::vec3(0.3f)));
     m_ambientColor = reinterpret_cast<glm::vec3*>(maAmbientColor->GetData());
 
     std::shared_ptr<Material> mtr = Renderer::Resources::Create<Material>("UnitCubic");
-    mtr->SetUniform("u_Material.diffuseReflectance", maMaterialDiffuseReflectance);
-    mtr->SetUniform("u_Material.specularReflectance", maMaterialSpecularReflectance);
-    mtr->SetUniform("u_Material.emissiveColor", maMaterialEmissiveColor);
-    mtr->SetUniform("u_Material.shininess", maMaterialShininess);
-    mtr->SetTexture("u_Material.diffuseMap", m_material.diffuseMap);
-    mtr->SetTexture("u_Material.normalMap", m_material.normalMap);
-//     mtr->SetTexture("u_Material.specularMap", m_material.specularMap);
-//     mtr->SetTexture("u_Material.emissiveMap", m_material.emissiveMap);
+    mtr->SetUniform("u_Material.DiffuseReflectance", maMaterialDiffuseReflectance);
+    mtr->SetUniform("u_Material.SpecularReflectance", maMaterialSpecularReflectance);
+    mtr->SetUniform("u_Material.EmissiveColor", maMaterialEmissiveColor);
+    mtr->SetUniform("u_Material.Shininess", maMaterialShininess);
+    mtr->SetUniform("u_Material.DepthScale", maMaterialDepthScale);
+    mtr->SetTexture("u_Material.DiffuseMap", m_material.diffuseMap);
+    mtr->SetTexture("u_Material.NormalMap", m_material.normalMap);
+    mtr->SetTexture("u_Material.SpecularMap", m_material.specularMap);
+    mtr->SetTexture("u_Material.EmissiveMap", m_material.emissiveMap);
+    mtr->SetTexture("u_Material.DepthMap", m_material.depthMap);
 
+    mtr->SetUniform("u_Camera.PositionWS", maCameraPosition);
     // AmbientColor
     mtr->SetUniform("u_AmbientColor", maAmbientColor);
 
     mtr->SetUniformBuffer("Transform", Renderer::Resources::Get<UniformBuffer>("Transform"));
     mtr->SetUniformBuffer("Light", Renderer::Resources::Get<UniformBuffer>("Light"));
 
-    Renderer::Resources::Create<Shader>("Blinn-Phong-Instance")->Define("INSTANCE")->Define("DIFFUSE_MAP")->LoadFromFile("/home/garra/study/dnn/assets/shader/Blinn-Phong.glsl");
-    m_shaderBlinnPhong = Renderer::Resources::Create<Shader>("Blinn-Phong")->Define("DIFFUSE_MAP")->LoadFromFile("/home/garra/study/dnn/assets/shader/Blinn-Phong.glsl");
+    Renderer::Resources::Create<Shader>("Blinn-Phong-Instance")->Define("INSTANCE|DIFFUSE_MAP|NORMAL_MAP")->LoadFromFile("/home/garra/study/dnn/assets/shader/Blinn-Phong.glsl");
+    m_shaderBlinnPhong = Renderer::Resources::Create<Shader>("Blinn-Phong")->Define("DIFFUSE_MAP|NORMAL_MAP")->LoadFromFile("/home/garra/study/dnn/assets/shader/Blinn-Phong.glsl");
+    Renderer::Resources::Create<Shader>("BlinnWithDiffuseNormalMap")->Define("DIFFUSE_MAP|NORMAL_MAP|DEPTH_MAP")->LoadFromFile("/home/garra/study/dnn/assets/shader/Blinn-Phong.glsl");
+    Renderer::Resources::Create<Shader>("BlinnWithDiffuseMap")->Define("DIFFUSE_MAP")->LoadFromFile("/home/garra/study/dnn/assets/shader/Blinn-Phong.glsl");
 
     Renderer::Resources::Create<Renderer::Element>("UnitCubic")->Set(mesh, mtr);
 
@@ -389,7 +407,8 @@ void LearnOpenGLLayer::_PrepareUnitCubic()
 //         glGetActiveUniformBlockiv(id, index, GL_UNIFORM_BLOCK_DATA_SIZE, &size);
 //         INFO("BlockDataSize: {}", size);
 //     }
-
+// 
+//     INFO("sizeof(SpotLight): {}", sizeof(m_sLight));
 //     STOP
 }
 
@@ -470,10 +489,7 @@ void LearnOpenGLLayer::_UpdateMaterialUniforms()
     Renderer::Resources::Get<MU>("CameraPosition")->UpdateData(&cam->GetPosition());
     Renderer::Resources::Get<MU>("NearCorners")->UpdateData(&cam->GetNearCornersInWorldSpace()[0]);
     Renderer::Resources::Get<MU>("FarCorners")->UpdateData(&cam->GetFarCornersInWorldSpace()[0]);
-//     Renderer::Resources::Get<MU>("FLightPosition")->UpdateData(&cam->GetPosition());
-//     glm::vec3 dir = cam->GetDirection();
-//     Renderer::Resources::Get<MU>("FLightDirection")->UpdateData(&dir);
-    Renderer::Resources::Get<UniformBuffer>("Transform")->Upload("World2Clip", glm::value_ptr(m_viewport->GetCamera()->World2Clip()));
+    Renderer::Resources::Get<UniformBuffer>("Transform")->Upload("WS2CS", glm::value_ptr(m_viewport->GetCamera()->World2Clip()));
     m_fLight.pos = glm::vec4(cam->GetPosition(), 1);
     m_fLight.dir = glm::vec4(cam->GetDirection(), 0);
     Renderer::Resources::Get<UniformBuffer>("Light")->Upload("FlashLight", &m_fLight);
@@ -482,14 +498,14 @@ void LearnOpenGLLayer::_UpdateMaterialUniforms()
 void LearnOpenGLLayer::_PrepareUniformBuffers()
 {
     std::shared_ptr<UniformBuffer> ubTransform = Renderer::Resources::Create<UniformBuffer>("Transform")->SetSize(64);
-    ubTransform->Push("World2Clip", glm::vec2(0, 64));
-    ubTransform->Upload("World2Clip", glm::value_ptr(m_viewport->GetCamera()->World2Clip()));
+    ubTransform->Push("WS2CS", glm::vec2(0, 64));
+    ubTransform->Upload("WS2CS", glm::value_ptr(m_viewport->GetCamera()->World2Clip()));
 
     std::shared_ptr<UniformBuffer> ubLight = Renderer::Resources::Create<UniformBuffer>("Light")->SetSize(240);
     ubLight->Push("DirectionalLight", glm::vec2(0, 32));
     ubLight->Push("PointLight", glm::vec2(32, 48));
-    ubLight->Push("SpotLight", glm::vec2(80, 80));
-    ubLight->Push("FlashLight", glm::vec2(160, 80));
+    ubLight->Push("SpotLight", glm::vec2(80, 64));
+    ubLight->Push("FlashLight", glm::vec2(144, 64));
     ubLight->Upload("DirectionalLight", &m_dLight);
     ubLight->Upload("PointLight", &m_pLight);
     ubLight->Upload("SpotLight", &m_sLight);

@@ -26,9 +26,19 @@ std::shared_ptr<Shader> Shader::Create(const std::string& name)
     }
 }
 
-std::shared_ptr<Shader> Shader::Define(const std::string& macro)
+std::shared_ptr<Shader> Shader::Define(const std::string& macros)
 {
-    m_macros += "#define "+macro+"\n";
+    std::string remains = macros;
+    size_t pos = remains.find("|");
+    while(pos != std::string::npos)
+    {
+        std::string macro = remains.substr(0, pos);
+        m_macros += "#define "+macro+"\n";
+        remains = remains.substr(pos+1);
+        pos = remains.find("|");
+    }
+    m_macros += "#define "+remains+"\n";
+
     return shared_from_this();
 }
 
@@ -86,18 +96,18 @@ std::string& trim(std::string& str, const std::string& chars = "\t\n\v\f\r ")
 
 Shader::Type Shader::_TypeFromString(const std::string& type) const
 {
-    if(type == "VERTEX")                        return VERTEX;
-    if(type == "FRAGMENT" || type == "PIXEL")   return FRAGMENT;
-    if(type == "COMPUTE")                       return COMPUTE;
-    if(type == "TESSCONTROL")                   return TESSCONTROL;
-    if(type == "TESSEVALUATION")                return TESSEVALUATION;
-    if(type == "GEOMETRY")                      return GEOMETRY;
+    if(type == "VERTEX")                        return Type::VERTEX;
+    if(type == "FRAGMENT" || type == "PIXEL")   return Type::FRAGMENT;
+    if(type == "COMPUTE")                       return Type::COMPUTE;
+    if(type == "TESSCONTROL")                   return Type::TESSCONTROL;
+    if(type == "TESSEVALUATION")                return Type::TESSEVALUATION;
+    if(type == "GEOMETRY")                      return Type::GEOMETRY;
 
     CORE_ASSERT(false, "Shader::_TypeFromString: UnKnown shader type "+type);
-    return UNKNOWN;
+    return Type::UNKNOWN;
 }
 
-std::unordered_map<Shader::Type, std::string> Shader::_SplitShaders(const std::string& sources) const
+std::unordered_map<Shader::Type, std::string> Shader::_SplitShaders(const std::string& sources)
 {
     std::unordered_map<Type, std::string> splitShaderSources;
 
@@ -111,15 +121,18 @@ std::unordered_map<Shader::Type, std::string> Shader::_SplitShaders(const std::s
         size_t eol = sources.find_first_of("\r\n", pos);
         CORE_ASSERT(eol != std::string::npos, "Syntax error!");
         size_t begin = pos+typeTokenLength+1;
-        std::string type = sources.substr(begin, eol-begin);
-        trim(type);
-        transform(type.begin(), type.end(), type.begin(), toupper);
+        std::string strType = sources.substr(begin, eol-begin);
+        trim(strType);
+        transform(strType.begin(), strType.end(), strType.begin(), toupper);
         pos = sources.find(versionToken, eol);
         eol = sources.find_first_of("\r\n", pos);
         size_t nextLinePos = sources.find_first_not_of("\r\n", eol);
-        splitShaderSources[_TypeFromString(type)] = sources.substr(pos, nextLinePos-pos)+m_macros;
+        Type type = _TypeFromString(strType);
+        splitShaderSources[type] = sources.substr(pos, nextLinePos-pos)+m_macros;
         pos = sources.find(typeToken, nextLinePos);
-        splitShaderSources[_TypeFromString(type)] += sources.substr(nextLinePos, pos-(nextLinePos == std::string::npos? sources.size()-1 : nextLinePos));
+        splitShaderSources[type] += sources.substr(nextLinePos, pos-(nextLinePos == std::string::npos? sources.size()-1 : nextLinePos));
+//         INFO("{}", splitShaderSources[type]);
+            
     }
 
     return splitShaderSources;

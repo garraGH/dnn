@@ -43,8 +43,8 @@ std::shared_ptr<Shader> GLSLProgram::LoadFromFile(const std::string& srcFile)
 std::shared_ptr<Shader> GLSLProgram::LoadFromSource(const std::string& srcVertex, const std::string& srcFragment)
 {
     std::unordered_map<Type, std::string> splitShaderSources;
-    splitShaderSources[VERTEX] = srcVertex;
-    splitShaderSources[FRAGMENT] = srcFragment;
+    splitShaderSources[Type::VERTEX] = srcVertex;
+    splitShaderSources[Type::FRAGMENT] = srcFragment;
     _Compile(splitShaderSources);
     return shared_from_this();
 }
@@ -53,12 +53,12 @@ unsigned int GLSLProgram::_ToOpenGLShaderType(Type type) const
 {
     switch(type)
     {
-        case VERTEX:         return GL_VERTEX_SHADER;
-        case FRAGMENT:       return GL_FRAGMENT_SHADER;
-        case TESSCONTROL:    return GL_TESS_CONTROL_SHADER;
-        case TESSEVALUATION: return GL_TESS_EVALUATION_SHADER;
-        case COMPUTE:        return GL_COMPUTE_SHADER;
-        case GEOMETRY:       return GL_GEOMETRY_SHADER;
+        case Type::VERTEX:         return GL_VERTEX_SHADER;
+        case Type::FRAGMENT:       return GL_FRAGMENT_SHADER;
+        case Type::TESSCONTROL:    return GL_TESS_CONTROL_SHADER;
+        case Type::TESSEVALUATION: return GL_TESS_EVALUATION_SHADER;
+        case Type::COMPUTE:        return GL_COMPUTE_SHADER;
+        case Type::GEOMETRY:       return GL_GEOMETRY_SHADER;
         default: CORE_ASSERT(false, "UnKnown ShaderType!"); return -1;
     }
 
@@ -69,12 +69,12 @@ std::string GLSLProgram::_GetStringType(Type type) const
 #define CASE(x) case x: return #x;
     switch(type)
     {
-        CASE(VERTEX);
-        CASE(FRAGMENT);
-        CASE(TESSCONTROL);
-        CASE(TESSEVALUATION);
-        CASE(COMPUTE);
-        CASE(GEOMETRY);
+        CASE(Type::VERTEX);
+        CASE(Type::FRAGMENT);
+        CASE(Type::TESSCONTROL);
+        CASE(Type::TESSEVALUATION);
+        CASE(Type::COMPUTE);
+        CASE(Type::GEOMETRY);
         default: CORE_ASSERT(false, "UnKnown ShaderType!"); return "";
     }
 #undef CASE
@@ -158,12 +158,12 @@ void GLSLProgram::_Upload(const char* name, const glm::mat4& matrix)
 
 void GLSLProgram::SetWorld2ClipMatrix(const glm::mat4& w2c)
 {
-    _Upload("u_World2Clip", w2c);
+    _Upload("u_WS2CS", w2c);
 }
 
 void GLSLProgram::SetModel2WorldMatrix(const glm::mat4& m2w)
 {
-    _Upload("u_Model2World", m2w);
+    _Upload("u_MS2WS", m2w);
 }
 
 int GLSLProgram::_GetAttributeLocation(const std::string& name)

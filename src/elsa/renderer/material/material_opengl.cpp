@@ -110,7 +110,7 @@ void OpenGLMaterial::_BindUniformBuffers(const std::shared_ptr<Shader>& shader)
         glBindBufferBase(GL_UNIFORM_BUFFER, bindingPoint, ub.second->ID());
         ub.second->Unbind();
         glUniformBlockBinding(shader->ID(), indexOfUniformBlock, bindingPoint);
-        INFO("ub: {}, indexOfUniformBlock: {}, bindingPoint: {}", ub.first, indexOfUniformBlock, bindingPoint);
+//         INFO("ub: {}, indexOfUniformBlock: {}, bindingPoint: {}", ub.first, indexOfUniformBlock, bindingPoint);
         bindingPoint++;
     }
 }

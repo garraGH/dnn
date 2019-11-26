@@ -12,6 +12,7 @@
 #include "buffer_opengl.h"
 #include "../../core.h"
 #include "../texture/texture2d.h"
+#include "glm/gtx/string_cast.hpp"
 
 OpenGLBuffer::OpenGLBuffer(unsigned int size, const void* data)
     : Buffer(size, data)
@@ -299,6 +300,11 @@ void OpenGLUniformBuffer::Unbind() const
 
 void OpenGLUniformBuffer::Upload(const std::string& name, const void* data)
 {
+//     INFO("UniformBuffer({})::UpLoad: {}", m_name, name);
+//     for(int i=0; i<m_layouts[name].y/16; i++)
+//     {
+//         INFO("{}", glm::to_string(*((glm::vec4*)data+i)));
+//     }
     glBindBuffer(GL_UNIFORM_BUFFER, m_id);
     glBufferSubData(GL_UNIFORM_BUFFER, m_layouts[name].x, m_layouts[name].y, data);
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
