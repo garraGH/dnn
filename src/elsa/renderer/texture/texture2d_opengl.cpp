@@ -21,21 +21,31 @@ std::shared_ptr<Texture2D> OpenGLTexture2D::Create(const std::string& name)
 OpenGLTexture2D::OpenGLTexture2D(const std::string& name)
     : Texture2D(name)
 {
-    glGenTextures(1, &m_id);
-    INFO("Create OpenGLTexture2D: {}", m_id);
+    _Create();
 }
 
 OpenGLTexture2D::~OpenGLTexture2D()
 {
-    glDeleteTextures(1, &m_id);
-    INFO("Delete OpenGLTexture2D: {}, {}x{}", m_id, m_width, m_height);
+    _Destroy();
 }
 
-std::shared_ptr<Texture> OpenGLTexture2D::_LoadImage()
+void OpenGLTexture2D::_Create()
+{
+    INFO("Create OpenGLTexture2D: {}", m_id);
+    glGenTextures(1, &m_id);
+}
+
+void OpenGLTexture2D::_Destroy()
+{
+    INFO("Destroy OpenGLTexture2D: {}, {}x{}", m_id, m_width, m_height);
+    glDeleteTextures(1, &m_id);
+}
+
+void OpenGLTexture2D::_Load()
 {
     stbi_set_flip_vertically_on_load(true);
     stbi_uc* data = stbi_load(m_imagePath.c_str(), (int*)&m_width, (int*)&m_height, (int*)&m_channel, 0);
-    CORE_ASSERT(data, "OpenGLTexture2D::LoadFromFile: Failed to load image: "+m_imagePath);
+    CORE_ASSERT(data, "OpenGLTexture2D::Load: Failed to load image: "+m_imagePath);
 
     glBindTexture(GL_TEXTURE_2D, m_id);
     glTextureParameteri(m_id, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -45,13 +55,12 @@ std::shared_ptr<Texture> OpenGLTexture2D::_LoadImage()
 
     stbi_image_free(data);
 
-    INFO("OpenGLTexture2D::_LoadImage: {}, {}x{}x{}", m_imagePath, m_width, m_height, m_channel);
-    return shared_from_this();
+    INFO("OpenGLTexture2D::_Load: {}, {}x{}x{}", m_imagePath, m_width, m_height, m_channel);
 }
 
-void OpenGLTexture2D::_AllocateStorage()
+void OpenGLTexture2D::_Allocate()
 {
-    INFO("OpenGLTexture2D::_AllocateStorage: size({}x{}), samples({})", m_width, m_height, m_samples);
+    INFO("OpenGLTexture2D::_Allocate: size({}x{}), samples({})", m_width, m_height, m_samples);
     m_samples == 1? 
         glTextureStorage2D(m_id, 1, _OpenGLFormat(), m_width, m_height) :
         glTextureStorage2DMultisample(m_id, m_samples, _OpenGLFormat(), m_width, m_height, GL_TRUE);

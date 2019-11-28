@@ -151,7 +151,7 @@ void Model::_ProcessMesh(const aiScene* scene, const aiMesh* mesh, unsigned int 
             std::string textureNameWithExtension = pos == std::string::npos? temp : temp.substr(pos+1);
             INFO("DiffuseTexture: {}", textureNameWithExtension);
             std::string textureNameWithoutExtension = textureNameWithExtension.substr(0, textureNameWithExtension.find('.'));
-            std::shared_ptr<Texture> tex = Renderer::Resources::Create<Texture2D>(textureNameWithoutExtension)->LoadFromFile(textureBasePath+textureNameWithExtension);
+            std::shared_ptr<Texture> tex = Renderer::Resources::Create<Texture2D>(textureNameWithoutExtension)->Load(textureBasePath+textureNameWithExtension);
             mtr->SetTexture("u_Material.diffuseMap", tex);
         }
         type = aiTextureType_SPECULAR;
@@ -164,7 +164,7 @@ void Model::_ProcessMesh(const aiScene* scene, const aiMesh* mesh, unsigned int 
             std::string textureNameWithExtension = pos == std::string::npos? temp : temp.substr(pos+1);
             INFO("SpecularTexture: {}", textureNameWithExtension);
             std::string textureNameWithoutExtension = textureNameWithExtension.substr(0, textureNameWithExtension.find('.'));
-            std::shared_ptr<Texture> tex = Renderer::Resources::Create<Texture2D>(textureNameWithoutExtension)->LoadFromFile(textureBasePath+textureNameWithExtension);
+            std::shared_ptr<Texture> tex = Renderer::Resources::Create<Texture2D>(textureNameWithoutExtension)->Load(textureBasePath+textureNameWithExtension);
             mtr->SetTexture("u_Material.specularMap", tex);
         }
     }                                                        

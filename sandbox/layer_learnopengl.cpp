@@ -1,3 +1,4 @@
+
 /*============================================
 * Copyright(C)2019 Garra. All rights reserved.
 * 
@@ -12,6 +13,7 @@
 #include "layer_learnopengl.h"
 #include "glm/gtc/type_ptr.hpp"
 #include "glm/gtx/string_cast.hpp"
+#include "osdialog.h"
 
 std::shared_ptr<LearnOpenGLLayer> LearnOpenGLLayer::Create()
 {
@@ -50,6 +52,97 @@ bool LearnOpenGLLayer::_OnWindowResizeEvent(WindowResizeEvent& e)
     return false;
 }
 
+void LearnOpenGLLayer::_UpdateShaderID()
+{
+    m_shaderID = 0;
+    if(m_material.hasDiffuseReflectance)
+    {
+        m_shaderID |= static_cast<int>(MaterialProperty::HasDiffuseReflectance);
+    }
+    if(m_material.hasSpecularReflectance)
+    {
+        m_shaderID |= static_cast<int>(MaterialProperty::HasSpecularReflectance);
+    }
+    if(m_material.hasEmissiveColor)
+    {
+        m_shaderID |= static_cast<int>(MaterialProperty::HasEmissiveColor);
+    }
+    if(m_material.hasDiffuseMap)
+    {
+        m_shaderID |= static_cast<int>(MaterialProperty::HasDiffuseMap);
+    }
+    if(m_material.hasSpecularMap)
+    {
+        m_shaderID |= static_cast<int>(MaterialProperty::HasSpecularMap);
+    }
+    if(m_material.hasEmissiveMap)
+    {
+        m_shaderID |= static_cast<int>(MaterialProperty::HasEmissiveMap);
+    }
+    if(m_material.hasNormalMap)
+    {
+        m_shaderID |= static_cast<int>(MaterialProperty::HasNormalMap);
+    }
+    if(m_material.hasDepthMap)
+    {
+        m_shaderID |= static_cast<int>(MaterialProperty::HasDepthMap);
+    }
+}
+
+void LearnOpenGLLayer::_AddMaterialProperty(MaterialProperty mp)
+{
+    m_shaderID |= static_cast<int>(mp);
+}
+
+void LearnOpenGLLayer::_RemoveMaterialProperty(MaterialProperty mp)
+{
+    m_shaderID &= ~static_cast<int>(mp);
+}
+
+std::string LearnOpenGLLayer::_StringOfShaderID() const
+{
+    return std::to_string(m_shaderID);
+}
+
+std::string LearnOpenGLLayer::_MacrosOfShaderID() const
+{
+    std::string macros;
+    if(m_shaderID&static_cast<int>(MaterialProperty::HasDiffuseReflectance))
+    {
+        macros += "|DIFFUSE_REFLECTANCE";
+    }
+    if(m_shaderID&static_cast<int>(MaterialProperty::HasSpecularReflectance))
+    {
+        macros += "|SPECULAR_REFLECTANCE";
+    }
+    if(m_shaderID&static_cast<int>(MaterialProperty::HasEmissiveColor))
+    {
+        macros += "|EMISSIVE_COLOR";
+    }
+    if(m_shaderID&static_cast<int>(MaterialProperty::HasDiffuseMap))
+    {
+        macros += "|DIFFUSE_MAP";
+    }
+    if(m_shaderID&static_cast<int>(MaterialProperty::HasSpecularMap))
+    {
+        macros += "|SPECULAR_MAP";
+    }
+    if(m_shaderID&static_cast<int>(MaterialProperty::HasEmissiveMap))
+    {
+        macros += "|EMISSIVE_MAP";
+    }
+    if(m_shaderID&static_cast<int>(MaterialProperty::HasNormalMap))
+    {
+        macros += "|NORMAL_MAP";
+    }
+    if(m_shaderID&static_cast<int>(MaterialProperty::HasDepthMap))
+    {
+        macros += "|DEPTH_MAP";
+    }
+
+    return macros.substr(1);
+}
+
 void LearnOpenGLLayer::OnUpdate(float deltaTime)
 {
     _UpdateMaterialUniforms();
@@ -70,7 +163,7 @@ void LearnOpenGLLayer::OnUpdate(float deltaTime)
         Renderer::Submit("Skybox", "Skybox");
 
     Renderer::Submit("UnitCubic", "Blinn-Phong-Instance", m_numOfInstance);
-    Renderer::Submit("UnitCubic", m_bUseNormalMap? "BlinnWithDiffuseNormalMap" : "BlinnWithDiffuseMap");
+    Renderer::Submit(m_unitCubic, m_shaderOfMaterial);
     Renderer::EndScene();                       
 
     Renderer::BlitFrameBuffer(m_fbMS, m_fbSS);
@@ -89,22 +182,13 @@ void LearnOpenGLLayer::OnImGuiRender()
 
     ImGui::Begin("LearnOpenGLLayer");
 
-    if(ImGui::RadioButton("ShowSky", m_showSky))
-    {
-        m_showSky = !m_showSky;
-    }
 
-    ImGui::SameLine();
-    if(ImGui::RadioButton("ShowGround", m_showGround))
-    {
-        m_showGround = !m_showGround;
-    }
+
+
+    ImGui::Checkbox("ShowSky", &m_showSky);
+    ImGui::Checkbox("ShowGround", &m_showGround);
 
     ImGui::Separator();
-    if(ImGui::RadioButton("UseNormalMap", m_bUseNormalMap))
-    {
-        m_bUseNormalMap = !m_bUseNormalMap;
-    }
 
     if(ImGui::InputInt("Samples", (int*)&m_samples))
     {
@@ -137,10 +221,69 @@ void LearnOpenGLLayer::OnImGuiRender()
 
     if(ImGui::CollapsingHeader("Material"))
     {
-        ImGui::ColorPicker3("DiffuseReflectance", reinterpret_cast<float*>(m_material.diffuseReflectance));
-        ImGui::ColorPicker3("EmissiveColor", reinterpret_cast<float*>(m_material.emissiveColor));
-        ImGui::ColorPicker3("SpecularReflectance", reinterpret_cast<float*>(m_material.specularReflectance));
-        ImGui::SliderFloat("Shininess", m_material.shininess, 0, 512);
+        bool bShaderChanged = false;
+        bShaderChanged |= ImGui::Checkbox("DiffuseRelectance", &m_material.hasDiffuseReflectance);
+        ImGui::SameLine(200);
+        ImGui::ColorEdit3("DiffuseRelectance", (float*)m_material.diffuseReflectance, ImGuiColorEditFlags_NoInputs|ImGuiColorEditFlags_NoLabel);
+
+        bShaderChanged |= ImGui::Checkbox("SpecularReflectance", &m_material.hasSpecularReflectance);
+        ImGui::SameLine(200);
+        ImGui::ColorEdit3("SpecularReflectance", (float*)m_material.specularReflectance, ImGuiColorEditFlags_NoInputs|ImGuiColorEditFlags_NoLabel);
+        ImGui::SameLine(250);
+        ImGui::SetNextItemWidth(64);
+        ImGui::DragFloat("Shininess", m_material.shininess,  2,  2,  512, "%.0f");
+
+        bShaderChanged |= ImGui::Checkbox("EmissiveColor", &m_material.hasEmissiveColor);
+        ImGui::SameLine(200);
+        ImGui::ColorEdit3("EmissiveColor", (float*)m_material.emissiveColor, ImGuiColorEditFlags_NoInputs|ImGuiColorEditFlags_NoLabel);
+
+        bShaderChanged |= ImGui::Checkbox("DiffuseMap", &m_material.hasDiffuseMap);
+        ImGui::SameLine(200);
+        if(ImGui::ImageButton((void*)(intptr_t)m_material.diffuseMap->ID(), ImVec2(16, 16), ImVec2(0, 0), ImVec2(1, 1), 1, ImColor(0, 128, 0, 128)))
+        {
+            _UpdateTexture(m_material.diffuseMap);
+        }
+        bShaderChanged |= ImGui::Checkbox("SpecularMap", &m_material.hasSpecularMap);
+        ImGui::SameLine(200);
+        if(ImGui::ImageButton((void*)(intptr_t)m_material.specularMap->ID(), ImVec2(16, 16), ImVec2(0, 0), ImVec2(1, 1), 1, ImColor(0, 128, 0, 128)))
+        {
+            _UpdateTexture(m_material.specularMap);
+        }
+        bShaderChanged |= ImGui::Checkbox("EmissiveMap", &m_material.hasEmissiveMap);
+        ImGui::SameLine(200);
+        if(ImGui::ImageButton((void*)(intptr_t)m_material.emissiveMap->ID(), ImVec2(16, 16), ImVec2(0, 0), ImVec2(1, 1), 1, ImColor(0, 128, 0, 128)))
+        {
+            _UpdateTexture(m_material.emissiveMap);
+        }
+        bShaderChanged |= ImGui::Checkbox("NormalMap", &m_material.hasNormalMap);
+        ImGui::SameLine(200);
+        if(ImGui::ImageButton((void*)(intptr_t)m_material.normalMap->ID(), ImVec2(16, 16), ImVec2(0, 0), ImVec2(1, 1), 1, ImColor(0, 128, 0, 128)))
+        {
+            _UpdateTexture(m_material.normalMap);
+        }
+        bShaderChanged |= ImGui::Checkbox("DepthMap", &m_material.hasDepthMap);
+        ImGui::SameLine(200);
+        if(ImGui::ImageButton((void*)(intptr_t)m_material.depthMap->ID(), ImVec2(16, 16), ImVec2(0, 0), ImVec2(1, 1), 1, ImColor(0, 128, 0, 128)))
+        {
+            _UpdateTexture(m_material.depthMap);
+        }
+        ImGui::SameLine(250);
+        ImGui::SetNextItemWidth(64);
+        ImGui::DragFloat("DepthScale", m_material.depthScale,  0.001,  0,  1);
+
+        if(bShaderChanged)
+        {
+            _UpdateShaderID();
+            std::string shaderName = _StringOfShaderID();
+            if(Renderer::Resources::Exist<Shader>(shaderName))
+            {
+                m_shaderOfMaterial = Renderer::Resources::Get<Shader>(shaderName);
+            }
+            else
+            {
+                m_shaderOfMaterial = Renderer::Resources::Create<Shader>(shaderName)->Define(_MacrosOfShaderID())->LoadFromFile("/home/garra/study/dnn/assets/shader/Blinn-Phong.glsl");
+            }
+        }
     }
 
 //     Renderer::Resources::Get<UniformBuffer>("Light")->Upload(name, data)
@@ -235,6 +378,15 @@ void LearnOpenGLLayer::OnImGuiRender()
     ImGui::End();
 }
 
+void LearnOpenGLLayer::_UpdateTexture(std::shared_ptr<Texture>& tex)
+{
+    char* filename = osdialog_file(OSDIALOG_OPEN, "/home/garra/study/dnn/assets/texture", nullptr, nullptr);
+    if(filename)
+    {
+        tex->Reload(filename);
+        delete[] filename;
+    }
+}
 void LearnOpenGLLayer::_PrepareModel()
 {
     m_crysisNanoSuit = Renderer::Resources::Create<Model>("CysisNanoSuit")->LoadFromFile("/home/garra/study/dnn/assets/mesh/CysisNanoSuit/scene.fbx");
@@ -356,15 +508,15 @@ void LearnOpenGLLayer::_PrepareUnitCubic()
     *m_material.shininess = 32.0f;
     m_material.depthScale = reinterpret_cast<float*>(maMaterialDepthScale->GetData());
     *m_material.depthScale = 0.1f;
-    m_material.diffuseMap = Renderer::Resources::Create<Texture2D>("DiffuseMap")->LoadFromFile("/home/garra/study/dnn/assets/texture/wood.png");
-    m_material.normalMap = Renderer::Resources::Create<Texture2D>("NormalMap")->LoadFromFile("/home/garra/study/dnn/assets/texture/toy_box_normal.png");
-    m_material.depthMap = Renderer::Resources::Create<Texture2D>("DepthMap")->LoadFromFile("/home/garra/study/dnn/assets/texture/toy_box_disp.png");
-//     m_material.diffuseMap = Renderer::Resources::Create<Texture2D>("DiffuseMap")->LoadFromFile("/home/garra/study/dnn/assets/texture/bricks2.jpg");
-//     m_material.normalMap = Renderer::Resources::Create<Texture2D>("NormalMap")->LoadFromFile("/home/garra/study/dnn/assets/texture/bricks2_normal.jpg");
-//     m_material.depthMap = Renderer::Resources::Create<Texture2D>("DepthMap")->LoadFromFile("/home/garra/study/dnn/assets/texture/bricks2_disp.jpg");
-//     m_material.diffuseMap = Renderer::Resources::Create<Texture2D>("DiffuseMap")->LoadFromFile("/home/garra/study/dnn/assets/texture/container2.png");
-//     m_material.specularMap = Renderer::Resources::Create<Texture2D>("SpecularMap")->LoadFromFile("/home/garra/study/dnn/assets/texture/lighting_maps_specular_color.png");
-//     m_material.emissiveMap = Renderer::Resources::Create<Texture2D>("EmissiveMap")->LoadFromFile("/home/garra/study/dnn/assets/texture/matrix.jpg");
+    m_material.diffuseMap = Renderer::Resources::Create<Texture2D>("DiffuseMap")->Load("/home/garra/study/dnn/assets/texture/wood.png");
+    m_material.normalMap = Renderer::Resources::Create<Texture2D>("NormalMap")->Load("/home/garra/study/dnn/assets/texture/toy_box_normal.png");
+    m_material.depthMap = Renderer::Resources::Create<Texture2D>("DepthMap")->Load("/home/garra/study/dnn/assets/texture/toy_box_disp.png");
+//     m_material.diffuseMap = Renderer::Resources::Create<Texture2D>("DiffuseMap")->Load("/home/garra/study/dnn/assets/texture/bricks2.jpg");
+//     m_material.normalMap = Renderer::Resources::Create<Texture2D>("NormalMap")->Load("/home/garra/study/dnn/assets/texture/bricks2_normal.jpg");
+//     m_material.depthMap = Renderer::Resources::Create<Texture2D>("DepthMap")->Load("/home/garra/study/dnn/assets/texture/bricks2_disp.jpg");
+//     m_material.diffuseMap = Renderer::Resources::Create<Texture2D>("DiffuseMap")->Load("/home/garra/study/dnn/assets/texture/container2.png");
+    m_material.specularMap = Renderer::Resources::Create<Texture2D>("SpecularMap")->Load("/home/garra/study/dnn/assets/texture/lighting_maps_specular_color.png");
+    m_material.emissiveMap = Renderer::Resources::Create<Texture2D>("EmissiveMap")->Load("/home/garra/study/dnn/assets/texture/matrix.jpg");
 
 
     // AmbientColor
@@ -392,10 +544,9 @@ void LearnOpenGLLayer::_PrepareUnitCubic()
 
     Renderer::Resources::Create<Shader>("Blinn-Phong-Instance")->Define("INSTANCE|DIFFUSE_MAP|NORMAL_MAP")->LoadFromFile("/home/garra/study/dnn/assets/shader/Blinn-Phong.glsl");
     m_shaderBlinnPhong = Renderer::Resources::Create<Shader>("Blinn-Phong")->Define("DIFFUSE_MAP|NORMAL_MAP")->LoadFromFile("/home/garra/study/dnn/assets/shader/Blinn-Phong.glsl");
-    Renderer::Resources::Create<Shader>("BlinnWithDiffuseNormalMap")->Define("DIFFUSE_MAP|NORMAL_MAP|DEPTH_MAP")->LoadFromFile("/home/garra/study/dnn/assets/shader/Blinn-Phong.glsl");
-    Renderer::Resources::Create<Shader>("BlinnWithDiffuseMap")->Define("DIFFUSE_MAP")->LoadFromFile("/home/garra/study/dnn/assets/shader/Blinn-Phong.glsl");
+    m_shaderOfMaterial = Renderer::Resources::Create<Shader>(_StringOfShaderID())->Define(_MacrosOfShaderID())->LoadFromFile("/home/garra/study/dnn/assets/shader/Blinn-Phong.glsl");
 
-    Renderer::Resources::Create<Renderer::Element>("UnitCubic")->Set(mesh, mtr);
+    m_unitCubic = Renderer::Resources::Create<Renderer::Element>("UnitCubic")->Set(mesh, mtr);
 
 
 //     unsigned int id = m_shaderBlinnPhong->ID();
@@ -428,7 +579,7 @@ void LearnOpenGLLayer::_PrepareSkybox()
     std::shared_ptr<Buffer> ib = Buffer::CreateIndex(sizeof(indices), indices)->SetLayout(layoutIndex);
     std::shared_ptr<Elsa::Mesh> mesh= Renderer::Resources::Create<Elsa::Mesh>("BackgroundPlane")->Set(ib, {vb});
     std::shared_ptr<Texture> tex = Renderer::Resources::Create<Texture2D>("Skybox");
-    tex->LoadFromFile("/home/garra/study/dnn/assets/texture/skybox/autumn-crossing_3.jpg");
+    tex->Load("/home/garra/study/dnn/assets/texture/skybox/autumn-crossing_3.jpg");
     using MU = Material::Uniform;
     std::shared_ptr<MU> maNearCorners = Renderer::Resources::Create<MU>("NearCorners")->Set(MU::Type::Float3, 4);
     std::shared_ptr<MU> maFarCorners = Renderer::Resources::Create<MU>("FarCorners")->Set(MU::Type::Float3, 4);
@@ -511,3 +662,4 @@ void LearnOpenGLLayer::_PrepareUniformBuffers()
     ubLight->Upload("SpotLight", &m_sLight);
     ubLight->Upload("FlashLight", &m_fLight);
 }
+

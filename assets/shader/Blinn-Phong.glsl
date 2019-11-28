@@ -142,8 +142,6 @@ struct Material
     sampler2D HeightMap;
 #endif
 
-
-
 #ifdef DEPTH_MAP
     sampler2D DepthMap;
     float DepthScale;
@@ -320,7 +318,7 @@ vec3 _DiffuseReflectance(in vec3 lightDir)
 
 vec3 _SpecularReflectance(in vec3 lightDir)
 {
-    #if !defined SPECLUAR_REFLECTANCE && !defined SPECULAR_MAP
+    #if !defined SPECULAR_REFLECTANCE && !defined SPECULAR_MAP
     {
         return vec3(0.0f);
     }

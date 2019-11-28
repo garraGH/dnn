@@ -25,8 +25,10 @@ public:
     static std::shared_ptr<Texture2D> Create(const std::string& name);
 
 protected:
-    virtual std::shared_ptr<Texture> _LoadImage() override;
-    virtual void _AllocateStorage() override;
+    virtual void _Load() override;
+    virtual void _Allocate() override;
+    virtual void _Create() override;
+    virtual void _Destroy() override;
 
 private:
     unsigned int _OpenGLFormat();

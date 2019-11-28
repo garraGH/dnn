@@ -15,6 +15,18 @@
 class LearnOpenGLLayer : public Layer
 {
 public:
+    enum class MaterialProperty : int
+    {
+        HasDiffuseReflectance   = 0x01<<0, 
+        HasSpecularReflectance  = 0x01<<1, 
+        HasEmissiveColor        = 0x01<<2, 
+        HasDiffuseMap           = 0x01<<3, 
+        HasSpecularMap          = 0x01<<4, 
+        HasEmissiveMap          = 0x01<<5, 
+        HasNormalMap            = 0x01<<6, 
+        HasDepthMap             = 0x01<<7, 
+    };
+
     enum class PostProcess
     {
         None, 
@@ -46,6 +58,7 @@ protected:
     void _UpdateMaterialUniforms();
 
     void _PrepareUniformBuffers();
+    void _UpdateTexture(std::shared_ptr<Texture>& tex);
 
 private:
     std::shared_ptr<Viewport> m_viewport = Viewport::Create("LearnOpenGL_Viewport_Main");
@@ -58,6 +71,8 @@ private:
     std::shared_ptr<Shader> m_shaderPos = nullptr;
     std::shared_ptr<Shader> m_shaderColor = nullptr;
     std::shared_ptr<Shader> m_shaderBlinnPhong = nullptr;
+    std::shared_ptr<Shader> m_shaderOfMaterial = nullptr;
+    std::shared_ptr<Renderer::Element> m_unitCubic = nullptr;
 
     struct 
     {
@@ -71,8 +86,22 @@ private:
         std::shared_ptr<Texture> emissiveMap = nullptr;
         std::shared_ptr<Texture> normalMap = nullptr;
         std::shared_ptr<Texture> depthMap = nullptr;
+        bool hasDiffuseReflectance = true;
+        bool hasSpecularReflectance = true;
+        bool hasEmissiveColor = true;
+        bool hasDiffuseMap = true;
+        bool hasSpecularMap = true;
+        bool hasEmissiveMap = true;
+        bool hasNormalMap = true;
+        bool hasDepthMap = true;
     }
     m_material; 
+    int m_shaderID = 0b11111111;
+    void _UpdateShaderID();
+    void _AddMaterialProperty(MaterialProperty mp);
+    void _RemoveMaterialProperty(MaterialProperty mp);
+    std::string _StringOfShaderID() const;
+    std::string _MacrosOfShaderID() const;
 
     struct DirectionalLight
     {
@@ -109,7 +138,6 @@ private:
 
     bool m_showSky = true;
     bool m_showGround= false;
-    bool m_bUseNormalMap = true;
     
     PostProcess m_pp = PostProcess::None;
 

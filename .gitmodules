@@ -16,3 +16,6 @@
 [submodule "deps/modules/assimp"]
 	path = deps/modules/assimp
 	url = https://github.com/garraGH/assimp
+[submodule "deps/modules/osdialog"]
+	path = deps/modules/osdialog
+	url = https://github.com/garraGH/osdialog.git

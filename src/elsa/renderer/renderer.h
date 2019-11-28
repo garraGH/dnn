@@ -138,6 +138,8 @@ public:
         template<typename T>
         static std::shared_ptr<T> Create(const std::string& name="unnamed") { return Assets<T>::Instance().Create(name); }
         template<typename T>
+        static bool Exist(const std::string& name) { return Assets<T>::Instance().Exist(name); }
+        template<typename T>
         static std::shared_ptr<T>& Get(const std::string& name) { return Assets<T>::Instance().Get(name); }
         template<typename T>
         static void Add(const std::shared_ptr<T>& asset) { Assets<T>::Instance().Add(asset); }

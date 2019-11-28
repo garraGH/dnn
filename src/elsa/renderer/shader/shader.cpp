@@ -131,7 +131,7 @@ std::unordered_map<Shader::Type, std::string> Shader::_SplitShaders(const std::s
         splitShaderSources[type] = sources.substr(pos, nextLinePos-pos)+m_macros;
         pos = sources.find(typeToken, nextLinePos);
         splitShaderSources[type] += sources.substr(nextLinePos, pos-(nextLinePos == std::string::npos? sources.size()-1 : nextLinePos));
-//         INFO("{}", splitShaderSources[type]);
+        INFO("{}", splitShaderSources[type]);
             
     }
 

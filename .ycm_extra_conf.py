@@ -65,6 +65,7 @@ flags = [
         '-I./deps/modules/glfw/deps/',
         '-I./deps/modules/stb/',
         '-I./deps/modules/assimp/include/',
+        '-I./deps/modules/osdialog/',
         ]
 
 flags = IncludeFlagsOfSubdirectory(flags, "./" )

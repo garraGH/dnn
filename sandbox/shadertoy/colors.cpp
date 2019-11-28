@@ -39,8 +39,8 @@ void Colors::_PrepareResources()
     std::shared_ptr<MU> maFlagLayout = Renderer::Resources::Create<MU>("FlagLayout")->SetType(MU::Type::Int1);
     std::shared_ptr<MU> maDirection = Renderer::Resources::Create<MU>("Direction")->SetType(MU::Type::Int1);
     std::shared_ptr<Material> mtr = Renderer::Resources::Create<Material>("Colors");
-    std::shared_ptr<Texture> texFst = Renderer::Resources::Create<Texture2D>("TexFst")->LoadFromFile("/home/garra/study/dnn/assets/texture/turner_sunset.jpg");
-    std::shared_ptr<Texture> texSnd = Renderer::Resources::Create<Texture2D>("TexSnd")->LoadFromFile("/home/garra/study/dnn/assets/texture/noza.png");
+    std::shared_ptr<Texture> texFst = Renderer::Resources::Create<Texture2D>("TexFst")->Load("/home/garra/study/dnn/assets/texture/turner_sunset.jpg");
+    std::shared_ptr<Texture> texSnd = Renderer::Resources::Create<Texture2D>("TexSnd")->Load("/home/garra/study/dnn/assets/texture/noza.png");
     mtr->SetUniform("u_ColorFst", maColorFst);
     mtr->SetUniform("u_ColorSnd", maColorSnd);
     mtr->SetUniform("u_Resolution", maResolution);
@@ -165,14 +165,14 @@ void Colors::_CreateTextureTransitionGUI()
     imagepath[size] = '\0';
     if(ImGui::InputText("First  image path", imagepath, 256, ImGuiInputTextFlags_EnterReturnsTrue))
     {
-        texFst->LoadFromFile(imagepath);
+        texFst->Load(imagepath);
     }
     size = sndImagePath.size();
     memcpy(imagepath, sndImagePath.c_str(), size);
     imagepath[size] = '\0';
     if(ImGui::InputText("Second image path", imagepath, 256, ImGuiInputTextFlags_EnterReturnsTrue))
     {
-        texSnd->LoadFromFile(imagepath);
+        texSnd->Load(imagepath);
     }
     ImGui::SliderFloat("Speed", m_speed, 0.1, 3);
 

@@ -23,8 +23,9 @@ public:
     Texture(const std::string& name) : RenderObject(name) {}
     virtual std::string GetTypeName() { return "Texture"; }
 
+    std::shared_ptr<Texture> Load(const std::string& imagePath);
+    void Reload(const std::string& imagePath);
     std::shared_ptr<Texture> Set(unsigned int width, unsigned int height, unsigned int samples=1, Format format=Format::RGB8);
-    std::shared_ptr<Texture> LoadFromFile(const std::string& imagePath);
     void Reset(unsigned int width, unsigned int height, unsigned int samples=1, Format format=Format::RGB8);
     const std::string& GetImagePath() const { return m_imagePath; }
     unsigned int GetWidth() const { return m_width; }
@@ -33,8 +34,13 @@ public:
     unsigned int GetChannel() const { return m_channel; }
 
 protected:
-    virtual std::shared_ptr<Texture> _LoadImage() = 0;
-    virtual void _AllocateStorage() = 0;
+    virtual void _Load() = 0;
+    virtual void _Allocate() = 0;
+    virtual void _Create() = 0;
+    virtual void _Destroy() = 0;
+
+private:
+    void _Recreate();
 
 protected:
     std::string m_imagePath;
