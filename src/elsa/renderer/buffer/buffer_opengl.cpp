@@ -160,13 +160,13 @@ void OpenGLRenderBuffer::Unbind() const
 }
 
 //////////////////////////////////////////////////////////////////////
-OpenGLFrameBuffer::OpenGLFrameBuffer(unsigned int width, unsigned int height, unsigned int samples, const std::string& name)
-    : FrameBuffer(width, height, samples, name)
+OpenGLFrameBuffer::OpenGLFrameBuffer(unsigned int width, unsigned int height, unsigned int samples, Texture::Format format, const std::string& name)
+    : FrameBuffer(width, height, samples, format, name)
 {
     glGenFramebuffers(1, &m_id);
     glBindFramebuffer(GL_FRAMEBUFFER, m_id);
     CORE_INFO("Create OpenGLFrameBuffer: id({}), size({}x{}), samples({})", m_id, m_width, m_height, m_samples);
-    m_colorBuffer = Texture2D::Create(m_name+"_ColorBuffer")->Set(m_width, m_height, m_samples, Texture::Format::RGB8);
+    m_colorBuffer = Texture2D::Create(m_name+"_ColorBuffer")->Set(m_width, m_height, m_samples, m_format);
     m_depthStencilBuffer = RenderBuffer::Create(m_width, m_height, m_samples, m_name+"_DenpthStencilBuffer");
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_samples==1? GL_TEXTURE_2D:GL_TEXTURE_2D_MULTISAMPLE, m_colorBuffer->ID(), 0);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_depthStencilBuffer->ID());
@@ -195,7 +195,7 @@ void OpenGLFrameBuffer::Unbind() const
 void OpenGLFrameBuffer::_Reset() 
 {
     CORE_INFO("OpenGLFrameBuffer::_Reset: id({}), size({}x{}), samples({})", m_id, m_width, m_height, m_samples);
-    m_colorBuffer->Reset(m_width, m_height, m_samples, Texture::Format::RGB8);
+    m_colorBuffer->Reset(m_width, m_height, m_samples, m_format);
     m_depthStencilBuffer->Reset(m_width, m_height, m_samples);
 
     glNamedFramebufferTexture(m_id, GL_COLOR_ATTACHMENT0, m_colorBuffer->ID(), 0);

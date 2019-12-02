@@ -15,18 +15,44 @@ void main()
 
 in vec2 v_TexCoord;
 uniform sampler2D u_Offscreen;
+uniform float u_Exposure = 0.5f;
+uniform float u_Gamma = 2.2f;
 uniform int u_PostProcess = 2;// 0: None; 1: Gray; 2: Smooth; 3: Edge
 out vec4 f_Color;
 
+void _ToneMap(inout vec3 color)
+{
+    color = vec3(1.0)-exp(-color*u_Exposure);
+}
+
+void _GammaCorrect(inout vec3 color)
+{
+    color = pow(color, vec3(1.0/u_Gamma));
+}
+
+vec4 _Color(vec2 uv)
+{
+    vec3 color = texture(u_Offscreen, uv).rgb;
+
+#ifdef HDR
+    _ToneMap(color);
+#endif
+
+#ifdef GAMMA_CORRECTION
+    _GammaCorrect(color);
+#endif
+
+    return vec4(color, 1.0);
+}
 
 void None()
 {
-    f_Color = texture(u_Offscreen, v_TexCoord);
+    f_Color = _Color(v_TexCoord);
 }
 
 void Gray()
 {
-    f_Color = texture(u_Offscreen, v_TexCoord);
+    f_Color = _Color(v_TexCoord);
     float gray = 0.2126*f_Color.r+0.7152*f_Color.g+0.0722*f_Color.b;
     f_Color = vec4(vec3(gray), 1.0);
 }
@@ -56,7 +82,7 @@ void Kernel(float[9] kernel)
     vec3 color = vec3(0.0);
     for(int i=0; i<9; i++)
     {
-        color += kernel[i]*texture(u_Offscreen, v_TexCoord+offsets[i]).rgb;
+        color += kernel[i]*_Color(v_TexCoord+offsets[i]).rgb;
     }
     f_Color = vec4(color, 1.0);
 }

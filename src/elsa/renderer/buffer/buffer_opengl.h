@@ -65,7 +65,7 @@ private:
 class OpenGLFrameBuffer : public FrameBuffer
 {
 public:
-    OpenGLFrameBuffer(unsigned int width, unsigned int height, unsigned int samples=4, const std::string& name="unnamed");
+    OpenGLFrameBuffer(unsigned int width, unsigned int height, unsigned int samples=4, Texture::Format format=Texture::Format::RGB8, const std::string& name="unnamed");
     ~OpenGLFrameBuffer();
 
     virtual void Bind(unsigned int slot=0) override;

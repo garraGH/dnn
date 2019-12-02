@@ -44,7 +44,7 @@ out VS_OUT
 #else
     mat3 TS2WS;
 #endif
-#ifdef DEPTH_MAP
+#ifdef DISPLACEMENT_MAP
     vec3 CameraPosTS;
     vec3 FragPosTS;
 #endif
@@ -76,7 +76,7 @@ void main()
         v_Out.NormalWS = transpose(inverse(_ms2ws))*a_NormalMS;
     }
     #endif
-    #ifdef DEPTH_MAP
+    #ifdef DISPLACEMENT_MAP
     {
         mat3 ws2ts;
         #ifdef NORMAL_MAP
@@ -142,9 +142,9 @@ struct Material
     sampler2D HeightMap;
 #endif
 
-#ifdef DEPTH_MAP
-    sampler2D DepthMap;
-    float DepthScale;
+#ifdef DISPLACEMENT_MAP
+    sampler2D DisplacementMap;
+    float DisplacementScale;
 #endif
 
 };
@@ -152,14 +152,19 @@ struct Material
 struct DirectionalLight
 {
     vec3 Color;
+    float Padding0;
     vec3 DirectionWS;
+    float Intensity;
 };
 
 struct PointLight
 {
     vec3 Color;
+    float Padding0;
     vec3 PositionWS;
+    float Padding1;
     vec3 AttenuationCoefficients; // constant, linear, quadratic
+    float Intensity;
 };
 
 struct SpotLight
@@ -169,7 +174,9 @@ struct SpotLight
     vec3 PositionWS;
     float CosOuterCone;
     vec3 DirectionWS;
+    float Padding0;
     vec3 AttenuationCoefficients; // constant, linear, quadratic
+    float Intensity;
 };
 
 
@@ -199,7 +206,7 @@ in VS_OUT
     mat3 TS2WS;
 #endif
 
-#ifdef DEPTH_MAP
+#ifdef DISPLACEMENT_MAP
     vec3 CameraPosTS;
     vec3 FragPosTS;
 #endif
@@ -210,15 +217,15 @@ out vec4 f_Color;
 
 vec2 _TexCoord()
 {
-    #ifndef DEPTH_MAP
+    #ifndef DISPLACEMENT_MAP
     {
         return f_In.TexCoord;
     }
     #else
     {
-//         float depth = texture(u_Material.DepthMap, f_In.TexCoord).r;
+//         float depth = texture(u_Material.DisplacementMap, f_In.TexCoord).r;
 //         vec3 viewDirTS = normalize(f_In.CameraPosTS-f_In.FragPosTS);
-//         vec2 P = viewDirTS.xy/viewDirTS.z*(depth*u_Material.DepthScale);
+//         vec2 P = viewDirTS.xy/viewDirTS.z*(depth*u_Material.DisplacementScale);
 //         return f_In.TexCoord-P;
         const float minLayers = 8.0;
         const float maxLayers = 32.0;
@@ -227,21 +234,21 @@ vec2 _TexCoord()
         float numLayers = mix(maxLayers, minLayers, abs(dot(normalTS, viewDirTS)));
         float layerDepth = 1.0/numLayers;
         float currentLayerDepth = 0.0;
-        vec2 P = viewDirTS.xy/viewDirTS.z*u_Material.DepthScale;
+        vec2 P = viewDirTS.xy/viewDirTS.z*u_Material.DisplacementScale;
         vec2 deltaTexCoords = P/numLayers;
 
         vec2 currentTexCoords = f_In.TexCoord;
-        float currentDepthMapValue = texture(u_Material.DepthMap, currentTexCoords).r;
-        while(currentLayerDepth<currentDepthMapValue)
+        float currentDisplacementMapValue = texture(u_Material.DisplacementMap, currentTexCoords).r;
+        while(currentLayerDepth<currentDisplacementMapValue)
         {
             currentTexCoords -= deltaTexCoords;
-            currentDepthMapValue = texture(u_Material.DepthMap, currentTexCoords).r;
+            currentDisplacementMapValue = texture(u_Material.DisplacementMap, currentTexCoords).r;
             currentLayerDepth += layerDepth;
         }
         
         vec2 prevTexCoords = currentTexCoords+deltaTexCoords;
-        float afterDepth = currentDepthMapValue-currentLayerDepth;
-        float beforeDepth = texture(u_Material.DepthMap, prevTexCoords).r-currentLayerDepth+layerDepth;
+        float afterDepth = currentDisplacementMapValue-currentLayerDepth;
+        float beforeDepth = texture(u_Material.DisplacementMap, prevTexCoords).r-currentLayerDepth+layerDepth;
         float weight = afterDepth/(afterDepth-beforeDepth);
         vec2 finalTexCoords = prevTexCoords*weight+currentTexCoords*(1-weight);
         if(finalTexCoords.x<0.0||finalTexCoords.x>1.0||finalTexCoords.y<0.0||finalTexCoords.y>1.0)
@@ -394,7 +401,7 @@ vec3 ColorFrom(in DirectionalLight light)
 {
     vec3 lightDir = -normalize(light.DirectionWS);
     vec3 reflectance = _Reflectance(lightDir);
-    return reflectance*light.Color;
+    return reflectance*light.Color*light.Intensity;
 }
 
 vec3 ColorFrom(in PointLight light)
@@ -402,7 +409,7 @@ vec3 ColorFrom(in PointLight light)
     vec3 lightDir = normalize(light.PositionWS-f_In.FragPosWS);
     vec3 reflectance = _Reflectance(lightDir);
     float attenuation = _Attenuation(light.PositionWS, light.AttenuationCoefficients);
-    return attenuation*reflectance*light.Color;
+    return attenuation*reflectance*light.Color*light.Intensity;
 }
 
 vec3 ColorFrom(in SpotLight light)
@@ -411,7 +418,7 @@ vec3 ColorFrom(in SpotLight light)
     vec3 reflectance = _Reflectance(lightDir);
     float attenuation = _Attenuation(light.PositionWS, light.AttenuationCoefficients);
     float intensity = _SpotIntensity(-normalize(light.DirectionWS), lightDir, light.CosInnerCone, light.CosOuterCone);
-    return attenuation*intensity*reflectance*light.Color;
+    return attenuation*intensity*reflectance*light.Color*light.Intensity;
 }
                                        
 

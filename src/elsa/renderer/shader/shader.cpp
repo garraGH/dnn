@@ -26,6 +26,39 @@ std::shared_ptr<Shader> Shader::Create(const std::string& name)
     }
 }
 
+std::shared_ptr<Shader> Shader::Define(int macros)
+{
+#define MACRO_ENUM_TO_STRING(x)                        \
+    if(macros&static_cast<int>(Macro::x))              \
+    {                                                  \
+        m_macros += std::string("#define ")+#x+"\n";   \
+    }                                                  \
+                                                       
+    MACRO_ENUM_TO_STRING(INSTANCE);                    
+    MACRO_ENUM_TO_STRING(DIFFUSE_REFLECTANCE);
+    MACRO_ENUM_TO_STRING(SPECULAR_REFLECTANCE);
+    MACRO_ENUM_TO_STRING(EMISSIVE_COLOR);
+    MACRO_ENUM_TO_STRING(DIFFUSE_MAP);
+    MACRO_ENUM_TO_STRING(SPECULAR_MAP);
+    MACRO_ENUM_TO_STRING(EMISSIVE_MAP);
+    MACRO_ENUM_TO_STRING(NORMAL_MAP);
+    MACRO_ENUM_TO_STRING(HEIGHT_MAP);
+    MACRO_ENUM_TO_STRING(DISPLACEMENT_MAP);
+    MACRO_ENUM_TO_STRING(PARALLAX_MAP);
+    MACRO_ENUM_TO_STRING(AMBIENET_OCCLUSION_MAP);
+    MACRO_ENUM_TO_STRING(REFLECTION_MAP);
+    MACRO_ENUM_TO_STRING(SHININESS_MAP);
+    MACRO_ENUM_TO_STRING(METALNESS_MAP);
+    MACRO_ENUM_TO_STRING(ROUGHNESS_MAP);
+    MACRO_ENUM_TO_STRING(HDR);
+    MACRO_ENUM_TO_STRING(GAMMA_CORRECTION);
+#undef MACRO_ENUM_TO_STRING
+
+    INFO("{}", m_macros);
+
+    return shared_from_this();
+}
+
 std::shared_ptr<Shader> Shader::Define(const std::string& macros)
 {
     std::string remains = macros;

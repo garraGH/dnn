@@ -15,17 +15,17 @@
 class LearnOpenGLLayer : public Layer
 {
 public:
-    enum class MaterialProperty : int
-    {
-        HasDiffuseReflectance   = 0x01<<0, 
-        HasSpecularReflectance  = 0x01<<1, 
-        HasEmissiveColor        = 0x01<<2, 
-        HasDiffuseMap           = 0x01<<3, 
-        HasSpecularMap          = 0x01<<4, 
-        HasEmissiveMap          = 0x01<<5, 
-        HasNormalMap            = 0x01<<6, 
-        HasDepthMap             = 0x01<<7, 
-    };
+//     enum class MaterialProperty : int
+//     {
+//         HasDiffuseReflectance   = 0x01<<0, 
+//         HasSpecularReflectance  = 0x01<<1, 
+//         HasEmissiveColor        = 0x01<<2, 
+//         HasDiffuseMap           = 0x01<<3, 
+//         HasSpecularMap          = 0x01<<4, 
+//         HasEmissiveMap          = 0x01<<5, 
+//         HasNormalMap            = 0x01<<6, 
+//         HasDepthMap             = 0x01<<7, 
+//     };
 
     enum class PostProcess
     {
@@ -72,7 +72,9 @@ private:
     std::shared_ptr<Shader> m_shaderColor = nullptr;
     std::shared_ptr<Shader> m_shaderBlinnPhong = nullptr;
     std::shared_ptr<Shader> m_shaderOfMaterial = nullptr;
+    std::shared_ptr<Shader> m_shaderHDR = nullptr;
     std::shared_ptr<Renderer::Element> m_unitCubic = nullptr;
+    std::shared_ptr<Renderer::Element> m_eleOffscreen = nullptr;
 
     struct 
     {
@@ -80,12 +82,12 @@ private:
         glm::vec3* specularReflectance = nullptr;
         glm::vec3* emissiveColor = nullptr;
         float* shininess = nullptr;
-        float* depthScale = nullptr;
+        float* displacementScale = nullptr;
         std::shared_ptr<Texture> diffuseMap = nullptr;
         std::shared_ptr<Texture> specularMap = nullptr;
         std::shared_ptr<Texture> emissiveMap = nullptr;
         std::shared_ptr<Texture> normalMap = nullptr;
-        std::shared_ptr<Texture> depthMap = nullptr;
+        std::shared_ptr<Texture> displacementMap = nullptr;
         bool hasDiffuseReflectance = true;
         bool hasSpecularReflectance = true;
         bool hasEmissiveColor = true;
@@ -93,27 +95,41 @@ private:
         bool hasSpecularMap = true;
         bool hasEmissiveMap = true;
         bool hasNormalMap = true;
-        bool hasDepthMap = true;
+        bool hasDisplacementMap = true;
     }
     m_material; 
-    int m_shaderID = 0b11111111;
+    int m_shaderID = 0b111111110;
     void _UpdateShaderID();
-    void _AddMaterialProperty(MaterialProperty mp);
-    void _RemoveMaterialProperty(MaterialProperty mp);
     std::string _StringOfShaderID() const;
-    std::string _MacrosOfShaderID() const;
+
+    struct
+    {
+        bool enableHDR = true;
+        bool enableGammaCorrection = true;
+        float* gamma = nullptr;
+        float* exposure = nullptr;
+    }
+    m_material_HDR;
+    int m_shaderID_HDR = 0b11000000000000000;
+    void _UpdateShaderID_HDR();
+    std::string _StringOfShaderID_HDR() const;
 
     struct DirectionalLight
     {
-        glm::vec4 clr;
-        glm::vec4 dir;
+        glm::vec3 clr;
+        float padding0;
+        glm::vec3 dir;
+        float intensity;
     };
 
     struct PointLight
     {
-        glm::vec4 clr;
-        glm::vec4 pos;
-        glm::vec4 coe;
+        glm::vec3 clr;
+        float padding0;
+        glm::vec3 pos;
+        float padding1;
+        glm::vec3 coe;
+        float intensity;
     };
 
     struct SpotLight
@@ -125,13 +141,14 @@ private:
         glm::vec3 dir;
         float degInnerCone;
         glm::vec3 coe;
+        float intensity;
         float degOuterCone;
     };
 
-    DirectionalLight m_dLight = { glm::vec4(1.0f), glm::vec4(0, 0, -1, 0)};
-    PointLight m_pLight = { glm::vec4(1, 0, 0, 1), glm::vec4(0, 5, 0, 1), glm::vec4(1.0, 0.09, 0.032, 0.0) };
-    SpotLight m_sLight = { glm::vec3(0, 1, 0), std::cos(glm::radians(15.0f)), glm::vec3(2, 0, 0), std::cos(glm::radians(20.0f)), glm::vec3(-1, 0, 0), 15, glm::vec3(1.0, 0.22, 0.20), 20 };
-    SpotLight m_fLight = { glm::vec3(0, 1, 0), std::cos(glm::radians(15.0f)), glm::vec3(2, 0, 0), std::cos(glm::radians(20.0f)), glm::vec3(-1, 0, 0), 15, glm::vec3(1.0, 0.22, 0.20), 20 };
+    DirectionalLight m_dLight = { glm::vec3(1.0f), 0, glm::vec3(0, 0, -1), 1.0f};
+    PointLight m_pLight = { glm::vec3(1, 0, 0), 0, glm::vec3(0, 5, 0), 0, glm::vec3(1.0, 0.09, 0.032), 1.0f };
+    SpotLight m_sLight = { glm::vec3(0, 1, 0), std::cos(glm::radians(15.0f)), glm::vec3(2, 0, 0), std::cos(glm::radians(20.0f)), glm::vec3(-1, 0, 0), 15, glm::vec3(1.0, 0.22, 0.20), 1.0f, 20 };
+    SpotLight m_fLight = { glm::vec3(0, 1, 0), std::cos(glm::radians(15.0f)), glm::vec3(2, 0, 0), std::cos(glm::radians(20.0f)), glm::vec3(-1, 0, 0), 15, glm::vec3(1.0, 0.22, 0.20), 1.0f, 20 };
 
     glm::vec3* m_ambientColor = nullptr;
     glm::vec2* m_rightTopTexCoord = nullptr;
@@ -143,8 +160,8 @@ private:
 
     const unsigned int m_numOfInstance = 2000;
 
-    unsigned int m_samples = 4;
-    std::shared_ptr<FrameBuffer> m_fbSS = FrameBuffer::Create(1920, 1080, 1);  // framebufferSingleSample
-    std::shared_ptr<FrameBuffer> m_fbMS = FrameBuffer::Create(1920, 1080, m_samples);  // framebufferMultiSample
+    unsigned int m_samples = 1;
+    std::shared_ptr<FrameBuffer> m_fbSS = FrameBuffer::Create(1920, 1080, 1, Texture::Format::RGB16F);  // framebufferSingleSample
+    std::shared_ptr<FrameBuffer> m_fbMS = FrameBuffer::Create(1920, 1080, m_samples, Texture::Format::RGB16F);  // framebufferMultiSample
 };
 

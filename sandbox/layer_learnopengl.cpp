@@ -57,91 +57,109 @@ void LearnOpenGLLayer::_UpdateShaderID()
     m_shaderID = 0;
     if(m_material.hasDiffuseReflectance)
     {
-        m_shaderID |= static_cast<int>(MaterialProperty::HasDiffuseReflectance);
+        m_shaderID |= static_cast<int>(Shader::Macro::DIFFUSE_REFLECTANCE);
     }
     if(m_material.hasSpecularReflectance)
     {
-        m_shaderID |= static_cast<int>(MaterialProperty::HasSpecularReflectance);
+        m_shaderID |= static_cast<int>(Shader::Macro::SPECULAR_REFLECTANCE);
     }
     if(m_material.hasEmissiveColor)
     {
-        m_shaderID |= static_cast<int>(MaterialProperty::HasEmissiveColor);
+        m_shaderID |= static_cast<int>(Shader::Macro::EMISSIVE_COLOR);
     }
     if(m_material.hasDiffuseMap)
     {
-        m_shaderID |= static_cast<int>(MaterialProperty::HasDiffuseMap);
+        m_shaderID |= static_cast<int>(Shader::Macro::DIFFUSE_MAP);
     }
     if(m_material.hasSpecularMap)
     {
-        m_shaderID |= static_cast<int>(MaterialProperty::HasSpecularMap);
+        m_shaderID |= static_cast<int>(Shader::Macro::SPECULAR_MAP);
     }
     if(m_material.hasEmissiveMap)
     {
-        m_shaderID |= static_cast<int>(MaterialProperty::HasEmissiveMap);
+        m_shaderID |= static_cast<int>(Shader::Macro::EMISSIVE_MAP);
     }
     if(m_material.hasNormalMap)
     {
-        m_shaderID |= static_cast<int>(MaterialProperty::HasNormalMap);
+        m_shaderID |= static_cast<int>(Shader::Macro::NORMAL_MAP);
     }
-    if(m_material.hasDepthMap)
+    if(m_material.hasDisplacementMap)
     {
-        m_shaderID |= static_cast<int>(MaterialProperty::HasDepthMap);
+        m_shaderID |= static_cast<int>(Shader::Macro::DISPLACEMENT_MAP);
     }
 }
 
-void LearnOpenGLLayer::_AddMaterialProperty(MaterialProperty mp)
+void LearnOpenGLLayer::_UpdateShaderID_HDR()
 {
-    m_shaderID |= static_cast<int>(mp);
+    m_shaderID_HDR = 0;
+    if(m_material_HDR.enableHDR)
+    {
+        m_shaderID_HDR |= static_cast<int>(Shader::Macro::HDR);
+    }
+    if(m_material_HDR.enableGammaCorrection)
+    {
+        m_shaderID_HDR |= static_cast<int>(Shader::Macro::GAMMA_CORRECTION);
+    }
 }
 
-void LearnOpenGLLayer::_RemoveMaterialProperty(MaterialProperty mp)
-{
-    m_shaderID &= ~static_cast<int>(mp);
-}
+// void LearnOpenGLLayer::_AddMaterialProperty(MaterialProperty mp)
+// {
+//     m_shaderID |= static_cast<int>(mp);
+// }
+// 
+// void LearnOpenGLLayer::_RemoveMaterialProperty(MaterialProperty mp)
+// {
+//     m_shaderID &= ~static_cast<int>(mp);
+// }
 
 std::string LearnOpenGLLayer::_StringOfShaderID() const
 {
     return std::to_string(m_shaderID);
 }
 
-std::string LearnOpenGLLayer::_MacrosOfShaderID() const
+std::string LearnOpenGLLayer::_StringOfShaderID_HDR()  const
 {
-    std::string macros;
-    if(m_shaderID&static_cast<int>(MaterialProperty::HasDiffuseReflectance))
-    {
-        macros += "|DIFFUSE_REFLECTANCE";
-    }
-    if(m_shaderID&static_cast<int>(MaterialProperty::HasSpecularReflectance))
-    {
-        macros += "|SPECULAR_REFLECTANCE";
-    }
-    if(m_shaderID&static_cast<int>(MaterialProperty::HasEmissiveColor))
-    {
-        macros += "|EMISSIVE_COLOR";
-    }
-    if(m_shaderID&static_cast<int>(MaterialProperty::HasDiffuseMap))
-    {
-        macros += "|DIFFUSE_MAP";
-    }
-    if(m_shaderID&static_cast<int>(MaterialProperty::HasSpecularMap))
-    {
-        macros += "|SPECULAR_MAP";
-    }
-    if(m_shaderID&static_cast<int>(MaterialProperty::HasEmissiveMap))
-    {
-        macros += "|EMISSIVE_MAP";
-    }
-    if(m_shaderID&static_cast<int>(MaterialProperty::HasNormalMap))
-    {
-        macros += "|NORMAL_MAP";
-    }
-    if(m_shaderID&static_cast<int>(MaterialProperty::HasDepthMap))
-    {
-        macros += "|DEPTH_MAP";
-    }
-
-    return macros.substr(1);
+    return std::to_string(m_shaderID_HDR);
 }
+
+// std::string LearnOpenGLLayer::_MacrosOfShaderID() const
+// {
+//     std::string macros;
+//     if(m_shaderID&static_cast<int>(MaterialProperty::HasDiffuseReflectance))
+//     {
+//         macros += "|DIFFUSE_REFLECTANCE";
+//     }
+//     if(m_shaderID&static_cast<int>(MaterialProperty::HasSpecularReflectance))
+//     {
+//         macros += "|SPECULAR_REFLECTANCE";
+//     }
+//     if(m_shaderID&static_cast<int>(MaterialProperty::HasEmissiveColor))
+//     {
+//         macros += "|EMISSIVE_COLOR";
+//     }
+//     if(m_shaderID&static_cast<int>(MaterialProperty::HasDiffuseMap))
+//     {
+//         macros += "|DIFFUSE_MAP";
+//     }
+//     if(m_shaderID&static_cast<int>(MaterialProperty::HasSpecularMap))
+//     {
+//         macros += "|SPECULAR_MAP";
+//     }
+//     if(m_shaderID&static_cast<int>(MaterialProperty::HasEmissiveMap))
+//     {
+//         macros += "|EMISSIVE_MAP";
+//     }
+//     if(m_shaderID&static_cast<int>(MaterialProperty::HasNormalMap))
+//     {
+//         macros += "|NORMAL_MAP";
+//     }
+//     if(m_shaderID&static_cast<int>(MaterialProperty::HasDepthMap))
+//     {
+//         macros += "|DEPTH_MAP";
+//     }
+// 
+//     return macros.substr(1);
+// }
 
 void LearnOpenGLLayer::OnUpdate(float deltaTime)
 {
@@ -169,7 +187,8 @@ void LearnOpenGLLayer::OnUpdate(float deltaTime)
     Renderer::BlitFrameBuffer(m_fbMS, m_fbSS);
 
     Renderer::BeginScene(m_viewport);
-    Renderer::Submit("Offscreen", "Offscreen");
+//     Renderer::Submit("Offscreen", "Offscreen");
+    Renderer::Submit(m_eleOffscreen, m_shaderHDR);
     Renderer::EndScene();
  
     m_viewport->OnUpdate(deltaTime);
@@ -221,6 +240,7 @@ void LearnOpenGLLayer::OnImGuiRender()
 
     if(ImGui::CollapsingHeader("Material"))
     {
+        ImGui::Indent();
         bool bShaderChanged = false;
         bShaderChanged |= ImGui::Checkbox("DiffuseRelectance", &m_material.hasDiffuseReflectance);
         ImGui::SameLine(200);
@@ -261,15 +281,15 @@ void LearnOpenGLLayer::OnImGuiRender()
         {
             _UpdateTexture(m_material.normalMap);
         }
-        bShaderChanged |= ImGui::Checkbox("DepthMap", &m_material.hasDepthMap);
+        bShaderChanged |= ImGui::Checkbox("DisplacementMap", &m_material.hasDisplacementMap);
         ImGui::SameLine(200);
-        if(ImGui::ImageButton((void*)(intptr_t)m_material.depthMap->ID(), ImVec2(16, 16), ImVec2(0, 0), ImVec2(1, 1), 1, ImColor(0, 128, 0, 128)))
+        if(ImGui::ImageButton((void*)(intptr_t)m_material.displacementMap->ID(), ImVec2(16, 16), ImVec2(0, 0), ImVec2(1, 1), 1, ImColor(0, 128, 0, 128)))
         {
-            _UpdateTexture(m_material.depthMap);
+            _UpdateTexture(m_material.displacementMap);
         }
         ImGui::SameLine(250);
         ImGui::SetNextItemWidth(64);
-        ImGui::DragFloat("DepthScale", m_material.depthScale,  0.001,  0,  1);
+        ImGui::DragFloat("DisplacementScale", m_material.displacementScale,  0.001,  0,  1);
 
         if(bShaderChanged)
         {
@@ -281,11 +301,36 @@ void LearnOpenGLLayer::OnImGuiRender()
             }
             else
             {
-                m_shaderOfMaterial = Renderer::Resources::Create<Shader>(shaderName)->Define(_MacrosOfShaderID())->LoadFromFile("/home/garra/study/dnn/assets/shader/Blinn-Phong.glsl");
+                m_shaderOfMaterial = Renderer::Resources::Create<Shader>(shaderName)->Define(m_shaderID)->LoadFromFile("/home/garra/study/dnn/assets/shader/Blinn-Phong.glsl");
             }
         }
+        ImGui::Unindent();
     }
 
+    if(ImGui::CollapsingHeader("Material_HDR"))
+    {
+        bool bChanged = false;
+        ImGui::Indent();
+        bChanged |= ImGui::Checkbox("HDR", &m_material_HDR.enableHDR);
+        bChanged |= ImGui::Checkbox("GammaCorrection", &m_material_HDR.enableGammaCorrection);
+        if(bChanged)
+        {
+            _UpdateShaderID_HDR();
+            std::string shaderName = _StringOfShaderID_HDR();
+            if(Renderer::Resources::Exist<Shader>(shaderName))
+            {
+                m_shaderHDR = Renderer::Resources::Get<Shader>(shaderName);
+            }
+            else
+            {
+                m_shaderHDR = Renderer::Resources::Create<Shader>(shaderName)->Define(m_shaderID_HDR)->LoadFromFile("/home/garra/study/dnn/assets/shader/OffscreenTexture.glsl");
+            }
+        }
+        
+        ImGui::DragFloat("Gamma", m_material_HDR.gamma,  0.01,  0.1,  3.0);
+        ImGui::DragFloat("Exposure", m_material_HDR.exposure,  0.01,  0,  10);
+        ImGui::Unindent();
+    }
 //     Renderer::Resources::Get<UniformBuffer>("Light")->Upload(name, data)
     if(ImGui::CollapsingHeader("Light"))
     {
@@ -294,6 +339,7 @@ void LearnOpenGLLayer::OnImGuiRender()
         {
             bool bChanged = ImGui::ColorPicker3("Color", glm::value_ptr(m_dLight.clr));
             bChanged |= ImGui::DragFloat3("Direction", glm::value_ptr(m_dLight.dir), 0.1f, -1, 1);
+            bChanged |= ImGui::DragFloat("Intensity0", &m_dLight.intensity,  0.1,  0,  10);
             if(bChanged)
             {
                 Renderer::Resources::Get<UniformBuffer>("Light")->Upload("DirectionalLight", &m_dLight);
@@ -304,6 +350,7 @@ void LearnOpenGLLayer::OnImGuiRender()
             bool bChanged = ImGui::ColorPicker3("Color", glm::value_ptr(m_pLight.clr));
             bChanged |= ImGui::DragFloat3("Position", glm::value_ptr(m_pLight.pos),  0.1f,  -10.0,  10.0);
             bChanged |= ImGui::InputFloat3("AttenuationCoefficents", glm::value_ptr(m_pLight.coe));
+            bChanged |= ImGui::DragFloat("Intensity1", &m_pLight.intensity,  0.1,  0,  10);
             if(bChanged)
             {
                 Renderer::Resources::Get<UniformBuffer>("Light")->Upload("PointLight", &m_pLight);
@@ -315,6 +362,7 @@ void LearnOpenGLLayer::OnImGuiRender()
             bChanged |= ImGui::DragFloat3("Position", glm::value_ptr(m_sLight.pos), 0.1f, -10, 10);
             bChanged |= ImGui::DragFloat3("Direction", glm::value_ptr(m_sLight.dir), 0.1f, -1, 1);
             bChanged |= ImGui::InputFloat3("AttenuationCoefficents", glm::value_ptr(m_sLight.coe));
+            bChanged |= ImGui::DragFloat("Intensity2", &m_sLight.intensity,  0.1,  0,  10);
 
             if(ImGui::DragFloat("InnerCone", &m_sLight.degInnerCone, 1, 0, 60))
             {
@@ -346,6 +394,7 @@ void LearnOpenGLLayer::OnImGuiRender()
         {
             bool bChanged = ImGui::ColorPicker3("Color", glm::value_ptr(m_fLight.clr));
             bChanged |= ImGui::InputFloat3("AttenuationCoefficents", glm::value_ptr(m_fLight.coe));
+            bChanged |= ImGui::DragFloat("Intensity3", &m_fLight.intensity,  0.1,  0,  10);
             ImGui::LabelText("Position", "%.1f, %.1f, %.1f", m_fLight.pos.x, m_fLight.pos.y, m_fLight.pos.z);
             ImGui::LabelText("Direction", "%.1f, %.1f, %.1f", m_fLight.dir.x, m_fLight.dir.y, m_fLight.dir.z);
             if(ImGui::DragFloat("InnerCone", &m_fLight.degInnerCone, 1, 0, 30))
@@ -496,7 +545,7 @@ void LearnOpenGLLayer::_PrepareUnitCubic()
     std::shared_ptr<MU> maMaterialSpecularReflectance = Renderer::Resources::Create<MU>("MaterialSpecularReflectance")->Set(MU::Type::Float3, 1, glm::value_ptr(glm::vec3(1.0f)));
     std::shared_ptr<MU> maMaterialEmissiveColor = Renderer::Resources::Create<MU>("MaterialEmissiveColor")->Set(MU::Type::Float3, 1, glm::value_ptr(glm::vec3(0.1f)));
     std::shared_ptr<MU> maMaterialShininess = Renderer::Resources::Create<MU>("MaterialShininess")->SetType(MU::Type::Float1);
-    std::shared_ptr<MU> maMaterialDepthScale = Renderer::Resources::Create<MU>("MaterialDepthScale")->SetType(MU::Type::Float1);
+    std::shared_ptr<MU> maMaterialDisplacementScale = Renderer::Resources::Create<MU>("MaterialDisplacementScale")->SetType(MU::Type::Float1);
 
     std::shared_ptr<MU> maCameraPosition = Renderer::Resources::Create<MU>("CameraPosition")->Set(MU::Type::Float3, 1, glm::value_ptr(glm::vec3(2.0f)));
 
@@ -506,11 +555,11 @@ void LearnOpenGLLayer::_PrepareUnitCubic()
     m_material.emissiveColor = reinterpret_cast<glm::vec3*>(maMaterialEmissiveColor->GetData());
     m_material.shininess = reinterpret_cast<float*>(maMaterialShininess->GetData());
     *m_material.shininess = 32.0f;
-    m_material.depthScale = reinterpret_cast<float*>(maMaterialDepthScale->GetData());
-    *m_material.depthScale = 0.1f;
+    m_material.displacementScale = reinterpret_cast<float*>(maMaterialDisplacementScale->GetData());
+    *m_material.displacementScale = 0.1f;
     m_material.diffuseMap = Renderer::Resources::Create<Texture2D>("DiffuseMap")->Load("/home/garra/study/dnn/assets/texture/wood.png");
     m_material.normalMap = Renderer::Resources::Create<Texture2D>("NormalMap")->Load("/home/garra/study/dnn/assets/texture/toy_box_normal.png");
-    m_material.depthMap = Renderer::Resources::Create<Texture2D>("DepthMap")->Load("/home/garra/study/dnn/assets/texture/toy_box_disp.png");
+    m_material.displacementMap = Renderer::Resources::Create<Texture2D>("DisplacementMap")->Load("/home/garra/study/dnn/assets/texture/toy_box_disp.png");
 //     m_material.diffuseMap = Renderer::Resources::Create<Texture2D>("DiffuseMap")->Load("/home/garra/study/dnn/assets/texture/bricks2.jpg");
 //     m_material.normalMap = Renderer::Resources::Create<Texture2D>("NormalMap")->Load("/home/garra/study/dnn/assets/texture/bricks2_normal.jpg");
 //     m_material.depthMap = Renderer::Resources::Create<Texture2D>("DepthMap")->Load("/home/garra/study/dnn/assets/texture/bricks2_disp.jpg");
@@ -528,12 +577,12 @@ void LearnOpenGLLayer::_PrepareUnitCubic()
     mtr->SetUniform("u_Material.SpecularReflectance", maMaterialSpecularReflectance);
     mtr->SetUniform("u_Material.EmissiveColor", maMaterialEmissiveColor);
     mtr->SetUniform("u_Material.Shininess", maMaterialShininess);
-    mtr->SetUniform("u_Material.DepthScale", maMaterialDepthScale);
+    mtr->SetUniform("u_Material.DisplacementScale", maMaterialDisplacementScale);
     mtr->SetTexture("u_Material.DiffuseMap", m_material.diffuseMap);
     mtr->SetTexture("u_Material.NormalMap", m_material.normalMap);
     mtr->SetTexture("u_Material.SpecularMap", m_material.specularMap);
     mtr->SetTexture("u_Material.EmissiveMap", m_material.emissiveMap);
-    mtr->SetTexture("u_Material.DepthMap", m_material.depthMap);
+    mtr->SetTexture("u_Material.DisplacementMap", m_material.displacementMap);
 
     mtr->SetUniform("u_Camera.PositionWS", maCameraPosition);
     // AmbientColor
@@ -544,7 +593,7 @@ void LearnOpenGLLayer::_PrepareUnitCubic()
 
     Renderer::Resources::Create<Shader>("Blinn-Phong-Instance")->Define("INSTANCE|DIFFUSE_MAP|NORMAL_MAP")->LoadFromFile("/home/garra/study/dnn/assets/shader/Blinn-Phong.glsl");
     m_shaderBlinnPhong = Renderer::Resources::Create<Shader>("Blinn-Phong")->Define("DIFFUSE_MAP|NORMAL_MAP")->LoadFromFile("/home/garra/study/dnn/assets/shader/Blinn-Phong.glsl");
-    m_shaderOfMaterial = Renderer::Resources::Create<Shader>(_StringOfShaderID())->Define(_MacrosOfShaderID())->LoadFromFile("/home/garra/study/dnn/assets/shader/Blinn-Phong.glsl");
+    m_shaderOfMaterial = Renderer::Resources::Create<Shader>(_StringOfShaderID())->Define(m_shaderID)->LoadFromFile("/home/garra/study/dnn/assets/shader/Blinn-Phong.glsl");
 
     m_unitCubic = Renderer::Resources::Create<Renderer::Element>("UnitCubic")->Set(mesh, mtr);
 
@@ -595,9 +644,17 @@ void LearnOpenGLLayer::_PrepareOffscreenPlane()
     using MU = Material::Uniform;
     std::shared_ptr<MU> maRightTopTexCoord = Renderer::Resources::Create<MU>("RightTopTexCoord")->SetType(MU::Type::Float2);
     std::shared_ptr<MU> maPostProcess = Renderer::Resources::Create<MU>("PostProcess")->Set(MU::Type::Int1, 1, &m_pp);
+    std::shared_ptr<MU> maGamma = Renderer::Resources::Create<MU>("Gamma")->SetType(MU::Type::Float1);
+    std::shared_ptr<MU> maExposure = Renderer::Resources::Create<MU>("Exposure")->SetType(MU::Type::Float1);
     std::shared_ptr<Material>  mtr = Renderer::Resources::Create<Material>("Offscreen");
+    m_material_HDR.gamma = reinterpret_cast<float*>(maGamma->GetData());
+    m_material_HDR.exposure = reinterpret_cast<float*>(maExposure->GetData());
+    *m_material_HDR.gamma = 2.2f;
+    *m_material_HDR.exposure = 1.0f;
     mtr->SetUniform("u_RightTopTexCoord", maRightTopTexCoord);
     mtr->SetUniform("u_PostProcess", maPostProcess);
+    mtr->SetUniform("u_Gamma", maGamma);
+    mtr->SetUniform("u_Exposure", maExposure);
     mtr->SetTexture("u_Offscreen", m_fbSS->GetColorBuffer());
     m_rightTopTexCoord = reinterpret_cast<glm::vec2*>(maRightTopTexCoord->GetData());
     *m_rightTopTexCoord = glm::vec2(1, 1);
@@ -618,8 +675,8 @@ void LearnOpenGLLayer::_PrepareOffscreenPlane()
     std::shared_ptr<Buffer> ib = Buffer::CreateIndex(sizeof(indices), indices)->SetLayout(layoutIndex);
     std::shared_ptr<Elsa::Mesh> mesh= Renderer::Resources::Create<Elsa::Mesh>("OffscreenPlane")->Set(ib, {vb});
 
-    Renderer::Resources::Create<Renderer::Element>("Offscreen")->Set(mesh, mtr);
-    Renderer::Resources::Create<Shader>("Offscreen")->LoadFromFile("/home/garra/study/dnn/assets/shader/OffscreenTexture.glsl");
+    m_eleOffscreen = Renderer::Resources::Create<Renderer::Element>("Offscreen")->Set(mesh, mtr);
+    m_shaderHDR = Renderer::Resources::Create<Shader>(_StringOfShaderID_HDR())->Define(m_shaderID_HDR)->LoadFromFile("/home/garra/study/dnn/assets/shader/OffscreenTexture.glsl");
 }
 
 void LearnOpenGLLayer::_PrepareGroundPlane()

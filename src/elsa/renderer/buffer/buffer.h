@@ -104,16 +104,17 @@ protected:
 class FrameBuffer : public RenderObject
 {
 public:
-    FrameBuffer(unsigned int width, unsigned int height, unsigned int samples=4, const std::string& name="unnamed");
-    void Reset(unsigned int width, unsigned int height, unsigned int samples=4);
+    FrameBuffer(unsigned int width, unsigned int height, unsigned int samples=4, Texture::Format format=Texture::Format::RGB8, const std::string& name="unnamed");
+    void Reset(unsigned int width, unsigned int height, unsigned int samples=4, Texture::Format format=Texture::Format::RGB8);
 
     unsigned int GetWidth() const { return m_width; }
     unsigned int GetHeight() const { return m_height; }
     unsigned int GetSamples() const { return m_samples; }
+    Texture::Format GetFormat() const { return m_format; }
 
     const std::shared_ptr<Texture>& GetColorBuffer() const { return m_colorBuffer; }
     const std::shared_ptr<RenderBuffer>& GetDepthStencilBuffer() const { return m_depthStencilBuffer; }
-    static std::shared_ptr<FrameBuffer> Create(unsigned int width, unsigned int height, unsigned int samples=4, const std::string& name="unnamed");
+    static std::shared_ptr<FrameBuffer> Create(unsigned int width, unsigned int height, unsigned int samples=4, Texture::Format format=Texture::Format::RGB8, const std::string& name="unnamed");
 
 protected:
     virtual void _Reset() = 0;
@@ -125,6 +126,7 @@ protected:
     unsigned int m_width = 1920;
     unsigned int m_height = 1080;
     unsigned int m_samples = 4;
+    Texture::Format m_format = Texture::Format::RGB8;
 };
 
 class BufferArray : public RenderObject

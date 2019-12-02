@@ -50,12 +50,12 @@ std::shared_ptr<RenderBuffer> RenderBuffer::Create(unsigned int width, unsigned 
     }
 }
 
-std::shared_ptr<FrameBuffer> FrameBuffer::Create(unsigned int width, unsigned int height, unsigned int samples, const std::string& name)
+std::shared_ptr<FrameBuffer> FrameBuffer::Create(unsigned int width, unsigned int height, unsigned int samples, Texture::Format format, const std::string& name)
 {
     switch(Renderer::GetAPIType())
     {
         case Renderer::API::OpenGL:
-            return std::make_shared<OpenGLFrameBuffer>(width, height, samples, name);
+            return std::make_shared<OpenGLFrameBuffer>(width, height, samples, format, name);
         default:
             CORE_ASSERT(false, "FrameBuffer::Create: API is currently not supported!");
             return nullptr;
@@ -229,23 +229,25 @@ void RenderBuffer::Reset(unsigned int width, unsigned int height, unsigned int s
 } 
 
 /////////////////////////////////////////////////////////////////////////
-FrameBuffer::FrameBuffer(unsigned int width, unsigned int height, unsigned int samples, const std::string& name) 
+FrameBuffer::FrameBuffer(unsigned int width, unsigned int height, unsigned int samples, Texture::Format format, const std::string& name) 
     : RenderObject(name)
     , m_width(width)
     , m_height(height)
     , m_samples(samples)
+    , m_format(format)
 {
 }
 
-void FrameBuffer::Reset(unsigned int width, unsigned int height, unsigned int samples)
+void FrameBuffer::Reset(unsigned int width, unsigned int height, unsigned int samples, Texture::Format format)
 {
-    if(width==m_width && height==m_height && samples==m_samples)
+    if(width==m_width && height==m_height && samples==m_samples && format==m_format)
     {
         return;
     }
 
     m_width = width;
     m_height = height;
+    m_format = format;
     m_samples = samples;
 
     _Reset();

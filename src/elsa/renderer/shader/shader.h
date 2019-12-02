@@ -34,25 +34,27 @@ public:
         TESSEVALUATION, 
     };
 
-    enum class Macro
+    enum class Macro : int
     {
         UNKOWN                  = -1, 
-        INSTANCE                = 0x01<<1,
-        DIFFUSE_REFLECTANCE     = 0x01<<2, 
-        SPECULAR_REFLECTANCE    = 0x01<<3, 
-        EMISSIVE_COLOR          = 0x01<<4, 
-        DIFFUSE_MAP             = 0x01<<5, 
-        SPECULAR_MAP            = 0x01<<6, 
-        EMISSIVE_MAP            = 0x01<<7, 
-        NORMAL_MAP              = 0x01<<8,
-        HEIGHT_MAP              = 0x01<<9, 
-        DISPLACEMENT_MAP        = 0x01<<10, 
+        INSTANCE                = 0x01<<0,
+        DIFFUSE_REFLECTANCE     = 0x01<<1, 
+        SPECULAR_REFLECTANCE    = 0x01<<2, 
+        EMISSIVE_COLOR          = 0x01<<3, 
+        DIFFUSE_MAP             = 0x01<<4, 
+        SPECULAR_MAP            = 0x01<<5, 
+        EMISSIVE_MAP            = 0x01<<6, 
+        NORMAL_MAP              = 0x01<<7,
+        DISPLACEMENT_MAP        = 0x01<<8, 
         PARALLAX_MAP            = DISPLACEMENT_MAP, 
-        AMBIENET_OCCLUSION_MAP  = 0x01<<11,  
-        REFLECTION_MAP          = 0x01<<12, 
-        SHININESS_MAP           = 0x01<<13, 
-        METALNESS_MAP           = 0x01<<14, 
-        ROUGHNESS_MAP           = 0x01<<15, 
+        HEIGHT_MAP              = 0x01<<9, 
+        AMBIENET_OCCLUSION_MAP  = 0x01<<10,  
+        REFLECTION_MAP          = 0x01<<11, 
+        SHININESS_MAP           = 0x01<<12, 
+        METALNESS_MAP           = 0x01<<13, 
+        ROUGHNESS_MAP           = 0x01<<14, 
+        HDR                     = 0x01<<15, 
+        GAMMA_CORRECTION        = 0x01<<16,
     };
 
 public:
@@ -70,6 +72,7 @@ public:
     unsigned int GetUniformBlockIndex(const std::string& name);
 
     std::shared_ptr<Shader> Define(const std::string& macro);
+    std::shared_ptr<Shader> Define(int macros);
 
     static std::shared_ptr<Shader> Create(const std::string& name);
 
