@@ -193,6 +193,7 @@ u_Light;
 
 
 uniform vec3 u_AmbientColor = vec3(0.2f);
+uniform float u_BloomThreshold = 1.0f;
 uniform Material u_Material;
 
 in VS_OUT
@@ -213,7 +214,10 @@ in VS_OUT
 }
 f_In;
 
-out vec4 f_Color;
+
+layout(location = 0) out vec4 f_Color;
+layout(location = 1) out vec4 f_ColorBright;
+
 
 vec2 _TexCoord()
 {
@@ -430,7 +434,10 @@ void main()
     color += ColorFrom(u_Light.pLight);
     color += ColorFrom(u_Light.sLight);
     color += ColorFrom(u_Light.fLight);
-    f_Color = vec4(color, 1.0);
+    f_Color= vec4(color, 1.0);
+
+    float brightness = dot(color, vec3(0.2126, 0.7152, 0.0722));
+    f_ColorBright = vec4(step(u_BloomThreshold, brightness)*color, 1.0);
 }
 
 

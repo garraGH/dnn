@@ -48,7 +48,7 @@ public:
 class OpenGLRenderBuffer : public RenderBuffer
 {
 public:
-    OpenGLRenderBuffer(unsigned int width, unsigned int height, unsigned int samples=4, const std::string& name="unnamed");
+    OpenGLRenderBuffer(unsigned int width, unsigned int height, unsigned int samples=1, Format format=Format::R32F, const std::string& name="unnamed");
     ~OpenGLRenderBuffer();
 
     virtual void Bind(unsigned int slot=0) override;
@@ -59,13 +59,16 @@ protected:
 
 private:
     void _Create();
-    void _Delete();
+    void _Destroy();
+
+    unsigned int _Format() const;
+    std::string _StringOfFormat() const;
 };
 
 class OpenGLFrameBuffer : public FrameBuffer
 {
 public:
-    OpenGLFrameBuffer(unsigned int width, unsigned int height, unsigned int samples=4, Texture::Format format=Texture::Format::RGB8, const std::string& name="unnamed");
+    OpenGLFrameBuffer(unsigned int width, unsigned int height, unsigned int samples=1, const std::string& name="unnamed");
     ~OpenGLFrameBuffer();
 
     virtual void Bind(unsigned int slot=0) override;
@@ -73,6 +76,16 @@ public:
 
 protected:
     virtual void _Reset() override;
+    virtual void _Attach(const std::shared_ptr<Texture>& colorBuffer) override;
+    virtual void _Attach(const std::shared_ptr<RenderBuffer>& renderBuffer) override;
+
+private:
+    void _Create();
+    void _Destroy();
+    void _Check();
+    unsigned int _Attachment(RenderBuffer::Format format) const;
+    void _ResetColorBuffers();
+    void _ResetRenderBuffers();
 
 };
 

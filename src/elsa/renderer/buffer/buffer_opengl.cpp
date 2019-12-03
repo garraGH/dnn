@@ -115,15 +115,15 @@ GLenum OpenGLIndexBuffer::GetType()
     return _TypeFrom(e.Type());
 }
 //////////////////////////////////////////////////////////////////////
-OpenGLRenderBuffer::OpenGLRenderBuffer(unsigned int width, unsigned int height, unsigned int samples, const std::string& name)
-    : RenderBuffer(width, height, samples, name)
+OpenGLRenderBuffer::OpenGLRenderBuffer(unsigned int width, unsigned int height, unsigned int samples, Format format, const std::string& name)
+    : RenderBuffer(width, height, samples, format, name)
 {
     _Create();
 }
 
 OpenGLRenderBuffer::~OpenGLRenderBuffer()
 {
-    _Delete();
+    _Destroy();
 }
 
 void OpenGLRenderBuffer::_Create()
@@ -131,13 +131,13 @@ void OpenGLRenderBuffer::_Create()
     glGenRenderbuffers(1, &m_id);
     glBindRenderbuffer(GL_RENDERBUFFER, m_id);
     m_samples == 1?
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, m_width, m_height) :
-        glRenderbufferStorageMultisample(GL_RENDERBUFFER, m_samples, GL_DEPTH24_STENCIL8, m_width, m_height);
+        glRenderbufferStorage(GL_RENDERBUFFER, _Format(), m_width, m_height) :
+        glRenderbufferStorageMultisample(GL_RENDERBUFFER, m_samples, _Format(), m_width, m_height);
 
-    CORE_INFO("Create OpenGLRenderBuffer id({}), size({}x{}), samples({})", m_id, m_width, m_height, m_samples);
+    CORE_INFO("Create OpenGLRenderBuffer id({}), size({}x{}), samples({}), format({})", m_id, m_width, m_height, m_samples, _StringOfFormat());
 }
 
-void OpenGLRenderBuffer::_Delete()
+void OpenGLRenderBuffer::_Destroy()
 {
     glDeleteRenderbuffers(1, &m_id);
     CORE_INFO("Delete OpenGLRenderBuffer id({}), size({}x{})", m_id, m_width, m_height);
@@ -145,7 +145,7 @@ void OpenGLRenderBuffer::_Delete()
 
 void OpenGLRenderBuffer::_Reset()
 {
-    _Delete();
+    _Destroy();
     _Create();
 }
 
@@ -159,17 +159,191 @@ void OpenGLRenderBuffer::Unbind() const
     glBindRenderbuffer(GL_RENDERBUFFER, 0);
 }
 
-//////////////////////////////////////////////////////////////////////
-OpenGLFrameBuffer::OpenGLFrameBuffer(unsigned int width, unsigned int height, unsigned int samples, Texture::Format format, const std::string& name)
-    : FrameBuffer(width, height, samples, format, name)
+unsigned int OpenGLRenderBuffer::_Format() const
 {
-    glGenFramebuffers(1, &m_id);
-    glBindFramebuffer(GL_FRAMEBUFFER, m_id);
+#define GLFormat(x) case Format::x: return GL_##x;
+    switch(m_format)
+    {
+        GLFormat(R8);
+        GLFormat(R8I);
+        GLFormat(R8UI);
+        GLFormat(R8_SNORM);
+
+        GLFormat(RG8);
+        GLFormat(RG8I);
+        GLFormat(RG8UI);
+        GLFormat(RG8_SNORM);
+
+        GLFormat(R16);
+        GLFormat(R16I);
+        GLFormat(R16UI);
+        GLFormat(R16_SNORM);
+        GLFormat(R16F);
+
+        GLFormat(RGB8);
+        GLFormat(RGB8I);
+        GLFormat(RGB8UI);
+        GLFormat(RGB8_SNORM);
+        GLFormat(SRGB8);
+
+        GLFormat(RGBA8);
+        GLFormat(RGBA8I);
+        GLFormat(RGBA8UI);
+        GLFormat(RGBA8_SNORM);
+
+        GLFormat(RG16);
+        GLFormat(RG16I);
+        GLFormat(RG16UI);
+        GLFormat(RG16_SNORM);
+        GLFormat(RG16F);
+
+        GLFormat(R32I);
+        GLFormat(R32UI);
+        GLFormat(R32F);
+
+        GLFormat(R11F_G11F_B10F);
+        GLFormat(RGB10_A2);
+        GLFormat(RGB10_A2UI);
+        GLFormat(RGB9_E5);
+        GLFormat(SRGB8_ALPHA8);
+
+        GLFormat(RGB16);
+        GLFormat(RGB16I);
+        GLFormat(RGB16UI);
+        GLFormat(RGB16_SNORM);
+        GLFormat(RGB16F);
+
+        GLFormat(RG32I);
+        GLFormat(RG32UI);
+        GLFormat(RG32F);
+
+        GLFormat(RGB32I);
+        GLFormat(RGB32UI);
+        GLFormat(RGB32F);
+
+        GLFormat(RGBA32I);
+        GLFormat(RGBA32UI);
+        GLFormat(RGBA32F);
+
+        GLFormat(DEPTH_COMPONENT16);
+        GLFormat(DEPTH_COMPONENT24);
+        GLFormat(DEPTH_COMPONENT32);
+        GLFormat(DEPTH_COMPONENT32F);
+
+        GLFormat(STENCIL_INDEX1);
+        GLFormat(STENCIL_INDEX4);
+        GLFormat(STENCIL_INDEX8);
+        GLFormat(STENCIL_INDEX16);
+
+        GLFormat(DEPTH24_STENCIL8);
+        GLFormat(DEPTH32F_STENCIL8);
+
+        default: CORE_ASSERT(false, "OpenGLRenderBuffer::_Format: UnKnown format!");
+    }
+#undef GLFormat
+}
+
+
+std::string OpenGLRenderBuffer::_StringOfFormat() const
+{
+#define StrFormat(x) case Format::x: return #x;
+    switch(m_format)
+    {
+        StrFormat(R8);
+        StrFormat(R8I);
+        StrFormat(R8UI);
+        StrFormat(R8_SNORM);
+
+        StrFormat(RG8);
+        StrFormat(RG8I);
+        StrFormat(RG8UI);
+        StrFormat(RG8_SNORM);
+
+        StrFormat(R16);
+        StrFormat(R16I);
+        StrFormat(R16UI);
+        StrFormat(R16_SNORM);
+        StrFormat(R16F);
+
+        StrFormat(RGB8);
+        StrFormat(RGB8I);
+        StrFormat(RGB8UI);
+        StrFormat(RGB8_SNORM);
+        StrFormat(SRGB8);
+
+        StrFormat(RGBA8);
+        StrFormat(RGBA8I);
+        StrFormat(RGBA8UI);
+        StrFormat(RGBA8_SNORM);
+
+        StrFormat(RG16);
+        StrFormat(RG16I);
+        StrFormat(RG16UI);
+        StrFormat(RG16_SNORM);
+        StrFormat(RG16F);
+
+        StrFormat(R32I);
+        StrFormat(R32UI);
+        StrFormat(R32F);
+
+        StrFormat(R11F_G11F_B10F);
+        StrFormat(RGB10_A2);
+        StrFormat(RGB10_A2UI);
+        StrFormat(RGB9_E5);
+        StrFormat(SRGB8_ALPHA8);
+
+        StrFormat(RGB16);
+        StrFormat(RGB16I);
+        StrFormat(RGB16UI);
+        StrFormat(RGB16_SNORM);
+        StrFormat(RGB16F);
+
+        StrFormat(RG32I);
+        StrFormat(RG32UI);
+        StrFormat(RG32F);
+
+        StrFormat(RGB32I);
+        StrFormat(RGB32UI);
+        StrFormat(RGB32F);
+
+        StrFormat(RGBA32I);
+        StrFormat(RGBA32UI);
+        StrFormat(RGBA32F);
+
+        StrFormat(DEPTH_COMPONENT16);
+        StrFormat(DEPTH_COMPONENT24);
+        StrFormat(DEPTH_COMPONENT32);
+        StrFormat(DEPTH_COMPONENT32F);
+
+        StrFormat(STENCIL_INDEX1);
+        StrFormat(STENCIL_INDEX4);
+        StrFormat(STENCIL_INDEX8);
+        StrFormat(STENCIL_INDEX16);
+
+        StrFormat(DEPTH24_STENCIL8);
+        StrFormat(DEPTH32F_STENCIL8);
+        
+        default: return "UnkownFormat";
+    }
+#undef StrFormat
+}
+
+//////////////////////////////////////////////////////////////////////
+OpenGLFrameBuffer::OpenGLFrameBuffer(unsigned int width, unsigned int height, unsigned int samples, const std::string& name)
+    : FrameBuffer(width, height, samples, name)
+{
+    _Create();
+}
+
+void OpenGLFrameBuffer::_Create()
+{
     CORE_INFO("Create OpenGLFrameBuffer: id({}), size({}x{}), samples({})", m_id, m_width, m_height, m_samples);
-    m_colorBuffer = Texture2D::Create(m_name+"_ColorBuffer")->Set(m_width, m_height, m_samples, m_format);
-    m_depthStencilBuffer = RenderBuffer::Create(m_width, m_height, m_samples, m_name+"_DenpthStencilBuffer");
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_samples==1? GL_TEXTURE_2D:GL_TEXTURE_2D_MULTISAMPLE, m_colorBuffer->ID(), 0);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_depthStencilBuffer->ID());
+    glGenFramebuffers(1, &m_id);
+}
+
+
+void OpenGLFrameBuffer::_Check()
+{
     if(glCheckNamedFramebufferStatus(m_id, GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
     {
         CORE_ASSERT(false, "Create OpenGLFrameBuffer: FrameBuffer is not complete!");
@@ -178,8 +352,13 @@ OpenGLFrameBuffer::OpenGLFrameBuffer(unsigned int width, unsigned int height, un
 
 OpenGLFrameBuffer::~OpenGLFrameBuffer()
 {
-    glDeleteFramebuffers(1, &m_id);
+    _Destroy();
+}
+
+void OpenGLFrameBuffer::_Destroy()
+{
     CORE_INFO("Delete OpenGLFrameBuffer id({}), size({}x{})", m_id, m_width, m_height);
+    glDeleteFramebuffers(1, &m_id);
 }
 
 void OpenGLFrameBuffer::Bind(unsigned int slot)
@@ -192,18 +371,144 @@ void OpenGLFrameBuffer::Unbind() const
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
+void OpenGLFrameBuffer::_ResetColorBuffers()
+{
+    for(auto [name, cb] : m_colorBuffers)
+    {
+        cb->Reset(m_width, m_height, m_samples);
+        _Attach(cb);
+    }
+}
+
+void OpenGLFrameBuffer::_ResetRenderBuffers()
+{
+    for(auto [name, rb] : m_renderBuffers)
+    {
+        rb->Reset(m_width, m_height, m_samples);
+        _Attach(rb);
+    }
+}
+
 void OpenGLFrameBuffer::_Reset() 
 {
     CORE_INFO("OpenGLFrameBuffer::_Reset: id({}), size({}x{}), samples({})", m_id, m_width, m_height, m_samples);
-    m_colorBuffer->Reset(m_width, m_height, m_samples, m_format);
-    m_depthStencilBuffer->Reset(m_width, m_height, m_samples);
+    _ResetColorBuffers();
+    _ResetRenderBuffers();
+    _Check();
+//     m_colorBuffer->Reset(m_width, m_height, m_samples, m_format);
+//     m_depthStencilBuffer->Reset(m_width, m_height, m_samples);
+// 
+//     glNamedFramebufferTexture(m_id, GL_COLOR_ATTACHMENT0, m_colorBuffer->ID(), 0);
+//     glNamedFramebufferRenderbuffer(m_id, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_depthStencilBuffer->ID());
+//     if(glCheckNamedFramebufferStatus(m_id, GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+//     {
+//         CORE_ASSERT(false, "OpengGLFrameBuffer::_Reset: FrameBuffer is not complete!");
+//     }
+}
 
-    glNamedFramebufferTexture(m_id, GL_COLOR_ATTACHMENT0, m_colorBuffer->ID(), 0);
-    glNamedFramebufferRenderbuffer(m_id, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_depthStencilBuffer->ID());
-    if(glCheckNamedFramebufferStatus(m_id, GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+void OpenGLFrameBuffer::_Attach(const std::shared_ptr<Texture>& colorBuffer)
+{
+    glBindFramebuffer(GL_FRAMEBUFFER, m_id);
+
+    int n = m_colorBuffers.size();
+    glNamedFramebufferTexture(m_id, GL_COLOR_ATTACHMENT0+n-1, colorBuffer->ID(), 0);
+    _Check();
+
+    unsigned int* attachments = new unsigned int[n];
+    for(int i=0; i<n; i++)
     {
-        CORE_ASSERT(false, "OpengGLFrameBuffer::_Reset: FrameBuffer is not complete!");
+        attachments[i] = GL_COLOR_ATTACHMENT0+i;
     }
+    glDrawBuffers(n, attachments);
+    delete[] attachments;
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+unsigned int OpenGLFrameBuffer::_Attachment(RenderBuffer::Format format) const
+{
+    switch(format)
+    {
+        case RenderBuffer::Format::R8:
+        case RenderBuffer::Format::R16:
+        case RenderBuffer::Format::RGB8:
+        case RenderBuffer::Format::RG8:
+        case RenderBuffer::Format::RG16:
+        case RenderBuffer::Format::RGB16:
+        case RenderBuffer::Format::RGBA8:
+        case RenderBuffer::Format::SRGB8:
+        case RenderBuffer::Format::RGBA16:
+        case RenderBuffer::Format::R8I:
+        case RenderBuffer::Format::R16F:
+        case RenderBuffer::Format::R16I:
+        case RenderBuffer::Format::R32F:
+        case RenderBuffer::Format::R32I:
+        case RenderBuffer::Format::R8UI:
+        case RenderBuffer::Format::RG8I:
+        case RenderBuffer::Format::R16UI:
+        case RenderBuffer::Format::R32UI:
+        case RenderBuffer::Format::RG16F:
+        case RenderBuffer::Format::RG16I:
+        case RenderBuffer::Format::RG32F:
+        case RenderBuffer::Format::RG32I:
+        case RenderBuffer::Format::RG8UI:
+        case RenderBuffer::Format::RGB8I:
+        case RenderBuffer::Format::RG16UI:
+        case RenderBuffer::Format::RG32UI:
+        case RenderBuffer::Format::RGB16F:
+        case RenderBuffer::Format::RGB16I:
+        case RenderBuffer::Format::RGB32F:
+        case RenderBuffer::Format::RGB32I:
+        case RenderBuffer::Format::RGB8UI:
+        case RenderBuffer::Format::RGBA8I:
+        case RenderBuffer::Format::RGB16UI:
+        case RenderBuffer::Format::RGB32UI:
+        case RenderBuffer::Format::RGB9_E5:
+        case RenderBuffer::Format::RGBA16F:
+        case RenderBuffer::Format::RGBA16I:
+        case RenderBuffer::Format::RGBA32F:
+        case RenderBuffer::Format::RGBA32I:
+        case RenderBuffer::Format::RGBA8UI:
+        case RenderBuffer::Format::R8_SNORM:
+        case RenderBuffer::Format::RGB10_A2:
+        case RenderBuffer::Format::RGBA16UI:
+        case RenderBuffer::Format::RGBA32UI:
+        case RenderBuffer::Format::R16_SNORM:
+        case RenderBuffer::Format::RG8_SNORM:
+        case RenderBuffer::Format::RG16_SNORM:
+        case RenderBuffer::Format::RGB8_SNORM:
+        case RenderBuffer::Format::RGB16_SNORM:
+        case RenderBuffer::Format::RGBA8_SNORM:
+        case RenderBuffer::Format::RGBA16_SNORM:
+        case RenderBuffer::Format::SRGB8_ALPHA8:
+        case RenderBuffer::Format::R11F_G11F_B10F:
+        case RenderBuffer::Format::RGB10_A2UI: 
+            return GL_COLOR_ATTACHMENT0;
+        case RenderBuffer::Format::STENCIL_INDEX1:
+        case RenderBuffer::Format::STENCIL_INDEX4:
+        case RenderBuffer::Format::STENCIL_INDEX8:
+        case RenderBuffer::Format::STENCIL_INDEX16:
+            return GL_STENCIL_ATTACHMENT;
+        case RenderBuffer::Format::DEPTH_COMPONENT16:
+        case RenderBuffer::Format::DEPTH_COMPONENT24:
+        case RenderBuffer::Format::DEPTH_COMPONENT32:
+        case RenderBuffer::Format::DEPTH_COMPONENT32F:
+            return GL_DEPTH_ATTACHMENT;
+        case RenderBuffer::Format::DEPTH24_STENCIL8:
+        case RenderBuffer::Format::DEPTH32F_STENCIL8:
+            return GL_DEPTH_STENCIL_ATTACHMENT;
+        default:
+            CORE_ASSERT(false, "OpenGLFrameBuffer::_Attachment: UnkownFormat.");
+            return -1;
+    }
+}
+
+void OpenGLFrameBuffer::_Attach(const std::shared_ptr<RenderBuffer>& renderBuffer)
+{
+    glBindFramebuffer(GL_FRAMEBUFFER, m_id);
+
+    glNamedFramebufferRenderbuffer(m_id, _Attachment(renderBuffer->GetFormat()), GL_RENDERBUFFER, renderBuffer->ID());
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 

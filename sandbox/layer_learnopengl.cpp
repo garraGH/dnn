@@ -23,10 +23,16 @@ std::shared_ptr<LearnOpenGLLayer> LearnOpenGLLayer::Create()
 LearnOpenGLLayer::LearnOpenGLLayer()
     : Layer( "LearnOpenGLLayer" )
 {
-    m_viewport->GetCamera()->SetFrameBuffer(m_fbSS);
+//     m_viewport->GetCamera()->SetFrameBuffer(m_fbSS);
+    m_viewport->GetCamera()->SetFrameBuffer(m_fbMS);
     m_viewport->GetCamera()->SetTarget(glm::vec3(0, 8, 0));
     m_viewport->GetCamera()->SetPosition(glm::vec3(0, 1, 5));
     m_viewport->GetCamera()->SetTarget(glm::vec3(0));
+    m_fbMS->AddColorBuffer("BaseColorBuffer", Texture::Format::RGB16F);
+    m_fbMS->AddColorBuffer("BrightColorBuffer", Texture::Format::RGB16F);
+    m_fbMS->AddRenderBuffer("DepthStencil", RenderBuffer::Format::DEPTH24_STENCIL8);
+    m_fbSS->AddColorBuffer("BaseColorBuffer", Texture::Format::RGB16F);
+
 
     _PrepareUniformBuffers();
     _PrepareSkybox();
@@ -170,21 +176,19 @@ void LearnOpenGLLayer::OnUpdate(float deltaTime)
 //     m_crysisNanoSuit->Draw(m_shaderPos);
 //     m_crysisNanoSuit->Draw(m_shaderBlinnPhong);
 //     m_trailer->Draw(m_shaderBlinnPhong);
-//         m_silkingMachine->Draw(m_shaderBlinnPhong);
-//         m_horse->Draw(m_shaderBlinnPhong);
+//     m_silkingMachine->Draw(m_shaderBlinnPhong);
+//     m_horse->Draw(m_shaderBlinnPhong);
 //     m_bulb->Draw(m_shaderColor);
 //     m_handLight->Draw(m_shaderColor);
     if(m_showGround)
         Renderer::Submit("GroundPlane", "GroundPlane");
-
     if(m_showSky)
         Renderer::Submit("Skybox", "Skybox");
-
     Renderer::Submit("UnitCubic", "Blinn-Phong-Instance", m_numOfInstance);
     Renderer::Submit(m_unitCubic, m_shaderOfMaterial);
     Renderer::EndScene();                       
 
-    Renderer::BlitFrameBuffer(m_fbMS, m_fbSS);
+//     Renderer::BlitFrameBuffer(m_fbMS, m_fbSS);
 
     Renderer::BeginScene(m_viewport);
 //     Renderer::Submit("Offscreen", "Offscreen");
@@ -655,7 +659,10 @@ void LearnOpenGLLayer::_PrepareOffscreenPlane()
     mtr->SetUniform("u_PostProcess", maPostProcess);
     mtr->SetUniform("u_Gamma", maGamma);
     mtr->SetUniform("u_Exposure", maExposure);
-    mtr->SetTexture("u_Offscreen", m_fbSS->GetColorBuffer());
+    mtr->SetTexture("u_Offscreen", m_fbMS->GetColorBuffer("BaseColorBuffer"));
+//     mtr->SetTexture("u_Offscreen", m_fbMS->GetColorBuffer("BrightColorBuffer"));
+//     mtr->SetTexture("u_Offscreen", m_fbSS->GetColorBuffer("BaseColorBuffer"));
+//     mtr->SetTexture("u_Offscreen", m_fbSS->GetColorBuffer("BrightColorBuffer"));
     m_rightTopTexCoord = reinterpret_cast<glm::vec2*>(maRightTopTexCoord->GetData());
     *m_rightTopTexCoord = glm::vec2(1, 1);
     std::array<float, 4> r = m_viewport->GetRange();

@@ -54,13 +54,13 @@ void Model::_ProcessNode(aiNode* node, const aiScene* scene)
 
 void Model::_DumpMeshInfo(const aiScene* scene, const aiMesh* mesh, const std::string& name)
 {
-    INFO("HasPositions: {}, num: {}", mesh->HasPositions()? "Yes" : "No", mesh->mNumVertices);
-    INFO("\tHasNormals: {}", mesh->HasNormals()? "Yes" : "No");
-    INFO("\tHasTangentsAndBitangents: {}", mesh->HasTangentsAndBitangents()? "Yes" : "No");
-    INFO("\tHasTextureCoords: {}, num: {}", mesh->HasTextureCoords(0)? "Yes" : "No", mesh->mNumUVComponents[0]);
-    INFO("\tHasVertexColors: {}", mesh->HasVertexColors(0)? "Yes" : "No");
-    INFO("HasFaces: {}, num: {}", mesh->HasFaces()? "Yes" : "No", mesh->mNumFaces);
-    INFO("HasBones: {}, num: {}", mesh->HasBones()? "Yes" : "No", mesh->mNumBones);
+    INFO("HasPositions              : {}, num: {}", mesh->HasPositions()? "Yes" : "No", mesh->mNumVertices);
+    INFO("HasNormals                : {}", mesh->HasNormals()? "Yes" : "No");
+    INFO("HasTangentsAndBitangents  : {}", mesh->HasTangentsAndBitangents()? "Yes" : "No");
+    INFO("HasTextureCoords          : {}, num: {}", mesh->HasTextureCoords(0)? "Yes" : "No", mesh->mNumUVComponents[0]);
+    INFO("HasVertexColors           : {}", mesh->HasVertexColors(0)? "Yes" : "No");
+    INFO("HasFaces                  : {}, num: {}", mesh->HasFaces()? "Yes" : "No", mesh->mNumFaces);
+    INFO("HasBones                  : {}, num: {}", mesh->HasBones()? "Yes" : "No", mesh->mNumBones);
 
     aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
     INFO("Material: {}, {}", mesh->mMaterialIndex, material->GetName().C_Str());

@@ -161,7 +161,7 @@ private:
     const unsigned int m_numOfInstance = 2000;
 
     unsigned int m_samples = 1;
-    std::shared_ptr<FrameBuffer> m_fbSS = FrameBuffer::Create(1920, 1080, 1, Texture::Format::RGB16F);  // framebufferSingleSample
-    std::shared_ptr<FrameBuffer> m_fbMS = FrameBuffer::Create(1920, 1080, m_samples, Texture::Format::RGB16F);  // framebufferMultiSample
+    std::shared_ptr<FrameBuffer> m_fbSS = FrameBuffer::Create(1920, 1080, 1);           // framebufferSingleSample
+    std::shared_ptr<FrameBuffer> m_fbMS = FrameBuffer::Create(1920, 1080, m_samples);   // framebufferMultiSample
 };
 

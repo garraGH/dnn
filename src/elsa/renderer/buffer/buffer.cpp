@@ -38,24 +38,24 @@ std::shared_ptr<Buffer> Buffer::CreateIndex(unsigned int size, const void* data)
     }
 }
 
-std::shared_ptr<RenderBuffer> RenderBuffer::Create(unsigned int width, unsigned int height, unsigned int samples, const std::string& name)
+std::shared_ptr<RenderBuffer> RenderBuffer::Create(unsigned int width, unsigned int height, unsigned int samples, RenderBuffer::Format format, const std::string& name)
 {
     switch(Renderer::GetAPIType())
     {
         case Renderer::API::OpenGL:
-            return std::make_shared<OpenGLRenderBuffer>(width, height, samples, name);
+            return std::make_shared<OpenGLRenderBuffer>(width, height, samples, format, name);
         default:
             CORE_ASSERT(false, "RenderBuffer::Create: API is currently not supported!");
             return nullptr;
     }
 }
 
-std::shared_ptr<FrameBuffer> FrameBuffer::Create(unsigned int width, unsigned int height, unsigned int samples, Texture::Format format, const std::string& name)
+std::shared_ptr<FrameBuffer> FrameBuffer::Create(unsigned int width, unsigned int height, unsigned int samples, const std::string& name)
 {
     switch(Renderer::GetAPIType())
     {
         case Renderer::API::OpenGL:
-            return std::make_shared<OpenGLFrameBuffer>(width, height, samples, format, name);
+            return std::make_shared<OpenGLFrameBuffer>(width, height, samples, name);
         default:
             CORE_ASSERT(false, "FrameBuffer::Create: API is currently not supported!");
             return nullptr;
@@ -205,13 +205,51 @@ void Buffer::Layout::_calculateOffsetAndStride(Element& e)
 
 
 //////////////////////////////////////////////////////////////////////
-RenderBuffer::RenderBuffer(unsigned int width, unsigned int height, unsigned int samples, const std::string& name)
+RenderBuffer::RenderBuffer(unsigned int width, unsigned int height, unsigned int samples, Format format, const std::string& name)
     : RenderObject(name)
     , m_width(width)
     , m_height(height)
     , m_samples(samples)
+    , m_format(format)
 {
 
+}
+
+void RenderBuffer::Reset(Format format)
+{
+    if(format==m_format)
+    {
+        return;
+    }
+
+    m_format = format;
+
+    _Reset();
+}
+
+void RenderBuffer::Reset(unsigned int samples)
+{
+    if(samples==m_samples)
+    {
+        return;
+    }
+
+    m_samples = samples;
+
+    _Reset();
+}
+
+void RenderBuffer::Reset(unsigned int width, unsigned int height)
+{
+    if(width==m_width && height==m_height)
+    {
+        return;
+    }
+
+    m_width = width;
+    m_height = height;
+
+    _Reset();
 }
 
 void RenderBuffer::Reset(unsigned int width, unsigned int height, unsigned int samples)
@@ -222,23 +260,13 @@ void RenderBuffer::Reset(unsigned int width, unsigned int height, unsigned int s
     }
 
     m_width = width;
-    m_height = height; 
+    m_height = height;
     m_samples = samples;
 
     _Reset();
-} 
-
-/////////////////////////////////////////////////////////////////////////
-FrameBuffer::FrameBuffer(unsigned int width, unsigned int height, unsigned int samples, Texture::Format format, const std::string& name) 
-    : RenderObject(name)
-    , m_width(width)
-    , m_height(height)
-    , m_samples(samples)
-    , m_format(format)
-{
 }
 
-void FrameBuffer::Reset(unsigned int width, unsigned int height, unsigned int samples, Texture::Format format)
+void RenderBuffer::Reset(unsigned int width, unsigned int height, unsigned int samples, Format format)
 {
     if(width==m_width && height==m_height && samples==m_samples && format==m_format)
     {
@@ -246,12 +274,50 @@ void FrameBuffer::Reset(unsigned int width, unsigned int height, unsigned int sa
     }
 
     m_width = width;
-    m_height = height;
+    m_height = height; 
+    m_samples = samples;
     m_format = format;
+
+    _Reset();
+} 
+
+/////////////////////////////////////////////////////////////////////////
+FrameBuffer::FrameBuffer(unsigned int width, unsigned int height, unsigned int samples, const std::string& name) 
+    : RenderObject(name)
+    , m_width(width)
+    , m_height(height)
+    , m_samples(samples)
+{
+}
+
+void FrameBuffer::Reset(unsigned int width, unsigned int height, unsigned int samples)
+{
+    if(width==m_width && height==m_height && samples==m_samples)
+    {
+        return;
+    }
+
+    m_width = width;
+    m_height = height;
     m_samples = samples;
 
     _Reset();
 }  
+
+
+void FrameBuffer::AddColorBuffer(const std::string& name, Texture::Format format)
+{
+    std::shared_ptr<Texture> colorBuffer = Texture2D::Create(m_name+'_'+name)->Set(m_width, m_height, m_samples, format);
+    m_colorBuffers[name] = colorBuffer;
+    _Attach(colorBuffer);
+}
+
+void FrameBuffer::AddRenderBuffer(const std::string& name, RenderBuffer::Format format)
+{
+    std::shared_ptr<RenderBuffer> renderBuffer = RenderBuffer::Create(m_width, m_height, m_samples, format, m_name+'_'+name);
+    m_renderBuffers[name] = renderBuffer;
+    _Attach(renderBuffer);
+}
 
 /////////////////////////////////////////////////////////////////////////
 std::shared_ptr<UniformBuffer> UniformBuffer::SetSize(int size)
