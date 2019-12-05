@@ -23,16 +23,28 @@ std::shared_ptr<LearnOpenGLLayer> LearnOpenGLLayer::Create()
 LearnOpenGLLayer::LearnOpenGLLayer()
     : Layer( "LearnOpenGLLayer" )
 {
-//     m_viewport->GetCamera()->SetFrameBuffer(m_fbSS);
-    m_viewport->GetCamera()->SetFrameBuffer(m_fbMS);
-    m_viewport->GetCamera()->SetTarget(glm::vec3(0, 8, 0));
-    m_viewport->GetCamera()->SetPosition(glm::vec3(0, 1, 5));
-    m_viewport->GetCamera()->SetTarget(glm::vec3(0));
-    m_fbMS->AddColorBuffer("BaseColorBuffer", Texture::Format::RGB16F);
-    m_fbMS->AddColorBuffer("BrightColorBuffer", Texture::Format::RGB16F);
-    m_fbMS->AddRenderBuffer("DepthStencil", RenderBuffer::Format::DEPTH24_STENCIL8);
-    m_fbSS->AddColorBuffer("BaseColorBuffer", Texture::Format::RGB16F);
+    const std::shared_ptr<Camera>& cam = m_vpOffscreen->GetCamera();
+    cam->SetFrameBuffer(m_fbOffscreenHDR);
+    cam->SetTarget(glm::vec3(0, 8, 0));
+    cam->SetPosition(glm::vec3(0, 1, 5));
+    cam->SetTarget(glm::vec3(0));
 
+    m_vpBase->AttachCamera(cam);
+    m_vpBright->AttachCamera(cam);
+    m_vpBlur->AttachCamera(cam);
+    m_vpBloom->AttachCamera(cam);
+
+    m_vpBase->SetRange(0, 0.5, 0.5, 0.5);
+    m_vpBright->SetRange(0.5, 0.5, 0.5, 0.5);
+    m_vpBlur->SetRange(0, 0, 0.5, 0.5);
+    m_vpBloom->SetRange(0.5, 0, 0.5, 0.5);
+
+//     m_fbMS->AddColorBuffer("BaseColorBuffer", Texture::Format::RGB16F);
+//     m_fbMS->AddColorBuffer("BrightColorBuffer", Texture::Format::RGB16F);
+//     m_fbMS->AddRenderBuffer("DepthStencil", RenderBuffer::Format::DEPTH24_STENCIL8);
+//     m_fbSS->AddColorBuffer("BaseColorBuffer", Texture::Format::RGB16F);
+//     m_fbBlurH->AddColorBuffer("HorizontalBlurColorBuffer", Texture::Format::RGB16F);
+//     m_fbBlurV->AddColorBuffer("VerticalBlurColorBuffer", Texture::Format::RGB16F);
 
     _PrepareUniformBuffers();
     _PrepareSkybox();
@@ -48,13 +60,16 @@ void LearnOpenGLLayer::OnEvent(Event& e)
 #define DISPATCH(event) ed.Dispatch<event>(BIND_EVENT_CALLBACK(LearnOpenGLLayer, _On##event))
     DISPATCH(WindowResizeEvent);
 #undef DISPATCH
-    m_viewport->OnEvent(e);
+    m_vpBase->OnEvent(e);
+    m_vpBright->OnEvent(e);
+    m_vpBlur->OnEvent(e);
+    m_vpBloom->OnEvent(e);
 }
 
 bool LearnOpenGLLayer::_OnWindowResizeEvent(WindowResizeEvent& e)
 {
-    m_rightTopTexCoord->x = e.GetWidth()/(float)m_fbSS->GetWidth();
-    m_rightTopTexCoord->y = e.GetHeight()/(float)m_fbSS->GetHeight();
+//     m_rightTopTexCoord->x = e.GetWidth()/(float)m_fbSS->GetWidth();
+//     m_rightTopTexCoord->y = e.GetHeight()/(float)m_fbSS->GetHeight();
     return false;
 }
 
@@ -98,25 +113,15 @@ void LearnOpenGLLayer::_UpdateShaderID()
 void LearnOpenGLLayer::_UpdateShaderID_HDR()
 {
     m_shaderID_HDR = 0;
-    if(m_material_HDR.enableHDR)
+    if(m_material_HDR.enableToneMap)
     {
-        m_shaderID_HDR |= static_cast<int>(Shader::Macro::HDR);
+        m_shaderID_HDR |= static_cast<int>(Shader::Macro::TONE_MAP);
     }
     if(m_material_HDR.enableGammaCorrection)
     {
         m_shaderID_HDR |= static_cast<int>(Shader::Macro::GAMMA_CORRECTION);
     }
 }
-
-// void LearnOpenGLLayer::_AddMaterialProperty(MaterialProperty mp)
-// {
-//     m_shaderID |= static_cast<int>(mp);
-// }
-// 
-// void LearnOpenGLLayer::_RemoveMaterialProperty(MaterialProperty mp)
-// {
-//     m_shaderID &= ~static_cast<int>(mp);
-// }
 
 std::string LearnOpenGLLayer::_StringOfShaderID() const
 {
@@ -128,51 +133,89 @@ std::string LearnOpenGLLayer::_StringOfShaderID_HDR()  const
     return std::to_string(m_shaderID_HDR);
 }
 
-// std::string LearnOpenGLLayer::_MacrosOfShaderID() const
-// {
-//     std::string macros;
-//     if(m_shaderID&static_cast<int>(MaterialProperty::HasDiffuseReflectance))
-//     {
-//         macros += "|DIFFUSE_REFLECTANCE";
-//     }
-//     if(m_shaderID&static_cast<int>(MaterialProperty::HasSpecularReflectance))
-//     {
-//         macros += "|SPECULAR_REFLECTANCE";
-//     }
-//     if(m_shaderID&static_cast<int>(MaterialProperty::HasEmissiveColor))
-//     {
-//         macros += "|EMISSIVE_COLOR";
-//     }
-//     if(m_shaderID&static_cast<int>(MaterialProperty::HasDiffuseMap))
-//     {
-//         macros += "|DIFFUSE_MAP";
-//     }
-//     if(m_shaderID&static_cast<int>(MaterialProperty::HasSpecularMap))
-//     {
-//         macros += "|SPECULAR_MAP";
-//     }
-//     if(m_shaderID&static_cast<int>(MaterialProperty::HasEmissiveMap))
-//     {
-//         macros += "|EMISSIVE_MAP";
-//     }
-//     if(m_shaderID&static_cast<int>(MaterialProperty::HasNormalMap))
-//     {
-//         macros += "|NORMAL_MAP";
-//     }
-//     if(m_shaderID&static_cast<int>(MaterialProperty::HasDepthMap))
-//     {
-//         macros += "|DEPTH_MAP";
-//     }
-// 
-//     return macros.substr(1);
-// }
-
 void LearnOpenGLLayer::OnUpdate(float deltaTime)
 {
     _UpdateMaterialUniforms();
 
-    Renderer::BeginScene(m_viewport, m_fbMS);
-//     Renderer::BeginScene(m_viewport);
+    _RenderToTexture_HDR();
+    _RenderToScreen_HDR();
+    _RenderToTexture_Blur();
+    _RenderToScreen_Blur();
+    _RenderToTexture_Bloom();
+    _RenderToScreen_Bloom();
+
+    m_vpOffscreen->OnUpdate(deltaTime);
+}
+
+void LearnOpenGLLayer::_RenderToTexture_HDR()
+{
+    Renderer::BeginScene(m_vpOffscreen, m_fbOffscreenHDR);
+    if(m_showSky)
+    {
+        Renderer::Submit("Skybox", "Skybox");
+    }
+    if(m_showGround)
+    {
+        Renderer::Submit("GroundPlane", "GroundPlane");
+    }
+    Renderer::Submit("UnitCubic", "Blinn-Phong-Instance", m_numOfInstance);
+    Renderer::Submit(m_unitCubic, m_shaderOfMaterial);
+    Renderer::EndScene();
+}
+
+void LearnOpenGLLayer::_RenderToScreen_HDR()
+{
+    Renderer::BeginScene(m_vpBase);
+    Renderer::Submit(m_eleBase, m_shaderHDR);
+    Renderer::EndScene();
+
+    Renderer::BeginScene(m_vpBright);
+    Renderer::Submit(m_eleBright, m_shaderHDR);
+    Renderer::EndScene();
+}
+
+void LearnOpenGLLayer::_RenderToTexture_Blur()
+{
+    for(int i=0; i<m_blurIteration; i++)
+    {
+        Renderer::BeginScene(m_vpOffscreen, m_fbOffscreenBlurPing);
+        Renderer::Submit(m_eleBlurH, m_shaderBlur);
+        Renderer::EndScene();
+        Renderer::BeginScene(m_vpOffscreen, m_fbOffscreenBlurPong);
+        Renderer::Submit(m_eleBlurV, m_shaderBlur);
+        Renderer::EndScene();
+    }
+}
+
+void LearnOpenGLLayer::_RenderToScreen_Blur()
+{
+    Renderer::BeginScene(m_vpBlur);
+    Renderer::Submit(m_eleBlurH, m_shaderHDR);
+    Renderer::EndScene();
+}
+
+
+void LearnOpenGLLayer::_RenderToTexture_Bloom()
+{
+    Renderer::BeginScene(m_vpOffscreen, m_fbOffscreenBloom);
+    Renderer::Submit(m_eleBloom, m_shaderBloom);
+    Renderer::EndScene();
+}
+
+void LearnOpenGLLayer::_RenderToScreen_Bloom()
+{
+    Renderer::BeginScene(m_vpBloom);
+    Renderer::Submit(m_eleBloom, m_shaderHDR);
+    Renderer::EndScene();
+}
+
+/*
+void LearnOpenGLLayer::OnUpdate(float deltaTime)
+{
+    _UpdateMaterialUniforms();
+
+    Renderer::BeginScene(m_vpBase, m_fbMS);
+//     Renderer::BeginScene(m_vpBase);
 //     m_crysisNanoSuit->Draw(m_shaderPos);
 //     m_crysisNanoSuit->Draw(m_shaderBlinnPhong);
 //     m_trailer->Draw(m_shaderBlinnPhong);
@@ -190,18 +233,48 @@ void LearnOpenGLLayer::OnUpdate(float deltaTime)
 
 //     Renderer::BlitFrameBuffer(m_fbMS, m_fbSS);
 
-    Renderer::BeginScene(m_viewport);
-//     Renderer::Submit("Offscreen", "Offscreen");
-    Renderer::Submit(m_eleOffscreen, m_shaderHDR);
+    Renderer::BeginScene(m_vpBase);
+    Renderer::Submit(m_eleBase, m_shaderHDR);
+    Renderer::EndScene();
+
+    Renderer::BeginScene(m_vpBright);
+    Renderer::Submit(m_eleBright, m_shaderHDR);
     Renderer::EndScene();
  
-    m_viewport->OnUpdate(deltaTime);
+
+    Renderer::Resources::Get<Material>("BlurH")->SetTexture("u_Offscreen", m_fbMS->GetColorBuffer("BrightColorBuffer"));
+    Renderer::BeginScene(m_vpBase, m_fbBlurH);
+    Renderer::Submit(m_eleBlurH, m_shaderBlur);
+    Renderer::EndScene();
+    Renderer::Resources::Get<Material>("BlurH")->SetTexture("u_Offscreen", m_fbBlurV->GetColorBuffer("VerticalBlurColorBuffer"));
+
+    for(int i=0; i<m_blurIteration; i++)
+    {
+        Renderer::BeginScene(m_vpBase, m_fbBlurV);
+        Renderer::Submit(m_eleBlurV, m_shaderBlur);
+        Renderer::EndScene();
+
+        Renderer::BeginScene(m_vpBase, m_fbBlurH);
+        Renderer::Submit(m_eleBlurH, m_shaderBlur);
+        Renderer::EndScene();
+    }
+
+    Renderer::BeginScene(m_vpBlur);
+    Renderer::Submit(m_eleBlurV, m_shaderHDR);
+    Renderer::EndScene();
+
+//     Renderer::BeginScene(m_vpBloom);
+//     Renderer::Submit(m_eleBloom, m_shaderBloom);
+//     Renderer::EndScene();
+
+    m_vpBase->OnUpdate(deltaTime);
 }
+*/
 
 void LearnOpenGLLayer::OnImGuiRender()
 {
     using MU = Material::Uniform;
-    m_viewport->OnImGuiRender();
+    m_vpBase->OnImGuiRender();
 
     ImGui::Begin("LearnOpenGLLayer");
 
@@ -213,12 +286,14 @@ void LearnOpenGLLayer::OnImGuiRender()
 
     ImGui::Separator();
 
-    if(ImGui::InputInt("Samples", (int*)&m_samples))
-    {
-        unsigned int w = m_fbMS->GetWidth();
-        unsigned int h = m_fbMS->GetHeight();
-        m_fbMS->Reset(w, h, m_samples);
-    }
+    ImGui::DragInt("BlurIteration", &m_blurIteration, 1, 0, 20);
+
+//     if(ImGui::InputInt("Samples", (int*)&m_samples))
+//     {
+//         unsigned int w = m_fbMS->GetWidth();
+//         unsigned int h = m_fbMS->GetHeight();
+//         m_fbMS->Reset(w, h, m_samples);
+//     }
     if(ImGui::CollapsingHeader("PostProcess"))
     {
 #define RadioButton(x) \
@@ -315,7 +390,7 @@ void LearnOpenGLLayer::OnImGuiRender()
     {
         bool bChanged = false;
         ImGui::Indent();
-        bChanged |= ImGui::Checkbox("HDR", &m_material_HDR.enableHDR);
+        bChanged |= ImGui::Checkbox("ToneMap", &m_material_HDR.enableToneMap);
         bChanged |= ImGui::Checkbox("GammaCorrection", &m_material_HDR.enableGammaCorrection);
         if(bChanged)
         {
@@ -338,6 +413,7 @@ void LearnOpenGLLayer::OnImGuiRender()
 //     Renderer::Resources::Get<UniformBuffer>("Light")->Upload(name, data)
     if(ImGui::CollapsingHeader("Light"))
     {
+        ImGui::Indent();
         ImGui::SetNextWindowPos({200, 0});
         if(ImGui::CollapsingHeader("DirectionalLight"))
         {
@@ -426,6 +502,7 @@ void LearnOpenGLLayer::OnImGuiRender()
                 Renderer::Resources::Get<UniformBuffer>("Light")->Upload("FlashLight", &m_fLight);
             }
         }
+        ImGui::Unindent();
     }
 
     ImGui::End();
@@ -646,44 +723,84 @@ void LearnOpenGLLayer::_PrepareSkybox()
 void LearnOpenGLLayer::_PrepareOffscreenPlane()
 {
     using MU = Material::Uniform;
+    std::shared_ptr<MU> maLeftBottomTexCoord = Renderer::Resources::Create<MU>("LeftBottomTexCoord")->SetType(MU::Type::Float2);
     std::shared_ptr<MU> maRightTopTexCoord = Renderer::Resources::Create<MU>("RightTopTexCoord")->SetType(MU::Type::Float2);
     std::shared_ptr<MU> maPostProcess = Renderer::Resources::Create<MU>("PostProcess")->Set(MU::Type::Int1, 1, &m_pp);
     std::shared_ptr<MU> maGamma = Renderer::Resources::Create<MU>("Gamma")->SetType(MU::Type::Float1);
     std::shared_ptr<MU> maExposure = Renderer::Resources::Create<MU>("Exposure")->SetType(MU::Type::Float1);
-    std::shared_ptr<Material>  mtr = Renderer::Resources::Create<Material>("Offscreen");
+    int horizontal = 1;
+    std::shared_ptr<MU> maHorizontalBlur = Renderer::Resources::Create<MU>("HorizontalBlur")->Set(MU::Type::Int1, 1, &horizontal);
+    horizontal = 0;
+    std::shared_ptr<MU> maVerticalBlur = Renderer::Resources::Create<MU>("VerticalBlur")->Set(MU::Type::Int1, 1, &horizontal);
     m_material_HDR.gamma = reinterpret_cast<float*>(maGamma->GetData());
     m_material_HDR.exposure = reinterpret_cast<float*>(maExposure->GetData());
     *m_material_HDR.gamma = 2.2f;
     *m_material_HDR.exposure = 1.0f;
-    mtr->SetUniform("u_RightTopTexCoord", maRightTopTexCoord);
-    mtr->SetUniform("u_PostProcess", maPostProcess);
-    mtr->SetUniform("u_Gamma", maGamma);
-    mtr->SetUniform("u_Exposure", maExposure);
-    mtr->SetTexture("u_Offscreen", m_fbMS->GetColorBuffer("BaseColorBuffer"));
-//     mtr->SetTexture("u_Offscreen", m_fbMS->GetColorBuffer("BrightColorBuffer"));
+    std::shared_ptr<Material>  mtrBase = Renderer::Resources::Create<Material>("Base");
+//     mtrBase->SetUniform("u_LeftBottomTexCoord", maLeftBottomTexCoord);
+//     mtrBase->SetUniform("u_RightTopTexCoord", maRightTopTexCoord);
+    mtrBase->SetUniform("u_PostProcess", maPostProcess);
+    mtrBase->SetUniform("u_Gamma", maGamma);
+    mtrBase->SetUniform("u_Exposure", maExposure);
+    mtrBase->SetTexture("u_Offscreen", m_texOffscreenBasic);
+    std::shared_ptr<Material>  mtrBright = Renderer::Resources::Create<Material>("Bright");
+    mtrBright->SetTexture("u_Offscreen", m_texOffscreenBright);
+    std::shared_ptr<Material>  mtrBlurH = Renderer::Resources::Create<Material>("BlurH");
+//     mtrBlurH->SetUniform("u_LeftBottomTexCoord", maLeftBottomTexCoord);
+//     mtrBlurH->SetUniform("u_RightTopTexCoord", maRightTopTexCoord);
+    mtrBlurH->SetTexture("u_Offscreen", m_texOffscreenBlurPong);
+    mtrBlurH->SetUniform("u_Horizontal", maHorizontalBlur);
+    std::shared_ptr<Material>  mtrBlurV = Renderer::Resources::Create<Material>("BlurV");
+//     mtrBlurV->SetUniform("u_LeftBottomTexCoord", maLeftBottomTexCoord); 
+//     mtrBlurV->SetUniform("u_RightTopTexCoord", maRightTopTexCoord);
+    mtrBlurV->SetTexture("u_Offscreen", m_texOffscreenBlurPing);
+    mtrBlurV->SetUniform("u_Horizontal", maVerticalBlur);
+
+    std::shared_ptr<Material> mtrBloom = Renderer::Resources::Create<Material>("Bloom");
+    mtrBloom->SetTexture("u_Basic", m_texOffscreenBasic);
+    mtrBloom->SetTexture("u_BrightBlur", m_texOffscreenBlurPong);
+    mtrBloom->SetTexture("u_Offscreen", m_texOffscreenBloom);
+
+
 //     mtr->SetTexture("u_Offscreen", m_fbSS->GetColorBuffer("BaseColorBuffer"));
 //     mtr->SetTexture("u_Offscreen", m_fbSS->GetColorBuffer("BrightColorBuffer"));
-    m_rightTopTexCoord = reinterpret_cast<glm::vec2*>(maRightTopTexCoord->GetData());
-    *m_rightTopTexCoord = glm::vec2(1, 1);
-    std::array<float, 4> r = m_viewport->GetRange();
-    *m_rightTopTexCoord = glm::vec2(r[2]/m_fbSS->GetWidth(), r[3]/m_fbSS->GetHeight());
+//     m_leftBottomTexCoord = reinterpret_cast<glm::vec2*>(maLeftBottomTexCoord->GetData());
+//     m_rightTopTexCoord = reinterpret_cast<glm::vec2*>(maRightTopTexCoord->GetData());
+//     *m_rightTopTexCoord = glm::vec2(1, 1);
+//     std::array<float, 4> r = m_vpBase->GetRange();
+//     unsigned int w = m_fbMS->GetWidth();
+//     unsigned int h = m_fbMS->GetHeight();
+//     *m_leftBottomTexCoord = glm::vec2(r[0]/w, r[1]/h);
+//     *m_rightTopTexCoord = glm::vec2((r[0]+r[2])/w, (r[1]+r[3])/h);
+//     INFO("{}", glm::to_string(*m_leftBottomTexCoord));
+//     INFO("{}", glm::to_string(*m_rightTopTexCoord));
+//     STOP
+
 
     float vertices[] = 
     {
         -1, -1, 
         +1, -1, 
-        -1, +1, 
         +1, +1,
+        -1, +1, 
     };
-    unsigned char indices[] = { 0, 1, 3, 0, 3, 2 };
+    unsigned char indices[] = { 0, 1, 2, 0, 2, 3 };
     Buffer::Layout layoutVextex = { {Buffer::Element::DataType::Float2, "a_Position", false} };
     Buffer::Layout layoutIndex = { {Buffer::Element::DataType::UChar} };
     std::shared_ptr<Buffer> vb = Buffer::CreateVertex(sizeof(vertices), vertices)->SetLayout(layoutVextex);
     std::shared_ptr<Buffer> ib = Buffer::CreateIndex(sizeof(indices), indices)->SetLayout(layoutIndex);
     std::shared_ptr<Elsa::Mesh> mesh= Renderer::Resources::Create<Elsa::Mesh>("OffscreenPlane")->Set(ib, {vb});
 
-    m_eleOffscreen = Renderer::Resources::Create<Renderer::Element>("Offscreen")->Set(mesh, mtr);
+    m_eleBase = Renderer::Resources::Create<Renderer::Element>("Base")->Set(mesh, mtrBase);
+    m_eleBright = Renderer::Resources::Create<Renderer::Element>("Bright")->Set(mesh, mtrBright);
+    m_eleBlurH = Renderer::Resources::Create<Renderer::Element>("BlurH")->Set(mesh, mtrBlurH);
+    m_eleBlurV = Renderer::Resources::Create<Renderer::Element>("BlurV")->Set(mesh, mtrBlurV);
+    m_eleBloom = Renderer::Resources::Create<Renderer::Element>("Bloom")->Set(mesh, mtrBloom);
+
+
     m_shaderHDR = Renderer::Resources::Create<Shader>(_StringOfShaderID_HDR())->Define(m_shaderID_HDR)->LoadFromFile("/home/garra/study/dnn/assets/shader/OffscreenTexture.glsl");
+    m_shaderBlur = Renderer::Resources::Create<Shader>("Blur")->LoadFromFile("/home/garra/study/dnn/assets/shader/Blur.glsl");
+    m_shaderBloom = Renderer::Resources::Create<Shader>("Bloom")->Define("BLOOM|TONE_MAP")->LoadFromFile("/home/garra/study/dnn/assets/shader/Bloom.glsl");
 }
 
 void LearnOpenGLLayer::_PrepareGroundPlane()
@@ -700,11 +817,11 @@ void LearnOpenGLLayer::_PrepareGroundPlane()
 void LearnOpenGLLayer::_UpdateMaterialUniforms()
 {
     using MU = Material::Uniform;
-    const std::shared_ptr<Camera>& cam = m_viewport->GetCamera();
+    const std::shared_ptr<Camera>& cam = m_vpBase->GetCamera();
     Renderer::Resources::Get<MU>("CameraPosition")->UpdateData(&cam->GetPosition());
     Renderer::Resources::Get<MU>("NearCorners")->UpdateData(&cam->GetNearCornersInWorldSpace()[0]);
     Renderer::Resources::Get<MU>("FarCorners")->UpdateData(&cam->GetFarCornersInWorldSpace()[0]);
-    Renderer::Resources::Get<UniformBuffer>("Transform")->Upload("WS2CS", glm::value_ptr(m_viewport->GetCamera()->World2Clip()));
+    Renderer::Resources::Get<UniformBuffer>("Transform")->Upload("WS2CS", glm::value_ptr(m_vpBase->GetCamera()->World2Clip()));
     m_fLight.pos = glm::vec4(cam->GetPosition(), 1);
     m_fLight.dir = glm::vec4(cam->GetDirection(), 0);
     Renderer::Resources::Get<UniformBuffer>("Light")->Upload("FlashLight", &m_fLight);
@@ -714,7 +831,7 @@ void LearnOpenGLLayer::_PrepareUniformBuffers()
 {
     std::shared_ptr<UniformBuffer> ubTransform = Renderer::Resources::Create<UniformBuffer>("Transform")->SetSize(64);
     ubTransform->Push("WS2CS", glm::vec2(0, 64));
-    ubTransform->Upload("WS2CS", glm::value_ptr(m_viewport->GetCamera()->World2Clip()));
+    ubTransform->Upload("WS2CS", glm::value_ptr(m_vpBase->GetCamera()->World2Clip()));
 
     std::shared_ptr<UniformBuffer> ubLight = Renderer::Resources::Create<UniformBuffer>("Light")->SetSize(240);
     ubLight->Push("DirectionalLight", glm::vec2(0, 32));

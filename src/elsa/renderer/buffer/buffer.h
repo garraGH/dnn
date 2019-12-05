@@ -141,7 +141,7 @@ protected:
     Format m_format = Format::R32F;
 };
 
-class FrameBuffer : public RenderObject
+class FrameBuffer : public RenderObject, public std::enable_shared_from_this<FrameBuffer>
 {
 public:
     FrameBuffer(unsigned int width, unsigned int height, unsigned int samples=1, const std::string& name="unnamed");
@@ -151,11 +151,14 @@ public:
     unsigned int GetHeight() const { return m_height; }
     unsigned int GetSamples() const { return m_samples; }
 
-    void AddColorBuffer(const std::string& name, Texture::Format format);
-    void AddRenderBuffer(const std::string& name, RenderBuffer::Format format);
+    std::shared_ptr<FrameBuffer> AddColorBuffer(const std::string& name, std::shared_ptr<Texture>& colorBuffer);
+    std::shared_ptr<FrameBuffer> AddColorBuffer(const std::string& name, Texture::Format format);
+    std::shared_ptr<FrameBuffer> AddRenderBuffer(const std::string& name, std::shared_ptr<RenderBuffer>& renderBuffer);
+    std::shared_ptr<FrameBuffer> AddRenderBuffer(const std::string& name, RenderBuffer::Format format);
 
-    const std::shared_ptr<Texture>& GetColorBuffer(const std::string& name) { return m_colorBuffers[name]; }
-    const std::shared_ptr<RenderBuffer>& GetRenderBuffer(const std::string& name) { return m_renderBuffers[name]; }
+
+    const std::shared_ptr<Texture>& GetColorBuffer(const std::string& name) { CORE_ASSERT(m_colorBuffers[name], "ColorBuffer is not exist: "+name); return m_colorBuffers[name]; }
+    const std::shared_ptr<RenderBuffer>& GetRenderBuffer(const std::string& name) { CORE_ASSERT(m_renderBuffers[name], "RenderBuffer is not exist: "+name); return m_renderBuffers[name]; }
 
     static std::shared_ptr<FrameBuffer> Create(unsigned int width, unsigned int height, unsigned int samples=1, const std::string& name="unnamed");
 

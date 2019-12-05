@@ -35,22 +35,29 @@ void Viewport::DetachCamera()
     m_cameraAttached = nullptr;
 }
 
-void Viewport::SetRange(float left, float bottom, float width, float height)
+std::shared_ptr<Viewport> Viewport::SetRange(float left, float bottom, float width, float height)
 {
+    if(width>1||height>1)
+    {
+        m_type = Type::Fixed;
+    }
+
     m_range = {left, bottom, width, height};
     m_cameraDefault->SetAspectRatio(width/height);
-    if(m_cameraAttached) 
-    {
-        m_cameraAttached->SetAspectRatio(width/height);
-    }
+//     if(m_cameraAttached) 
+//     {
+//         m_cameraAttached->SetAspectRatio(width/height);
+//     }
+
+    return shared_from_this();
 }
 
 
-void Viewport::SetType(Type t)
+std::shared_ptr<Viewport> Viewport::SetType(Type t)
 {
     if(m_type == t)
     {
-        return;
+        return shared_from_this();
     }
     
     m_type = t;
@@ -68,16 +75,20 @@ void Viewport::SetType(Type t)
         m_range[2] *= m_windowSize[0];
         m_range[3] *= m_windowSize[1];
     }
+
+    return shared_from_this();
 }
 
-void Viewport::SetBackgroundColor(float r, float g, float b, float a)
+std::shared_ptr<Viewport> Viewport::SetBackgroundColor(float r, float g, float b, float a)
 {
     m_backgroundColor = {r, g, b, a};
+    return shared_from_this();
 }
 
-void Viewport::SetBackgroundDepth(float depth)
+std::shared_ptr<Viewport> Viewport::SetBackgroundDepth(float depth)
 {
     m_backgroundDepth = depth;
+    return shared_from_this();
 }
 
 std::array<float, 4> Viewport::GetRange() const
@@ -138,7 +149,7 @@ void Viewport::OnEvent(Event& e)
     DISPATCH(WindowResizeEvent);
 #undef DISPATCH
 
-    GetCamera()->OnEvent(e);
+    GetCamera()->OnEvent(e, this);
 }
 
 bool Viewport::_OnWindowResizeEvent(WindowResizeEvent& e)
@@ -154,10 +165,10 @@ bool Viewport::_OnWindowResizeEvent(WindowResizeEvent& e)
     {
         float asp = (m_windowSize[0]*m_range[2])/(m_windowSize[1]*m_range[3]);
         m_cameraDefault->SetAspectRatio(asp);
-        if(m_cameraAttached)
-        {
-            m_cameraAttached->SetAspectRatio(asp);
-        }
+//         if(m_cameraAttached)
+//         {
+//             m_cameraAttached->SetAspectRatio(asp);
+//         }
     }
     return false;
 }
@@ -180,10 +191,10 @@ void Viewport::OnImGuiRender()
     {
         float asp = m_range[2]/m_range[3];
         m_cameraDefault->SetAspectRatio(asp);
-        if(m_cameraAttached)
-        {
-            m_cameraAttached->SetAspectRatio(asp);
-        }
+//         if(m_cameraAttached)
+//         {
+//             m_cameraAttached->SetAspectRatio(asp);
+//         }
     }
     ImGui::Separator();
 

@@ -300,8 +300,10 @@ void Camera::OnUpdate(float deltaTime)
 }
 
 
-void Camera::OnEvent(Event& e)
+void Camera::OnEvent(Event& e, const Viewport* vp)
 {
+    m_viewport = vp;
+
     EventDispatcher dispatcher(e);
     dispatcher.Dispatch<MouseScrolledEvent>(BIND_EVENT_CALLBACK(Camera, _OnMouseScrolled));
     dispatcher.Dispatch<MouseButtonPressedEvent>(BIND_EVENT_CALLBACK(Camera, _OnMouseButtonPressed));

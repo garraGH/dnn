@@ -17,6 +17,7 @@
 #include "../../event/event_application.h"
 #include "../buffer/buffer.h"
 
+class Viewport;
 class Camera
 {
 public:
@@ -133,7 +134,7 @@ public:
     inline void EnableRotation(bool enabled)    { m_rotationEnabled = enabled;         }
 
     void OnUpdate(float deltaTime);
-    void OnEvent(Event& e);
+    void OnEvent(Event& e, const Viewport* vp);
     void OnImGuiRender(bool independent=true);
 
     static std::shared_ptr<Camera> Create(const std::string& name, Type type=Type::Perspective, Usage usage=Usage::ThreeDimension);
@@ -210,4 +211,5 @@ private:
 
     std::array<unsigned int, 2> m_windowSize = {1000, 1000};
     std::shared_ptr<FrameBuffer> m_frameBuffer = nullptr;
+    const Viewport* m_viewport = nullptr;
 };

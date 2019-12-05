@@ -53,7 +53,7 @@ public:
         SHININESS_MAP           = 0x01<<12, 
         METALNESS_MAP           = 0x01<<13, 
         ROUGHNESS_MAP           = 0x01<<14, 
-        HDR                     = 0x01<<15, 
+        TONE_MAP                = 0x01<<15, 
         GAMMA_CORRECTION        = 0x01<<16,
     };
 

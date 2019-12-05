@@ -15,17 +15,6 @@
 class LearnOpenGLLayer : public Layer
 {
 public:
-//     enum class MaterialProperty : int
-//     {
-//         HasDiffuseReflectance   = 0x01<<0, 
-//         HasSpecularReflectance  = 0x01<<1, 
-//         HasEmissiveColor        = 0x01<<2, 
-//         HasDiffuseMap           = 0x01<<3, 
-//         HasSpecularMap          = 0x01<<4, 
-//         HasEmissiveMap          = 0x01<<5, 
-//         HasNormalMap            = 0x01<<6, 
-//         HasDepthMap             = 0x01<<7, 
-//     };
 
     enum class PostProcess
     {
@@ -61,7 +50,18 @@ protected:
     void _UpdateTexture(std::shared_ptr<Texture>& tex);
 
 private:
-    std::shared_ptr<Viewport> m_viewport = Viewport::Create("LearnOpenGL_Viewport_Main");
+    void _RenderToTexture_HDR();
+    void _RenderToScreen_HDR();
+    void _RenderToTexture_Blur();
+    void _RenderToScreen_Blur();
+    void _RenderToTexture_Bloom();
+    void _RenderToScreen_Bloom();
+
+private:
+    std::shared_ptr<Viewport> m_vpBase = Viewport::Create("LearnOpenGL_Viewport_Base");
+    std::shared_ptr<Viewport> m_vpBright = Viewport::Create("LearnOpenGL_Viewport_Bright");
+    std::shared_ptr<Viewport> m_vpBlur = Viewport::Create("LearnOpenGL_Viewport_Blur");
+    std::shared_ptr<Viewport> m_vpBloom = Viewport::Create("LearnOpenGL_Viewport_Bloom");
     std::shared_ptr<Model> m_crysisNanoSuit = nullptr;
     std::shared_ptr<Model> m_silkingMachine = nullptr;
     std::shared_ptr<Model> m_horse = nullptr;
@@ -73,8 +73,14 @@ private:
     std::shared_ptr<Shader> m_shaderBlinnPhong = nullptr;
     std::shared_ptr<Shader> m_shaderOfMaterial = nullptr;
     std::shared_ptr<Shader> m_shaderHDR = nullptr;
+    std::shared_ptr<Shader> m_shaderBlur = nullptr;
+    std::shared_ptr<Shader> m_shaderBloom = nullptr;
     std::shared_ptr<Renderer::Element> m_unitCubic = nullptr;
-    std::shared_ptr<Renderer::Element> m_eleOffscreen = nullptr;
+    std::shared_ptr<Renderer::Element> m_eleBase = nullptr;
+    std::shared_ptr<Renderer::Element> m_eleBright = nullptr;
+    std::shared_ptr<Renderer::Element> m_eleBlurH = nullptr;
+    std::shared_ptr<Renderer::Element> m_eleBlurV = nullptr;
+    std::shared_ptr<Renderer::Element> m_eleBloom = nullptr;
 
     struct 
     {
@@ -104,7 +110,7 @@ private:
 
     struct
     {
-        bool enableHDR = true;
+        bool enableToneMap = true;
         bool enableGammaCorrection = true;
         float* gamma = nullptr;
         float* exposure = nullptr;
@@ -151,6 +157,7 @@ private:
     SpotLight m_fLight = { glm::vec3(0, 1, 0), std::cos(glm::radians(15.0f)), glm::vec3(2, 0, 0), std::cos(glm::radians(20.0f)), glm::vec3(-1, 0, 0), 15, glm::vec3(1.0, 0.22, 0.20), 1.0f, 20 };
 
     glm::vec3* m_ambientColor = nullptr;
+    glm::vec2* m_leftBottomTexCoord = nullptr;
     glm::vec2* m_rightTopTexCoord = nullptr;
 
     bool m_showSky = true;
@@ -160,8 +167,31 @@ private:
 
     const unsigned int m_numOfInstance = 2000;
 
-    unsigned int m_samples = 1;
-    std::shared_ptr<FrameBuffer> m_fbSS = FrameBuffer::Create(1920, 1080, 1);           // framebufferSingleSample
-    std::shared_ptr<FrameBuffer> m_fbMS = FrameBuffer::Create(1920, 1080, m_samples);   // framebufferMultiSample
+//     unsigned int m_samples = 1;
+//     
+// #define WIDTH 1000
+// #define HEIGHT 1000
+//     std::shared_ptr<FrameBuffer> m_fbSS = FrameBuffer::Create(WIDTH, HEIGHT, 1);           // framebufferSingleSample
+//     std::shared_ptr<FrameBuffer> m_fbMS = FrameBuffer::Create(WIDTH, HEIGHT, m_samples);   // framebufferMultiSample
+//     std::shared_ptr<FrameBuffer> m_fbBlurH = FrameBuffer::Create(WIDTH, HEIGHT);
+//     std::shared_ptr<FrameBuffer> m_fbBlurV = FrameBuffer::Create(WIDTH, HEIGHT);
+//     std::shared_ptr<FrameBuffer> m_fbBloom = FrameBuffer::Create(WIDTH, HEIGHT);
+
+    const glm::vec2 m_offscreenBufferSize = glm::vec2(500, 500);
+    std::shared_ptr<Viewport> m_vpOffscreen = Viewport::Create("Offscreen")->SetRange(0, 0, m_offscreenBufferSize.x, m_offscreenBufferSize.y);
+    std::shared_ptr<RenderBuffer> m_rbDepthStencil = RenderBuffer::Create(m_offscreenBufferSize.x, m_offscreenBufferSize.y, 1, RenderBuffer::Format::DEPTH24_STENCIL8, "HDR_DS");
+    std::shared_ptr<Texture> m_texOffscreenBasic = Texture2D::Create("Basic")->Set(m_offscreenBufferSize.x, m_offscreenBufferSize.y, 1, Texture::Format::RGB16F);
+    std::shared_ptr<Texture> m_texOffscreenBright = Texture2D::Create("Bright")->Set(m_offscreenBufferSize.x, m_offscreenBufferSize.y, 1, Texture::Format::RGB16F);
+    std::shared_ptr<Texture> m_texOffscreenBlurPing = Texture2D::Create("Blur")->Set(m_offscreenBufferSize.x, m_offscreenBufferSize.y, 1, Texture::Format::RGB16F);
+    std::shared_ptr<Texture> m_texOffscreenBlurPong = m_texOffscreenBright;
+    std::shared_ptr<Texture> m_texOffscreenBloom = m_texOffscreenBlurPing;
+
+    std::shared_ptr<FrameBuffer> m_fbOffscreenHDR = FrameBuffer::Create(m_offscreenBufferSize.x, m_offscreenBufferSize.y)->AddColorBuffer("Basic", m_texOffscreenBasic)->AddColorBuffer("Bright", m_texOffscreenBright)->AddRenderBuffer("DS", m_rbDepthStencil);
+    std::shared_ptr<FrameBuffer> m_fbOffscreenBlurPing = FrameBuffer::Create(m_offscreenBufferSize.x, m_offscreenBufferSize.y)->AddColorBuffer("BlurPing", m_texOffscreenBlurPing);
+    std::shared_ptr<FrameBuffer> m_fbOffscreenBlurPong = FrameBuffer::Create(m_offscreenBufferSize.x, m_offscreenBufferSize.y)->AddColorBuffer("BlurPong", m_texOffscreenBlurPong);
+    std::shared_ptr<FrameBuffer> m_fbOffscreenBloom = FrameBuffer::Create(m_offscreenBufferSize.x, m_offscreenBufferSize.y)->AddColorBuffer("Bloom", m_texOffscreenBloom);
+
+    int m_blurIteration = 2;
+    
 };
 

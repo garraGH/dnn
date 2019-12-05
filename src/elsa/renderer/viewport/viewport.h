@@ -15,7 +15,7 @@
 #include "../camera/camera.h"
 #include "../../event/event_application.h"
 
-class Viewport 
+class Viewport : public std::enable_shared_from_this<Viewport> 
 {
 public:
     enum class Type
@@ -28,10 +28,10 @@ public:
 
 public:
     Viewport(const std::string& name);
-    void SetType(Type t);
-    void SetRange(float left, float bottom, float width, float height);
-    void SetBackgroundColor(float r, float g, float b, float a);
-    void SetBackgroundDepth(float depth);
+    std::shared_ptr<Viewport> SetType(Type t);
+    std::shared_ptr<Viewport> SetRange(float left, float bottom, float width, float height);
+    std::shared_ptr<Viewport> SetBackgroundColor(float r, float g, float b, float a);
+    std::shared_ptr<Viewport> SetBackgroundDepth(float depth);
     void AttachCamera(const std::shared_ptr<Camera>& camera);
     void DetachCamera();
     std::array<float, 4> GetRange() const;

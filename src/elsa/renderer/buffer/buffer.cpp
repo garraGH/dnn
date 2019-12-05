@@ -304,19 +304,30 @@ void FrameBuffer::Reset(unsigned int width, unsigned int height, unsigned int sa
     _Reset();
 }  
 
-
-void FrameBuffer::AddColorBuffer(const std::string& name, Texture::Format format)
+std::shared_ptr<FrameBuffer> FrameBuffer::AddColorBuffer(const std::string& name, std::shared_ptr<Texture>& colorBuffer)
 {
-    std::shared_ptr<Texture> colorBuffer = Texture2D::Create(m_name+'_'+name)->Set(m_width, m_height, m_samples, format);
     m_colorBuffers[name] = colorBuffer;
     _Attach(colorBuffer);
+    return shared_from_this();
 }
 
-void FrameBuffer::AddRenderBuffer(const std::string& name, RenderBuffer::Format format)
+std::shared_ptr<FrameBuffer> FrameBuffer::AddColorBuffer(const std::string& name, Texture::Format format)
 {
-    std::shared_ptr<RenderBuffer> renderBuffer = RenderBuffer::Create(m_width, m_height, m_samples, format, m_name+'_'+name);
+    std::shared_ptr<Texture> colorBuffer = Texture2D::Create(m_name+'_'+name)->Set(m_width, m_height, m_samples, format);
+    return AddColorBuffer(name, colorBuffer);
+}
+
+std::shared_ptr<FrameBuffer> FrameBuffer::AddRenderBuffer(const std::string& name, std::shared_ptr<RenderBuffer>& renderBuffer)
+{
     m_renderBuffers[name] = renderBuffer;
     _Attach(renderBuffer);
+    return shared_from_this();
+}
+
+std::shared_ptr<FrameBuffer> FrameBuffer::AddRenderBuffer(const std::string& name, RenderBuffer::Format format)
+{
+    std::shared_ptr<RenderBuffer> renderBuffer = RenderBuffer::Create(m_width, m_height, m_samples, format, m_name+'_'+name);
+    return AddRenderBuffer(name, renderBuffer);
 }
 
 /////////////////////////////////////////////////////////////////////////

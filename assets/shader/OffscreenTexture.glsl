@@ -2,12 +2,28 @@
 #version 460 core
 
 layout(location = 0) in vec2 a_Position;
-uniform vec2 u_RightTopTexCoord;
+uniform vec2 u_LeftBottomTexCoord = vec2(0, 0);
+uniform vec2 u_RightTopTexCoord = vec2(1, 1);
 out vec2 v_TexCoord;
 void main()
 {
     gl_Position = vec4(a_Position, 0.0f, 1.0f);
-    v_TexCoord = vec2(gl_VertexID%2, gl_VertexID/2)*u_RightTopTexCoord;
+    if(gl_VertexID == 0)
+    {
+        v_TexCoord = u_LeftBottomTexCoord;
+    }
+    else if(gl_VertexID == 1)
+    {
+        v_TexCoord = vec2(u_RightTopTexCoord.x, u_LeftBottomTexCoord.y);
+    }
+    else if(gl_VertexID == 2)
+    {
+        v_TexCoord = u_RightTopTexCoord;
+    }
+    else
+    {
+        v_TexCoord = vec2(u_LeftBottomTexCoord.x, u_RightTopTexCoord.y);
+    }
 }
 
 #type fragment
@@ -34,7 +50,7 @@ vec4 _Color(vec2 uv)
 {
     vec3 color = texture(u_Offscreen, uv).rgb;
 
-#ifdef HDR
+#ifdef TONE_MAP
     _ToneMap(color);
 #endif
 
