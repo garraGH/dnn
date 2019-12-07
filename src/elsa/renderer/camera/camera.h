@@ -163,6 +163,10 @@ protected:
     glm::vec3 _GetWorldPosOfCurrentCursorOnVerticalPlane();
     glm::vec3 _GetWorldPosOnHorizontalPlane(const glm::vec2& pntOnScreen);
 
+    std::array<float, 2> _GetCursorPntInViewport(const glm::vec2& pntOnScreen);
+    glm::vec4 _Screen2PosCS(const glm::vec2& pntOnScreen);
+    glm::vec2 _PosCS2Screen(const glm::vec4& pos_cs);
+
 private:
     std::string m_name;
     union

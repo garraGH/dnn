@@ -34,6 +34,9 @@ public:
     std::shared_ptr<Viewport> SetBackgroundDepth(float depth);
     void AttachCamera(const std::shared_ptr<Camera>& camera);
     void DetachCamera();
+    const std::string& GetName() const;
+    float GetWidth() const;
+    float GetHeight() const;
     std::array<float, 4> GetRange() const;
     const std::array<float, 4>& GetBackgroundColor() const;
     float GetBackgroundDepth() const;

@@ -126,6 +126,10 @@ struct Material
     float Shininess;
 #endif
 
+#if defined EMISSIVE_COLOR || defined EMISSIVE_MAP
+    float EmissiveIntensity;
+#endif
+
 #ifdef EMISSIVE_COLOR
     vec3 EmissiveColor;
 #endif
@@ -373,7 +377,7 @@ vec3 Emission()
     }
     #else
     {
-        vec3 emissiveColor = vec3(1.0f);
+        vec3 emissiveColor = vec3(0.0f);
         #ifdef EMISSIVE_COLOR
         {
             emissiveColor = u_Material.EmissiveColor;
@@ -381,10 +385,11 @@ vec3 Emission()
         #endif
         #ifdef EMISSIVE_MAP
         {
-            emissiveColor *= texture(u_Material.EmissiveMap, _TexCoord()).rgb;
+            emissiveColor += texture(u_Material.EmissiveMap, _TexCoord()).rgb;
         }
         #endif
-        return emissiveColor;
+        
+        return u_Material.EmissiveIntensity*emissiveColor;
     }
     #endif
 }

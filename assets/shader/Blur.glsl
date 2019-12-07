@@ -10,7 +10,7 @@ void main()
     gl_Position = vec4(a_Position, 0.0f, 1.0f);
     if(gl_VertexID == 0)
     {
-        v_TexCoord = vec2(u_LeftBottomTexCoord.x, u_LeftBottomTexCoord.y);
+        v_TexCoord = u_LeftBottomTexCoord;
     }
     else if(gl_VertexID == 1)
     {
@@ -18,7 +18,7 @@ void main()
     }
     else if(gl_VertexID == 2)
     {
-        v_TexCoord = vec2(u_RightTopTexCoord.x, u_RightTopTexCoord.y);
+        v_TexCoord = u_RightTopTexCoord;
     }
     else
     {

@@ -302,7 +302,12 @@ void Camera::OnUpdate(float deltaTime)
 
 void Camera::OnEvent(Event& e, const Viewport* vp)
 {
-    m_viewport = vp;
+    if(e.GetType() == EventType::ET_MouseButtonPressed || e.GetType() == EventType::ET_MouseScrolled)
+    {
+        m_viewport = vp;
+        auto[x, y] = _GetCursorPntInViewport({Input::GetMouseX(), Input::GetMouseY()});
+        INFO("{}, {}, {}", vp->GetName(), x, y);
+    }
 
     EventDispatcher dispatcher(e);
     dispatcher.Dispatch<MouseScrolledEvent>(BIND_EVENT_CALLBACK(Camera, _OnMouseScrolled));
@@ -333,7 +338,7 @@ bool Camera::_OnMouseScrolled(MouseScrolledEvent& e)
 bool Camera::_OnMouseButtonPressed(MouseButtonPressedEvent& e)
 {
     m_bLeftButtonPressed = e.GetMouseButton() == MOUSE_BUTTON_LEFT;
-    m_bMiddleButtonPressed = (e.GetMouseButton()==MOUSE_BUTTON_MIDDLE);
+    m_bMiddleButtonPressed = e.GetMouseButton()==MOUSE_BUTTON_MIDDLE;
     m_bRightButtonPressed = e.GetMouseButton() == MOUSE_BUTTON_RIGHT;
     
     m_cursorScreenPntWhenButtonPressed = Input::GetMousePosition();
@@ -550,44 +555,80 @@ float Camera::Sight::DepthNDC2Clip(float depthInNDC) const
     return depthInClip;
 }
 
-glm::vec3 Camera::Screen2View(const glm::vec2& pntOnScreen)
+std::array<float, 2> Camera::_GetCursorPntInViewport(const glm::vec2& pntOnScreen)
 {
-    unsigned int w = m_windowSize[0];
-    unsigned int h = m_windowSize[1];
+    if(m_viewport == nullptr)
+    {
+        return { pntOnScreen.x, m_windowSize[1]-pntOnScreen.y };
+    }
 
-    float x = pntOnScreen.x;
-    float y = h-pntOnScreen.y;
 
+    auto r = m_viewport->GetRange();
+//     glm::vec2 pntInView = glm::vec2( pntOnScreen.x-r[0], m_windowSize[1]-r[1]-pntOnScreen.y );
+//     INFO("PntInView: {}, {}-{}-{}-{}, {}, {}", m_viewport->GetName(), r[0], r[1], r[2], r[3], glm::to_string(pntOnScreen), glm::to_string(pntInView));
+    return { pntOnScreen.x-r[0], m_windowSize[1]-r[1]-pntOnScreen.y } ;
+}
+
+glm::vec4 Camera::_Screen2PosCS(const glm::vec2& pntOnScreen)
+{
+    auto [x, y] = _GetCursorPntInViewport(pntOnScreen);
     float z_ndc = Renderer::GetPixelDepth(x, y, m_frameBuffer)*2-1;
     float z_cs = m_sight.DepthNDC2Clip(z_ndc);
+
+    float w = m_windowSize[0];
+    float h = m_windowSize[1];
+    if(m_viewport != nullptr)
+    {
+        w = m_viewport->GetWidth();
+        h = m_viewport->GetHeight();
+    }
     glm::vec4 pos_ndc(x/w*2-1.0, y/h*2-1.0, z_ndc, 1.0);
     glm::vec4 pos_cs = -z_cs*pos_ndc;
-    glm::vec4 pos_vs = Clip2View()*pos_cs;
+    return pos_cs;
+}
 
+glm::vec3 Camera::Screen2View(const glm::vec2& pntOnScreen)
+{
+    glm::vec4 pos_cs = _Screen2PosCS(pntOnScreen);
+    glm::vec4 pos_vs = Clip2View()*pos_cs;
     return pos_vs;
+}
+
+glm::vec2 Camera::_PosCS2Screen(const glm::vec4& pos_cs)
+{
+    float x = 0;
+    float y = 0;
+    float w = m_windowSize[0];
+    float h = m_windowSize[1];
+    if(m_viewport != nullptr)
+    {
+        auto r = m_viewport->GetRange();
+        x = r[0];
+        y = r[1];
+        w = r[2];
+        h = r[3];
+    }
+
+    float xInViewport = (pos_cs.x+1)*w/2;
+    float yInViewport = (pos_cs.y+1)*h/2;
+
+    float xOnScreen = xInViewport+x;
+    float yOnScreen = m_windowSize[1]-(yInViewport+y);
+
+    return { xOnScreen, yOnScreen };
 }
 
 glm::vec2 Camera::View2Screen(const glm::vec3& posInView)
 {
     glm::vec4 pos_cs = View2Clip()*glm::vec4(posInView, 1.0);
     pos_cs /= pos_cs.w;
-    return { (pos_cs.x+1)*m_windowSize[0]/2, m_windowSize[1]-(pos_cs.y+1)*m_windowSize[1]/2 };
+    return _PosCS2Screen(pos_cs);
 }
 
 glm::vec3 Camera::Screen2World(const glm::vec2& pntOnScreen)
 {
-    unsigned int w = m_windowSize[0];
-    unsigned int h = m_windowSize[1];
-
-    float x = pntOnScreen.x;
-    float y = h-pntOnScreen.y;
-
-    float z_ndc = Renderer::GetPixelDepth(x, y, m_frameBuffer)*2-1;
-    float z_cs = m_sight.DepthNDC2Clip(z_ndc);
-    glm::vec4 pos_ndc(x/w*2-1.0, y/h*2-1.0, z_ndc, 1.0);
-    glm::vec4 pos_cs = -z_cs*pos_ndc;
+    glm::vec4 pos_cs = _Screen2PosCS(pntOnScreen);
     glm::vec4 pos_ws = Clip2World()*pos_cs;
-
     return pos_ws;
 }
 
@@ -595,7 +636,7 @@ glm::vec2 Camera::World2Screen(const glm::vec3& posInWorld)
 {
     glm::vec4 pos_cs = World2Clip()*glm::vec4(posInWorld, 1.0);
     pos_cs /= pos_cs.w;
-    return { (pos_cs.x+1)*m_windowSize[0]/2, m_windowSize[1]-(pos_cs.y+1)*m_windowSize[1]/2 };
+    return _PosCS2Screen(pos_cs);
 }
 
 glm::vec3 Camera::World2View(const glm::vec3& posInWorld)
@@ -613,25 +654,42 @@ void Camera::_ShowPosTooptips()
     ImVec2 screenpnt = ImGui::GetIO().MousePos;
     ImGui::SetNextWindowPos(ImVec2(screenpnt.x+10, screenpnt.y+10));
     ImGui::Begin("1", NULL, ImGuiWindowFlags_Tooltip | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoBackground);
-    auto [x, y] = Input::GetMousePosition();
-    glm::vec3 pos_ws1 = Screen2World({x, y});
-    ImGui::Text("screenpnt: (%.0f, %.0f)", x, y);
+    auto [sx, sy] = Input::GetMousePosition();
+    glm::vec3 pos_ws1 = Screen2World({sx, sy});
+    ImGui::Text("screenpnt: (%.0f, %.0f)", screenpnt.x, screenpnt.y);
+    ImGui::Text("screenpnt: (%.0f, %.0f)", sx, sy);
 
-    unsigned int w = m_windowSize[0];
-    unsigned int h = m_windowSize[1];
-    y = h-y;
+//     unsigned int w = m_windowSize[0];
+//     unsigned int h = m_windowSize[1];
+//     y = h-y;
+//     float z_ndc = Renderer::GetPixelDepth(x, y, m_frameBuffer)*2-1;
+//     float z_cs = m_sight.DepthNDC2Clip(z_ndc);
+
+    auto [x, y] = _GetCursorPntInViewport({sx, sy});
+    ImGui::Text("viewportPnt: (%.0f, %.0f)", x, y);
     float z_ndc = Renderer::GetPixelDepth(x, y, m_frameBuffer)*2-1;
     float z_cs = m_sight.DepthNDC2Clip(z_ndc);
+
+    float w = m_windowSize[0];
+    float h = m_windowSize[1];
+    if(m_viewport != nullptr)
+    {
+        auto r = m_viewport->GetRange();
+        w = r[2];
+        h = r[3];
+    }
+
     glm::vec4 pos_ndc(x/w*2-1.0, y/h*2-1.0, z_ndc, 1.0);
-    ImGui::Text("       ndc: (%.3f, %.3f, %.6f, %.3f)",  pos_ndc.x, pos_ndc.y, pos_ndc.z, pos_ndc.w);
     glm::vec4 pos_cs = -z_cs*pos_ndc;
-    ImGui::Text(" clipspace: (%.3f, %.3f, %.3f, %.3f)",  pos_cs.x, pos_cs.y, pos_cs.z, pos_cs.w);
     glm::vec4 pos_vs = m_sight.Clip2View()*pos_cs;
-    ImGui::Text(" viewspace: (%.3f, %.3f, %.3f, %.3f)",  pos_vs.x, pos_vs.y, pos_vs.z, pos_vs.w);
     glm::vec4 pos_ws = View2World()*pos_vs;
+    glm::vec2 pnt = World2Screen(pos_ws);
+
+    ImGui::Text("       ndc: (%.3f, %.3f, %.6f, %.3f)",  pos_ndc.x, pos_ndc.y, pos_ndc.z, pos_ndc.w);
+    ImGui::Text(" clipspace: (%.3f, %.3f, %.3f, %.3f)",  pos_cs.x, pos_cs.y, pos_cs.z, pos_cs.w);
+    ImGui::Text(" viewspace: (%.3f, %.3f, %.3f, %.3f)",  pos_vs.x, pos_vs.y, pos_vs.z, pos_vs.w);
     ImGui::Text("worldspace: (%.3f, %.3f, %.3f, %.3f)",  pos_ws.x, pos_ws.y, pos_ws.z, pos_ws.w);
     ImGui::Text("worldspace: (%.3f, %.3f, %.3f)",  pos_ws1.x, pos_ws1.y, pos_ws1.z);
-    glm::vec2 pnt = World2Screen(pos_ws);
     ImGui::Text("screenpnt: (%.0f, %.0f)", pnt.x, pnt.y);
     ImGui::End();
 }

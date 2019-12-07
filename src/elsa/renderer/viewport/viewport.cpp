@@ -43,7 +43,8 @@ std::shared_ptr<Viewport> Viewport::SetRange(float left, float bottom, float wid
     }
 
     m_range = {left, bottom, width, height};
-    m_cameraDefault->SetAspectRatio(width/height);
+    auto r = GetRange();
+    m_cameraDefault->SetAspectRatio(r[2]/r[3]);
 //     if(m_cameraAttached) 
 //     {
 //         m_cameraAttached->SetAspectRatio(width/height);
@@ -91,6 +92,21 @@ std::shared_ptr<Viewport> Viewport::SetBackgroundDepth(float depth)
     return shared_from_this();
 }
 
+const std::string& Viewport::GetName() const
+{
+    return m_name;
+}
+
+float Viewport::GetWidth() const
+{
+    return GetRange()[2];
+}
+
+float Viewport::GetHeight() const
+{
+    return GetRange()[3];
+}
+
 std::array<float, 4> Viewport::GetRange() const
 {
     if(m_type == Type::Percentage)
@@ -126,22 +142,19 @@ bool Viewport::_CursorOutside() const
 
 void Viewport::OnUpdate(float deltaTime)
 {
-    if(_CursorOutside())
-    {
-        return;
-    }
+//     if(_CursorOutside())
+//     {
+//         return;
+//     }
 
     GetCamera()->OnUpdate(deltaTime);
 }
 
 void Viewport::OnEvent(Event& e)
 {
-    if(_CursorOutside())
+    if((e.GetType() == EventType::ET_MouseScrolled || e.GetType() == EventType::ET_MouseButtonPressed) && _CursorOutside())
     {
-        if(e.GetType() == EventType::ET_MouseScrolled|| e.GetType() == EventType::ET_MouseButtonPressed)
-        {
-            return;
-        }
+        return;
     }
 
     EventDispatcher ed(e);
@@ -189,8 +202,8 @@ void Viewport::OnImGuiRender()
     ImGui::Separator();
     if(ImGui::InputFloat4("range", &m_range[0], "%.3f", ImGuiInputTextFlags_EnterReturnsTrue))
     {
-        float asp = m_range[2]/m_range[3];
-        m_cameraDefault->SetAspectRatio(asp);
+        auto r = GetRange();
+        m_cameraDefault->SetAspectRatio(r[2]/r[3]);
 //         if(m_cameraAttached)
 //         {
 //             m_cameraAttached->SetAspectRatio(asp);
@@ -198,14 +211,14 @@ void Viewport::OnImGuiRender()
     }
     ImGui::Separator();
 
-    if(m_cameraAttached)
-    {
-        m_cameraAttached->OnImGuiRender(false);
-    }
-    else
-    {
+//     if(m_cameraAttached)
+//     {
+//         m_cameraAttached->OnImGuiRender(false);
+//     }
+//     else
+//     {
         m_cameraDefault->OnImGuiRender(false);
-    }
+//     }
 
     ImGui::End();
 }

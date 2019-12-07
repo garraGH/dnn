@@ -44,6 +44,9 @@ protected:
     void _PrepareOffscreenPlane();
     void _PrepareModel();
     void _PrepareUnitCubic();
+    void _PrepareSphere(float radius, int subdivision);
+    void _PrepareSphere(float radius, int stacks, int sectors);
+    void _Subdivision(std::vector<glm::vec3>& vertices, std::vector<glm::i16vec3>& triangles);
     void _UpdateMaterialUniforms();
 
     void _PrepareUniformBuffers();
@@ -58,10 +61,6 @@ private:
     void _RenderToScreen_Bloom();
 
 private:
-    std::shared_ptr<Viewport> m_vpBase = Viewport::Create("LearnOpenGL_Viewport_Base");
-    std::shared_ptr<Viewport> m_vpBright = Viewport::Create("LearnOpenGL_Viewport_Bright");
-    std::shared_ptr<Viewport> m_vpBlur = Viewport::Create("LearnOpenGL_Viewport_Blur");
-    std::shared_ptr<Viewport> m_vpBloom = Viewport::Create("LearnOpenGL_Viewport_Bloom");
     std::shared_ptr<Model> m_crysisNanoSuit = nullptr;
     std::shared_ptr<Model> m_silkingMachine = nullptr;
     std::shared_ptr<Model> m_horse = nullptr;
@@ -75,7 +74,9 @@ private:
     std::shared_ptr<Shader> m_shaderHDR = nullptr;
     std::shared_ptr<Shader> m_shaderBlur = nullptr;
     std::shared_ptr<Shader> m_shaderBloom = nullptr;
-    std::shared_ptr<Renderer::Element> m_unitCubic = nullptr;
+    std::shared_ptr<Shader> m_shaderSphere = nullptr;
+    std::shared_ptr<Renderer::Element> m_eleCubic = nullptr;
+    std::shared_ptr<Renderer::Element> m_eleSphere = nullptr;
     std::shared_ptr<Renderer::Element> m_eleBase = nullptr;
     std::shared_ptr<Renderer::Element> m_eleBright = nullptr;
     std::shared_ptr<Renderer::Element> m_eleBlurH = nullptr;
@@ -89,6 +90,7 @@ private:
         glm::vec3* emissiveColor = nullptr;
         float* shininess = nullptr;
         float* displacementScale = nullptr;
+        float* emissiveIntensity = nullptr;
         std::shared_ptr<Texture> diffuseMap = nullptr;
         std::shared_ptr<Texture> specularMap = nullptr;
         std::shared_ptr<Texture> emissiveMap = nullptr;
@@ -104,6 +106,8 @@ private:
         bool hasDisplacementMap = true;
     }
     m_material; 
+
+    float* m_bloomThreshold = nullptr;
     int m_shaderID = 0b111111110;
     void _UpdateShaderID();
     std::string _StringOfShaderID() const;
@@ -156,6 +160,7 @@ private:
     SpotLight m_sLight = { glm::vec3(0, 1, 0), std::cos(glm::radians(15.0f)), glm::vec3(2, 0, 0), std::cos(glm::radians(20.0f)), glm::vec3(-1, 0, 0), 15, glm::vec3(1.0, 0.22, 0.20), 1.0f, 20 };
     SpotLight m_fLight = { glm::vec3(0, 1, 0), std::cos(glm::radians(15.0f)), glm::vec3(2, 0, 0), std::cos(glm::radians(20.0f)), glm::vec3(-1, 0, 0), 15, glm::vec3(1.0, 0.22, 0.20), 1.0f, 20 };
 
+
     glm::vec3* m_ambientColor = nullptr;
     glm::vec2* m_leftBottomTexCoord = nullptr;
     glm::vec2* m_rightTopTexCoord = nullptr;
@@ -166,6 +171,7 @@ private:
     PostProcess m_pp = PostProcess::None;
 
     const unsigned int m_numOfInstance = 2000;
+    const unsigned int m_numOfLights = 2000;
 
 //     unsigned int m_samples = 1;
 //     
@@ -177,8 +183,15 @@ private:
 //     std::shared_ptr<FrameBuffer> m_fbBlurV = FrameBuffer::Create(WIDTH, HEIGHT);
 //     std::shared_ptr<FrameBuffer> m_fbBloom = FrameBuffer::Create(WIDTH, HEIGHT);
 
-    const glm::vec2 m_offscreenBufferSize = glm::vec2(500, 500);
-    std::shared_ptr<Viewport> m_vpOffscreen = Viewport::Create("Offscreen")->SetRange(0, 0, m_offscreenBufferSize.x, m_offscreenBufferSize.y);
+    std::shared_ptr<Viewport> m_vpBase = Viewport::Create("Base")->SetRange(0, 0.5, 0.5, 0.5);
+    std::shared_ptr<Viewport> m_vpBright = Viewport::Create("Bright")->SetRange(0.5, 0.5, 0.5, 0.5);
+    std::shared_ptr<Viewport> m_vpBlur = Viewport::Create("Blur")->SetRange(0, 0, 0.5, 0.5);
+    std::shared_ptr<Viewport> m_vpBloom = Viewport::Create("Bloom")->SetRange(0.5, 0, 0.5, 0.5);
+    std::shared_ptr<Viewport> m_vpOffscreen = Viewport::Create("Offscreen")->SetRange(0, 0, 0.5, 0.5);
+//     std::shared_ptr<Viewport> m_vpBloom = Viewport::Create("Bloom")->SetRange(0, 0, 1.0, 1.0);
+//     std::shared_ptr<Viewport> m_vpOffscreen = Viewport::Create("Offscreen")->SetRange(0, 0, 1.0, 1.0);
+
+    const glm::vec2 m_offscreenBufferSize = glm::vec2(1920, 1080);
     std::shared_ptr<RenderBuffer> m_rbDepthStencil = RenderBuffer::Create(m_offscreenBufferSize.x, m_offscreenBufferSize.y, 1, RenderBuffer::Format::DEPTH24_STENCIL8, "HDR_DS");
     std::shared_ptr<Texture> m_texOffscreenBasic = Texture2D::Create("Basic")->Set(m_offscreenBufferSize.x, m_offscreenBufferSize.y, 1, Texture::Format::RGB16F);
     std::shared_ptr<Texture> m_texOffscreenBright = Texture2D::Create("Bright")->Set(m_offscreenBufferSize.x, m_offscreenBufferSize.y, 1, Texture::Format::RGB16F);
@@ -193,5 +206,6 @@ private:
 
     int m_blurIteration = 2;
     
+    bool m_splitViewport = true;
 };
 
