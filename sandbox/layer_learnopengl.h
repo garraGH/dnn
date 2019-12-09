@@ -46,8 +46,10 @@ protected:
     void _PrepareUnitCubic();
     void _PrepareSphere(float radius, int subdivision);
     void _PrepareSphere(float radius, int stacks, int sectors);
+    void _PrepareSpheresPBR(float radius, int stacks, int sectors);
     void _Subdivision(std::vector<glm::vec3>& vertices, std::vector<glm::i16vec3>& triangles);
     void _UpdateMaterialUniforms();
+    std::pair<std::vector<glm::vec3>, std::vector<glm::i16vec3>> _GenSphere(float radius, int stacks, int sectors);
 
     void _PrepareUniformBuffers();
     void _UpdateTexture(std::shared_ptr<Texture>& tex);
@@ -67,6 +69,8 @@ private:
     std::shared_ptr<Model> m_trailer = nullptr;
     std::shared_ptr<Model> m_bulb = nullptr;
     std::shared_ptr<Model> m_handLight = nullptr;
+    std::shared_ptr<Model> m_planet = nullptr;
+    std::shared_ptr<Model> m_rock = nullptr;
     std::shared_ptr<Shader> m_shaderPos = nullptr;
     std::shared_ptr<Shader> m_shaderColor = nullptr;
     std::shared_ptr<Shader> m_shaderBlinnPhong = nullptr;
@@ -75,13 +79,18 @@ private:
     std::shared_ptr<Shader> m_shaderBlur = nullptr;
     std::shared_ptr<Shader> m_shaderBloom = nullptr;
     std::shared_ptr<Shader> m_shaderSphere = nullptr;
+    std::shared_ptr<Shader> m_shaderSpherePBR0 = nullptr;
     std::shared_ptr<Renderer::Element> m_eleCubic = nullptr;
     std::shared_ptr<Renderer::Element> m_eleSphere = nullptr;
+    std::shared_ptr<Renderer::Element> m_eleSpherePBR0 = nullptr;
     std::shared_ptr<Renderer::Element> m_eleBase = nullptr;
     std::shared_ptr<Renderer::Element> m_eleBright = nullptr;
     std::shared_ptr<Renderer::Element> m_eleBlurH = nullptr;
     std::shared_ptr<Renderer::Element> m_eleBlurV = nullptr;
     std::shared_ptr<Renderer::Element> m_eleBloom = nullptr;
+
+    int m_row = 5;
+    int m_col = 5;
 
     struct 
     {

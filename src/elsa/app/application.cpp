@@ -64,7 +64,8 @@ void Application::OnEvent(Event& e)
     DISPATCH(KeyReleasedEvent);
 #undef DISPATCH
 
-    if(m_layerImGui->CaptureInput())
+    // pass application event down, only capture key or mouse event
+    if(m_layerImGui->CaptureInput() && !e.IsCategory(EventCategory::EC_Application))
     {
         return;
     }

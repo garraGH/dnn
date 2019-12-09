@@ -306,7 +306,7 @@ void Camera::OnEvent(Event& e, const Viewport* vp)
     {
         m_viewport = vp;
         auto[x, y] = _GetCursorPntInViewport({Input::GetMouseX(), Input::GetMouseY()});
-        INFO("{}, {}, {}", vp->GetName(), x, y);
+        INFO("Camera::OnEvent: {}, {}, {}", vp->GetName(), x, y);
     }
 
     EventDispatcher dispatcher(e);
@@ -328,6 +328,7 @@ bool Camera::_OnMouseScrolled(MouseScrolledEvent& e)
         auto [x, y] = Input::GetMousePosition();
         glm::vec3 worldPosOfCurrentCursor = Screen2World({x, y});
         glm::vec3 offset = worldPosOfCurrentCursor-m_position;
+        INFO("{}-{}, {}", x, y, glm::to_string(worldPosOfCurrentCursor));
         float distance = e.GetOffsetY()*glm::length(offset);
         glm::vec3 dir = glm::normalize(offset);
         Translate(dir*distance*m_speedScale);
@@ -535,6 +536,7 @@ bool Camera::_OnMouseButtonReleased(MouseButtonReleasedEvent& e)
 
 bool Camera::_OnWindowResize(WindowResizeEvent& e)
 {
+    INFO("Camera::_OnWindowResize: {}, {}", e.GetWidth(), e.GetHeight());
     m_windowSize = {e.GetWidth(), e.GetHeight()};
     return false;
 }
@@ -584,6 +586,7 @@ glm::vec4 Camera::_Screen2PosCS(const glm::vec2& pntOnScreen)
     }
     glm::vec4 pos_ndc(x/w*2-1.0, y/h*2-1.0, z_ndc, 1.0);
     glm::vec4 pos_cs = -z_cs*pos_ndc;
+    INFO("Camera::_Screen2PosCS: {}, {}-{}, {}-{}, {}", m_name, x, y, w, h, glm::to_string(pos_cs));
     return pos_cs;
 }
 

@@ -51,8 +51,9 @@ LearnOpenGLLayer::LearnOpenGLLayer()
     _PrepareOffscreenPlane();
     _PrepareUnitCubic();
     _PrepareSphere(1, 18, 36);
+    _PrepareSpheresPBR(1, 18, 36);
     _PrepareGroundPlane();
-    _PrepareModel();
+//     _PrepareModel();
 }
 
 void LearnOpenGLLayer::OnEvent(Event& e)
@@ -61,15 +62,19 @@ void LearnOpenGLLayer::OnEvent(Event& e)
 #define DISPATCH(event) ed.Dispatch<event>(BIND_EVENT_CALLBACK(LearnOpenGLLayer, _On##event))
     DISPATCH(WindowResizeEvent);
 #undef DISPATCH
-    m_vpBase->OnEvent(e);
-    m_vpBright->OnEvent(e);
-    m_vpBlur->OnEvent(e);
+    if(m_splitViewport)
+    {
+        m_vpBase->OnEvent(e);
+        m_vpBright->OnEvent(e);
+        m_vpBlur->OnEvent(e);
+    }
     m_vpBloom->OnEvent(e);
     m_vpOffscreen->OnEvent(e);
 }
 
 bool LearnOpenGLLayer::_OnWindowResizeEvent(WindowResizeEvent& e)
 {
+    INFO("LearnOpenGLLayer::_OnWindowResizeEvent");
     float w = e.GetWidth();
     float h = e.GetHeight();
 
@@ -78,7 +83,6 @@ bool LearnOpenGLLayer::_OnWindowResizeEvent(WindowResizeEvent& e)
         w *= 0.5;
         h *= 0.5;
     }
-//     m_vpOffscreen->SetRange(0, 0, w, h);
 
     m_rightTopTexCoord->x = w/m_offscreenBufferSize.x;
     m_rightTopTexCoord->y = h/m_offscreenBufferSize.y;
@@ -172,9 +176,12 @@ void LearnOpenGLLayer::_RenderToTexture_HDR()
     {
         Renderer::Submit("GroundPlane", "GroundPlane");
     }
-    Renderer::Submit("UnitCubic", "Blinn-Phong-Instance", m_numOfInstance);
-    Renderer::Submit(m_eleCubic, m_shaderOfMaterial);
-    Renderer::Submit(m_eleSphere, m_shaderSphere, m_numOfLights);
+//     m_planet->Draw(m_shaderColor);
+//     m_rock->Draw(m_shaderColor);
+//     Renderer::Submit("UnitCubic", "Blinn-Phong-Instance", m_numOfInstance);
+//     Renderer::Submit(m_eleCubic, m_shaderOfMaterial);
+//     Renderer::Submit(m_eleSphere, m_shaderSphere, m_numOfLights);
+    Renderer::Submit(m_eleSpherePBR0, m_shaderSpherePBR0, m_row*m_col);
     Renderer::EndScene();
 }
 
@@ -457,7 +464,6 @@ void LearnOpenGLLayer::OnImGuiRender()
         ImGui::DragFloat("Exposure", m_material_HDR.exposure,  0.01,  0,  10);
         ImGui::Unindent();
     }
-//     Renderer::Resources::Get<UniformBuffer>("Light")->Upload(name, data)
     if(ImGui::CollapsingHeader("Light"))
     {
         ImGui::Indent();
@@ -566,7 +572,9 @@ void LearnOpenGLLayer::_UpdateTexture(std::shared_ptr<Texture>& tex)
 }
 void LearnOpenGLLayer::_PrepareModel()
 {
-    m_crysisNanoSuit = Renderer::Resources::Create<Model>("CysisNanoSuit")->LoadFromFile("/home/garra/study/dnn/assets/mesh/CysisNanoSuit/scene.fbx");
+    m_planet = Renderer::Resources::Create<Model>("Planet")->LoadFromFile("/home/garra/study/dnn/assets/mesh/Planet/planet.obj");
+    m_rock = Renderer::Resources::Create<Model>("Rock")->LoadFromFile("/home/garra/study/dnn/assets/mesh/Rock/rock.obj");
+//     m_crysisNanoSuit = Renderer::Resources::Create<Model>("CysisNanoSuit")->LoadFromFile("/home/garra/study/dnn/assets/mesh/CysisNanoSuit/scene.fbx");
 //     m_silkingMachine = Renderer::Resources::Create<Model>("SilkingMachine")->LoadFromFile("/home/garra/study/dnn/assets/mesh/SilkingMachine/SilkingMachine.fbx");
 //     m_horse = Renderer::Resources::Create<Model>("Horse")->LoadFromFile("/home/garra/study/dnn/assets/mesh/Horse/Horse.fbx");
 //     m_trailer = Renderer::Resources::Create<Model>("Trailer")->LoadFromFile("/home/garra/study/dnn/assets/mesh/Trailer/Alena_Shek.obj");
@@ -748,7 +756,7 @@ void LearnOpenGLLayer::_PrepareUnitCubic()
 //     STOP
 }
 
-void LearnOpenGLLayer::_PrepareSphere(float radius, int stacks, int sectors)
+std::pair<std::vector<glm::vec3>, std::vector<glm::i16vec3>> LearnOpenGLLayer::_GenSphere(float radius, int stacks, int sectors)
 {
     std::vector<glm::vec3> vertices;
     std::vector<glm::i16vec3> triangles;
@@ -790,6 +798,13 @@ void LearnOpenGLLayer::_PrepareSphere(float radius, int stacks, int sectors)
         }
     }
 
+    return { vertices, triangles };
+}
+
+void LearnOpenGLLayer::_PrepareSphere(float radius, int stacks, int sectors)
+{
+    auto [vertices, triangles] = _GenSphere(radius, stacks, sectors);
+
     std::shared_ptr<Transform> tf = Transform::Create("temp");
     glm::vec3 translation = glm::vec3(0);
     glm::vec3 rotation = glm::vec3(0);
@@ -804,7 +819,6 @@ void LearnOpenGLLayer::_PrepareSphere(float radius, int stacks, int sectors)
         float intensity;
     } instances[m_numOfLights];
 
-//     glm::mat4 matM2W[m_numOfLights];
     for(unsigned int i=0; i<m_numOfLights; i++, k++)
     {
         float angle = i*360.0f/m_numOfLights;
@@ -818,7 +832,6 @@ void LearnOpenGLLayer::_PrepareSphere(float radius, int stacks, int sectors)
         instances[k].m2w = tf->Set(translation, rotation, scale)->Get();
         instances[k].color = { rand()%256/255.0f, rand()%256/255.0f, rand()%256/255.0f };
         instances[k].intensity = rand()%100/30.0f;
-//         matM2W[k++] = tf->Set(translation, rotation, scale)->Get();
     }
 
 
@@ -838,6 +851,103 @@ void LearnOpenGLLayer::_PrepareSphere(float radius, int stacks, int sectors)
     mtr->SetUniform("u_BloomThreshold", Renderer::Resources::Get<Material::Uniform>("BloomThreshold"));
     m_eleSphere = Renderer::Resources::Create<Renderer::Element>("Sphere")->Set(meshSphere, mtr);
     m_shaderSphere = Renderer::Resources::Create<Shader>("Sphere")->Define("INSTANCE")->LoadFromFile("/home/garra/study/dnn/assets/shader/Sphere.glsl");
+}
+
+void LearnOpenGLLayer::_PrepareSpheresPBR(float radius, int stacks, int sectors)
+{
+    int nInstance = m_row*m_col;
+    struct VertexAttribute
+    {
+        glm::vec3 pos;
+        glm::vec3 nor;
+        glm::vec2 uv;
+    };
+
+    std::vector<VertexAttribute> vertices;
+    std::vector<glm::i16vec3> triangles;
+    const float PI = 3.14159265;
+    float x, y, z, xz;
+    float u, v;
+    for(int i=0; i<=stacks; i++)
+    {
+        v = i/float(stacks);
+        y = cosf(v*PI);
+        xz = sinf(v*PI);
+        for(int j=0; j<=sectors; j++)
+        {
+            u = j/float(sectors);
+            x = xz*cosf(u*2*PI);
+            z = xz*sinf(u*2*PI);
+            vertices.push_back({ {radius*x, radius*y, radius*z}, {x, y, z}, {u, v} });
+        }
+    }
+
+    int k1, k2;
+    for(int i=0; i<stacks; i++)
+    {
+        k1 = i*(sectors+1);
+        k2 = k1+sectors+1;
+        for(int j=0; j<sectors; j++, k1++, k2++)
+        {
+            if(i != 0)
+            {
+                triangles.push_back({k1, k2, k1+1});
+            }
+            if(i != stacks-1)
+            {
+                triangles.push_back({k1+1, k2, k2+1});
+            }
+        }
+    }
+
+    std::shared_ptr<Transform> tf = Transform::Create("temp");
+    glm::vec3 translation = glm::vec3(0);
+    struct InstanceAttribute
+    {
+        glm::mat4 m2w;
+        glm::vec3 albedo;
+        float metallic;
+        float roughness;
+        float ao;
+    } instances[nInstance];
+
+    int k = 0;
+    for(int i=0; i<m_row; i++)
+    {
+        translation.y = radius*2.5*i;
+        instances[k].metallic = i/m_row;
+        for(int j=0; j<m_col; j++)
+        {
+            translation.x = radius*2.5*j;
+            instances[k].m2w = tf->SetTranslation(translation)->Get();
+//             instances[k].albedo = { rand()%256/255.0f, rand()%256/255.0f, rand()%256/255.0f };
+            instances[k].albedo = {1, 0, 0};
+            instances[k].roughness = j/m_col;
+            instances[k].ao = 1;
+            k++;
+        }
+    }
+
+    Buffer::Layout layoutVertex = { {Buffer::Element::DataType::Float3, "a_Position", false}, 
+                                    {Buffer::Element::DataType::Float3, "a_Normal", false}, 
+                                    {Buffer::Element::DataType::Float2, "a_TexCoord", false} };
+    Buffer::Layout layoutIndex = { {Buffer::Element::DataType::UShort} };
+    Buffer::Layout layoutInstance = { {Buffer::Element::DataType::Mat4, "a_MS2WS", false, 1}, 
+                                      {Buffer::Element::DataType::Float3, "a_Albedo", false, 1}, 
+                                      {Buffer::Element::DataType::Float, "a_Metallic", false, 1}, 
+                                      {Buffer::Element::DataType::Float, "a_Roughness", false, 1}, 
+                                      {Buffer::Element::DataType::Float, "a_Ao", false, 1} };
+    
+    std::shared_ptr<Buffer> vertexBuffer = Buffer::CreateVertex(vertices.size()*sizeof(VertexAttribute), &vertices[0])->SetLayout(layoutVertex);
+    std::shared_ptr<Buffer> indexBuffer = Buffer::CreateIndex(triangles.size()*sizeof(glm::i16vec3), &triangles[0])->SetLayout(layoutIndex);
+    std::shared_ptr<Buffer> instanceBuffer = Buffer::CreateVertex(nInstance*sizeof(InstanceAttribute), instances)->SetLayout(layoutInstance);
+    std::shared_ptr<Elsa::Mesh> meshSphere = Renderer::Resources::Create<Elsa::Mesh>("Sphere_PBR0")->Set(indexBuffer, {vertexBuffer, instanceBuffer});
+
+    std::shared_ptr<Material> mtr = Renderer::Resources::Create<Material>("Sphere_PBR0");
+    mtr->SetUniformBuffer("Transform", Renderer::Resources::Get<UniformBuffer>("Transform"));
+    mtr->SetUniformBuffer("Light", Renderer::Resources::Get<UniformBuffer>("LightPBR0"));
+    m_eleSpherePBR0 = Renderer::Resources::Create<Renderer::Element>("Sphere_PBR0")->Set(meshSphere, mtr);
+    m_shaderSpherePBR0 = Renderer::Resources::Create<Shader>("PBR0")->Define("NUM_OF_POINTLIGHTS 4")->LoadFromFile("/home/garra/study/dnn/assets/shader/PBR0.glsl");
 }
 
 void LearnOpenGLLayer::_PrepareSphere(float radius, int subdivision)
@@ -1067,17 +1177,38 @@ void LearnOpenGLLayer::_UpdateMaterialUniforms()
 void LearnOpenGLLayer::_PrepareUniformBuffers()
 {
     std::shared_ptr<UniformBuffer> ubTransform = Renderer::Resources::Create<UniformBuffer>("Transform")->SetSize(64);
-    ubTransform->Push("WS2CS", glm::vec2(0, 64));
+    ubTransform->Push("WS2CS", glm::ivec2(0, 64));
     ubTransform->Upload("WS2CS", glm::value_ptr(m_vpBase->GetCamera()->World2Clip()));
 
     std::shared_ptr<UniformBuffer> ubLight = Renderer::Resources::Create<UniformBuffer>("Light")->SetSize(240);
-    ubLight->Push("DirectionalLight", glm::vec2(0, 32));
-    ubLight->Push("PointLight", glm::vec2(32, 48));
-    ubLight->Push("SpotLight", glm::vec2(80, 64));
-    ubLight->Push("FlashLight", glm::vec2(144, 64));
+    ubLight->Push("DirectionalLight", glm::ivec2(0, 32));
+    ubLight->Push("PointLight", glm::ivec2(32, 48));
+    ubLight->Push("SpotLight", glm::ivec2(80, 64));
+    ubLight->Push("FlashLight", glm::ivec2(144, 64));
     ubLight->Upload("DirectionalLight", &m_dLight);
     ubLight->Upload("PointLight", &m_pLight);
     ubLight->Upload("SpotLight", &m_sLight);
     ubLight->Upload("FlashLight", &m_fLight);
+
+    std::shared_ptr<UniformBuffer> ubLightPBR0 = Renderer::Resources::Create<UniformBuffer>("LightPBR0")->SetSize(64*4);
+    ubLightPBR0->Push("AllLights", glm::ivec2(0, 64*4));
+    struct PointLight
+    {
+        glm::vec3 pos;
+        float padding0;
+        glm::vec3 clr;
+        float padding1;
+    }
+    lights[4];
+
+    lights[0].pos = glm::vec3(3, 3, 2);
+    lights[0].clr = glm::vec3(1);
+    lights[1].pos = glm::vec3(7, 3, 2);
+    lights[1].clr = glm::vec3(1);
+    lights[2].pos = glm::vec3(7, 7, 2);
+    lights[2].clr = glm::vec3(1);
+    lights[3].pos = glm::vec3(3, 7, 2);
+    lights[3].clr = glm::vec3(1);
+    ubLightPBR0->Upload("AllLights", lights);
 }
 
