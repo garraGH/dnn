@@ -31,8 +31,8 @@ OpenGLTexture2D::~OpenGLTexture2D()
 
 void OpenGLTexture2D::_Create()
 {
-    INFO("Create OpenGLTexture2D: {}", m_id);
     glGenTextures(1, &m_id);
+    INFO("Create OpenGLTexture2D: {}", m_id);
 }
 
 void OpenGLTexture2D::_Destroy()
@@ -47,11 +47,32 @@ void OpenGLTexture2D::_Load()
     stbi_uc* data = stbi_load(m_imagePath.c_str(), (int*)&m_width, (int*)&m_height, (int*)&m_channel, 0);
     CORE_ASSERT(data, "OpenGLTexture2D::Load: Failed to load image: "+m_imagePath);
 
+    GLenum baseFormat = GL_RGB;
+    GLenum sizedFormat = GL_RGB8;
+    if(m_channel == 1)
+    {
+        baseFormat = GL_RED;
+        sizedFormat = stbi_is_16_bit(m_imagePath.c_str())? GL_R16 : GL_R8;
+    }
+    else if(m_channel == 3)
+    {
+        baseFormat = GL_RGB;
+        sizedFormat = GL_RGB8;
+    }
+    else if(m_channel == 4)
+    {
+        baseFormat = GL_RGBA;
+        sizedFormat = GL_RGBA8;
+    }
+    else
+    {
+        CORE_ASSERT(false, "OpenGLTexture2D::_Load: Unsupported channel-"+std::to_string(m_channel));
+    }
     glBindTexture(GL_TEXTURE_2D, m_id);
     glTextureParameteri(m_id, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTextureParameteri(m_id, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTextureStorage2D(m_id, 1, m_channel == 3? GL_RGB8 : GL_RGBA8, m_width, m_height);
-    glTextureSubImage2D(m_id, 0, 0, 0, m_width, m_height, m_channel == 3? GL_RGB : GL_RGBA, GL_UNSIGNED_BYTE, data);
+    glTextureStorage2D(m_id, 1, sizedFormat, m_width, m_height);
+    glTextureSubImage2D(m_id, 0, 0, 0, m_width, m_height, baseFormat, GL_UNSIGNED_BYTE, data);
 
     stbi_image_free(data);
 

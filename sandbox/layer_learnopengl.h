@@ -89,8 +89,8 @@ private:
     std::shared_ptr<Renderer::Element> m_eleBlurV = nullptr;
     std::shared_ptr<Renderer::Element> m_eleBloom = nullptr;
 
-    int m_row = 5;
-    int m_col = 5;
+    int m_row = 11;
+    int m_col = 11;
 
     struct 
     {

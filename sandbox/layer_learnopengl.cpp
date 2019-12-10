@@ -914,15 +914,15 @@ void LearnOpenGLLayer::_PrepareSpheresPBR(float radius, int stacks, int sectors)
     int k = 0;
     for(int i=0; i<m_row; i++)
     {
-        translation.y = radius*2.5*i;
-        instances[k].metallic = i/m_row;
+        translation.y = radius*3*i;
         for(int j=0; j<m_col; j++)
         {
-            translation.x = radius*2.5*j;
+            translation.x = radius*3*j;
             instances[k].m2w = tf->SetTranslation(translation)->Get();
 //             instances[k].albedo = { rand()%256/255.0f, rand()%256/255.0f, rand()%256/255.0f };
             instances[k].albedo = {1, 0, 0};
-            instances[k].roughness = j/m_col;
+            instances[k].metallic = i/float(m_row);
+            instances[k].roughness = std::clamp(j/float(m_col), 0.05f, 1.0f);
             instances[k].ao = 1;
             k++;
         }
@@ -942,12 +942,25 @@ void LearnOpenGLLayer::_PrepareSpheresPBR(float radius, int stacks, int sectors)
     std::shared_ptr<Buffer> indexBuffer = Buffer::CreateIndex(triangles.size()*sizeof(glm::i16vec3), &triangles[0])->SetLayout(layoutIndex);
     std::shared_ptr<Buffer> instanceBuffer = Buffer::CreateVertex(nInstance*sizeof(InstanceAttribute), instances)->SetLayout(layoutInstance);
     std::shared_ptr<Elsa::Mesh> meshSphere = Renderer::Resources::Create<Elsa::Mesh>("Sphere_PBR0")->Set(indexBuffer, {vertexBuffer, instanceBuffer});
+    std::shared_ptr<Texture> texNormal = Renderer::Resources::Create<Texture2D>("NormalMap")->Load("/home/garra/study/dnn/assets/texture/rustediron1-alt2-Unreal-Engine/rustediron2_normal.png");
+    std::shared_ptr<Texture> texAlbedo = Renderer::Resources::Create<Texture2D>("AlbedoMap")->Load("/home/garra/study/dnn/assets/texture/rustediron1-alt2-Unreal-Engine/rustediron2_basecolor.png");
+    std::shared_ptr<Texture> texRoughness = Renderer::Resources::Create<Texture2D>("RoughnessMap")->Load("/home/garra/study/dnn/assets/texture/rustediron1-alt2-Unreal-Engine/rustediron2_roughness.png");
+    std::shared_ptr<Texture> texMetallic = Renderer::Resources::Create<Texture2D>("MetallicMap")->Load("/home/garra/study/dnn/assets/texture/rustediron1-alt2-Unreal-Engine/rustediron2_metallic.png");
+    std::shared_ptr<Texture> texAo = Renderer::Resources::Create<Texture2D>("AoMap")->Load("/home/garra/study/dnn/assets/texture/rustediron1-alt2-Unreal-Engine/ao.png"); 
+
 
     std::shared_ptr<Material> mtr = Renderer::Resources::Create<Material>("Sphere_PBR0");
     mtr->SetUniformBuffer("Transform", Renderer::Resources::Get<UniformBuffer>("Transform"));
     mtr->SetUniformBuffer("Light", Renderer::Resources::Get<UniformBuffer>("LightPBR0"));
+    mtr->SetUniform("u_Camera.Position", Renderer::Resources::Get<Material::Uniform>("CameraPosition"));
+    mtr->SetTexture("u_NormalMap", texNormal);
+    mtr->SetTexture("u_AlbedoMap", texAlbedo);
+    mtr->SetTexture("u_RoughnessMap", texRoughness);
+    mtr->SetTexture("u_MetallicMap", texMetallic);
+    mtr->SetTexture("u_AoMap", texAo);
     m_eleSpherePBR0 = Renderer::Resources::Create<Renderer::Element>("Sphere_PBR0")->Set(meshSphere, mtr);
-    m_shaderSpherePBR0 = Renderer::Resources::Create<Shader>("PBR0")->Define("NUM_OF_POINTLIGHTS 4")->LoadFromFile("/home/garra/study/dnn/assets/shader/PBR0.glsl");
+//     m_shaderSpherePBR0 = Renderer::Resources::Create<Shader>("PBR0")->Define("NUM_OF_POINTLIGHTS 4")->LoadFromFile("/home/garra/study/dnn/assets/shader/PBR0.glsl");
+    m_shaderSpherePBR0 = Renderer::Resources::Create<Shader>("PBR0")->Define("NUM_OF_POINTLIGHTS 4|NORMAL_MAP|ALBEDO_MAP|ROUGHNESS_MAP|METALLIC_MAP|AO_MAP")->LoadFromFile("/home/garra/study/dnn/assets/shader/PBR0.glsl");
 }
 
 void LearnOpenGLLayer::_PrepareSphere(float radius, int subdivision)
@@ -1201,13 +1214,13 @@ void LearnOpenGLLayer::_PrepareUniformBuffers()
     }
     lights[4];
 
-    lights[0].pos = glm::vec3(3, 3, 2);
+    lights[0].pos = glm::vec3(3, 3, 6);
     lights[0].clr = glm::vec3(1);
-    lights[1].pos = glm::vec3(7, 3, 2);
+    lights[1].pos = glm::vec3(9, 3, 6);
     lights[1].clr = glm::vec3(1);
-    lights[2].pos = glm::vec3(7, 7, 2);
+    lights[2].pos = glm::vec3(3, 9, 6);
     lights[2].clr = glm::vec3(1);
-    lights[3].pos = glm::vec3(3, 7, 2);
+    lights[3].pos = glm::vec3(9, 9, 6);
     lights[3].clr = glm::vec3(1);
     ubLightPBR0->Upload("AllLights", lights);
 }
