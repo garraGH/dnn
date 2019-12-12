@@ -147,8 +147,24 @@ void Camera::_UpdateWorld2View()
 
     //lookat
     glm::vec3 D = -GetDirection();
-    glm::vec3 R = glm::normalize(glm::cross(m_up, D));
-    glm::vec3 U = glm::cross(D, R);
+    glm::vec3 R = m_right;
+    glm::vec3 U = glm::vec3(0, 1, 0);
+    if(fabsf(D.y)>0.9)
+    {
+        U = glm::normalize(glm::cross(D, m_right));
+    }
+    else
+    {
+        R = glm::normalize(glm::cross(m_up, D));
+        if(glm::dot(m_right, R)<0)
+        {
+            m_up = -m_up;
+            R = -R;
+        }
+        U = glm::cross(D, R);
+        m_right = R;
+    }
+//     CORE_ASSERT(fabsf(m_right.y)<0.0001&&fabs(glm::length(m_right)-1)<0.001, "Camera.m_right Invalid.");
     glm::mat4 rot = 
     {
         R.x, U.x, D.x, 0, 
@@ -157,9 +173,6 @@ void Camera::_UpdateWorld2View()
         0, 0, 0, 1
     };
     m_matWorld2View = rot*trans;
-
-
-
 }
     
 void Camera::_UpdateView2World()
@@ -242,12 +255,12 @@ void Camera::OnUpdate(float deltaTime)
     }
     if(Input::IsKeyPressed(KEY_z))
     {
-        INFO("Camera::OnUpdate: KEY_z Pressed.");
+//         INFO("Camera::OnUpdate: KEY_z Pressed.");
         Translate({0, 0, -deltaTime*m_speedTrans});
     }
     if(Input::IsKeyPressed(KEY_Z))
     {
-        INFO("Camera::OnUpdate: KEY_Z Pressed.");
+//         INFO("Camera::OnUpdate: KEY_Z Pressed.");
         Translate({0, 0, +deltaTime*m_speedTrans});
     }
     if(Input::IsKeyPressed(KEY_s))
@@ -305,8 +318,8 @@ void Camera::OnEvent(Event& e, const Viewport* vp)
     if(e.GetType() == EventType::ET_MouseButtonPressed || e.GetType() == EventType::ET_MouseScrolled)
     {
         m_viewport = vp;
-        auto[x, y] = _GetCursorPntInViewport({Input::GetMouseX(), Input::GetMouseY()});
-        INFO("Camera::OnEvent: {}, {}, {}", vp->GetName(), x, y);
+//         auto[x, y] = _GetCursorPntInViewport({Input::GetMouseX(), Input::GetMouseY()});
+//         INFO("Camera::OnEvent: {}, {}, {}", vp->GetName(), x, y);
     }
 
     EventDispatcher dispatcher(e);
@@ -328,7 +341,7 @@ bool Camera::_OnMouseScrolled(MouseScrolledEvent& e)
         auto [x, y] = Input::GetMousePosition();
         glm::vec3 worldPosOfCurrentCursor = Screen2World({x, y});
         glm::vec3 offset = worldPosOfCurrentCursor-m_position;
-        INFO("{}-{}, {}", x, y, glm::to_string(worldPosOfCurrentCursor));
+//         INFO("{}-{}, {}", x, y, glm::to_string(worldPosOfCurrentCursor));
         float distance = e.GetOffsetY()*glm::length(offset);
         glm::vec3 dir = glm::normalize(offset);
         Translate(dir*distance*m_speedScale);
@@ -423,6 +436,11 @@ glm::vec3 Camera::_RotateAroundTargetOnHorizontalPlane(const glm::vec3& pos, con
 {
     float dx = target.x-pos.x;
     float dz = target.z-pos.z;
+//     if(fabsf(dx)<0.01&&fabsf(dx)<0.01)
+//     {
+//         return target;
+//     }
+
     float r = std::sqrt(dx*dx+dz*dz);
     float a = std::atan2(dz, dx)+theta;
     glm::vec3 posRotated = pos;
@@ -442,7 +460,9 @@ glm::vec3 Camera::_RotateAroundTargetOnVerticalPlane(const glm::vec3& pos, const
     glm::vec3 posRotatedInView = posInView;
     posRotatedInView.y = targetInView.y-r*std::cos(a);
     posRotatedInView.z = targetInView.z-r*std::sin(a);
-    return View2World(posRotatedInView);
+    glm::vec3 posRotatedInWorld =  View2World(posRotatedInView);
+
+    return posRotatedInWorld;
 }                               
 
 
@@ -453,8 +473,13 @@ void Camera::_RotateAroundPosOfButtonPressed(MouseMovedEvent& e)
 
     float dx = +e.GetX()-m_cursorScreenPntWhenButtonPressed.first;
     float dy = -e.GetY()+m_cursorScreenPntWhenButtonPressed.second;
-    dx *= PI/m_windowSize[0];
-    dy *= PI/m_windowSize[1];
+    dx *= 2*PI/m_windowSize[0];
+    dy *= 2*PI/m_windowSize[1];
+
+    glm::vec3 dir = GetDirection();
+    float a = atan2(sqrt(dir.x*dir.x+dir.z*dir.z), -dir.y);
+    dy = std::clamp(dy, -a, float(PI-a));
+//     INFO("a: {}, dy: {}", a*180/PI, dy*180/PI);
     if(Input::IsKeyPressed(KEY_LEFT_CONTROL)) // Rotate only, keep position(first person perspective)
     {
         // horizontal
@@ -536,7 +561,7 @@ bool Camera::_OnMouseButtonReleased(MouseButtonReleasedEvent& e)
 
 bool Camera::_OnWindowResize(WindowResizeEvent& e)
 {
-    INFO("Camera::_OnWindowResize: {}, {}", e.GetWidth(), e.GetHeight());
+//     INFO("Camera::_OnWindowResize: {}, {}", e.GetWidth(), e.GetHeight());
     m_windowSize = {e.GetWidth(), e.GetHeight()};
     return false;
 }
@@ -586,7 +611,7 @@ glm::vec4 Camera::_Screen2PosCS(const glm::vec2& pntOnScreen)
     }
     glm::vec4 pos_ndc(x/w*2-1.0, y/h*2-1.0, z_ndc, 1.0);
     glm::vec4 pos_cs = -z_cs*pos_ndc;
-    INFO("Camera::_Screen2PosCS: {}, {}-{}, {}-{}, {}", m_name, x, y, w, h, glm::to_string(pos_cs));
+//     INFO("Camera::_Screen2PosCS: {}, {}-{}, {}-{}, {}", m_name, x, y, w, h, glm::to_string(pos_cs));
     return pos_cs;
 }
 
@@ -739,12 +764,14 @@ void Camera::OnImGuiRender(bool independent)
     ImGui::Separator();
     m_dirty |= ImGui::SliderFloat3("position", (float*)glm::value_ptr(m_position), -1000, 1000);
     m_dirty |= ImGui::SliderFloat3("target", (float*)glm::value_ptr(m_target), -1000, 1000);
-    m_dirty |= ImGui::SliderFloat3("up", (float*)glm::value_ptr(m_up), -1, 1);
+//     m_dirty |= ImGui::SliderFloat3("up", (float*)glm::value_ptr(m_up), -1, 1);
 
-    ImGui::Text("   position: %s",  glm::to_string(m_position).c_str());
-    ImGui::Text("     target: %s",  glm::to_string(m_target).c_str());
+//     ImGui::Text("   position: %s",  glm::to_string(m_position).c_str());
+//     ImGui::Text("     target: %s",  glm::to_string(m_target).c_str());
     ImGui::Text("         up: %s",  glm::to_string(m_up).c_str());
+    ImGui::Text("      right: %s",  glm::to_string(m_right).c_str());
     ImGui::Text("orientation: %s",  glm::to_string(m_orientation).c_str());
+    ImGui::Text("  direction: %s",  glm::to_string(GetDirection()).c_str());
     ImGui::Text("      scale: %6.3f",  GetScale());
 
     if(independent)

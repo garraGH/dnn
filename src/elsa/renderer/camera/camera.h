@@ -195,6 +195,7 @@ private:
     glm::vec3 m_position = glm::vec3(0, 10, 10);
     glm::vec3 m_target = glm::vec3(0);
     glm::vec3 m_up = glm::vec3(0, 1, 0);
+    glm::vec3 m_right = glm::vec3(1, 0, 0);
     glm::vec3 m_orientation = glm::vec3(0);
 
     float m_speedTrans = 1;
