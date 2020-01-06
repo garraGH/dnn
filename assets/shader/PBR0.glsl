@@ -214,7 +214,6 @@ void _GammaCorrect(inout vec3 color)
 vec3 _Normal()
 {
     vec3 N = normalize(f_In.Normal);
-    return N;
     #ifdef NORMAL_MAP
     {
         vec3 tangentNormal = texture(u_NormalMap, f_In.TexCoord).xyz*2.0-1.0;
@@ -351,8 +350,5 @@ void main()
     vec3 color = ambient+Lo;
     _ToneMap(color);
     _GammaCorrect(color);
-
     f_Color = vec4(color, 1.0);
-    f_BrightColor = vec4(vec3(0), 1);
-//     f_BrightColor = vec4(vec2(f_In.TexCoord), 1, 1);
 }

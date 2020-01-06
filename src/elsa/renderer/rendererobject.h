@@ -22,7 +22,7 @@ public:
     virtual ~Asset() = default;
     const std::string& GetName() const { return m_name; }
     static std::shared_ptr<Asset> Create(const std::string& name) { return std::make_shared<Asset>(name); }
-    virtual std::string GetTypeName() const { return "Asset"; }
+    static std::string GetTypeName() { return "Asset"; }
 
 protected:
     std::string m_name;
@@ -34,7 +34,7 @@ public:
     RenderObject(const std::string& name="unnamed") : Asset(name) {}
     virtual void Bind(unsigned int slot=0) = 0;
     virtual void Unbind() const = 0;
-    virtual std::string GetTypeName() const { return "RenderObject"; }
+    static std::string GetTypeName() { return "RenderObject"; }
     RenderObjectID ID() const { return m_id; }
 
 protected:

@@ -48,7 +48,7 @@ public:
 class OpenGLRenderBuffer : public RenderBuffer
 {
 public:
-    OpenGLRenderBuffer(unsigned int width, unsigned int height, unsigned int samples=1, Format format=Format::R32F, const std::string& name="unnamed");
+    OpenGLRenderBuffer(unsigned int width, unsigned int height, Format format=Format::R32F, unsigned int samples=1, const std::string& name="unnamed");
     ~OpenGLRenderBuffer();
 
     virtual void Bind(unsigned int slot=0) override;
@@ -68,6 +68,7 @@ private:
 class OpenGLFrameBuffer : public FrameBuffer
 {
 public:
+    OpenGLFrameBuffer(const std::string& name="unnamed");
     OpenGLFrameBuffer(unsigned int width, unsigned int height, unsigned int samples=1, const std::string& name="unnamed");
     ~OpenGLFrameBuffer();
 
@@ -78,6 +79,7 @@ protected:
     virtual void _Reset() override;
     virtual void _Attach(const std::shared_ptr<Texture>& colorBuffer) override;
     virtual void _Attach(const std::shared_ptr<RenderBuffer>& renderBuffer) override;
+    virtual void _Attach(const std::shared_ptr<Texture>& cubemap, TextureCubemap::Face face, int level=0) override;
 
 private:
     void _Create();

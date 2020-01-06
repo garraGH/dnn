@@ -26,6 +26,7 @@ void main()
 in vec3 v_Near;
 in vec3 v_Far;
 out vec4 f_Color;
+out vec4 f_ColorBright;
 // uniform mat4 u_World2Clip;
 layout(std140) uniform Transform
 {
@@ -54,9 +55,11 @@ void main()
 {
     float t = -v_Near.y/(v_Far.y-v_Near.y);
     vec3 I = v_Near+t*(v_Far-v_Near);
+    gl_FragDepth = ComputeDepth(I);
+
     float c = CheckerBoard(I.xz, 1)*0.3+CheckerBoard(I.xz, 10)*0.2+CheckerBoard(I.xz, 100)*0.1+0.1;
     float spotlight = min(1.0, 1.5-0.02*length(I.xz));
     c *= spotlight*float(t>=0);
     f_Color = vec4(vec3(c), 1);
-    gl_FragDepth = ComputeDepth(I);
+    f_ColorBright = vec4(0, 0, 0, 1);
 }

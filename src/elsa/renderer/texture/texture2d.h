@@ -12,11 +12,11 @@
 #pragma once
 #include "texture.h"
 
-class Texture2D : public Texture
+class Texture2D : virtual public Texture
 {
 public:
     Texture2D(const std::string& name) : Texture(name) {} 
 
-    virtual std::string GetTypeName() const { return "Texture2D"; }
+    static std::string GetTypeName() { return "Texture2D"; }
     static std::shared_ptr<Texture2D> Create(const std::string& name);
 };

@@ -2,7 +2,7 @@
 #type vertex
 #version 460 core
 
-layout(location = 0) in vec2 a_Position;
+in vec2 a_Position;
 uniform vec2 u_LeftBottomTexCoord = vec2(0, 0);
 uniform vec2 u_RightTopTexCoord = vec2(1, 1);
 out vec2 v_TexCoord;
@@ -31,16 +31,19 @@ void main()
 #version 460 core
 
 in vec2 v_TexCoord;
-uniform sampler2D u_Basic;
-uniform sampler2D u_BrightBlur;
+uniform sampler2D u_Base;
+uniform sampler2D u_Blur;
+uniform float u_Gamma = 2.2f;
+uniform float u_Exposure = 1.0f;
+
 out vec4 f_Color;
 
 void main()
 {
-    vec3 color = texture(u_Basic, v_TexCoord).rgb;
-#ifdef BLOOM
-    color += texture(u_BrightBlur, v_TexCoord).rgb;
-#endif
+    vec3 color = texture(u_Base, v_TexCoord).rgb
+               + texture(u_Blur, v_TexCoord).rgb;
+//     color = pow(color, vec3(1.0/u_Gamma));
+    color = vec3(1.0)-exp(-color*u_Exposure);
     f_Color = vec4(color, 1);
 }
 

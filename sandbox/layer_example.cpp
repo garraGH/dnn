@@ -213,7 +213,7 @@ void ExampleLayer::_UpdateQuads(float deltaTime)
     {
         for(int j=0; j<5; j++)
         {
-            mesh_quad->SetTransform(tf_quad);
+//             mesh_quad->SetTransform(tf_quad);
             mtr_quad->SetUniform("u_Color", (i+j)%2? red : blue);
             Renderer::Submit("ele_quad", "Basic");
             tf_quad->Translate({ 0.15f, 0, 0 });
@@ -226,7 +226,7 @@ void ExampleLayer::_UpdateQuads(float deltaTime)
 
 void ExampleLayer::_UpdateTri(float deltaTime)
 {
-    Renderer::Resources::Get<Elsa::Mesh>("mesh_tri")->SetTransform(Renderer::Resources::Get<Transform>("tf_tri"));
+//     Renderer::Resources::Get<Elsa::Mesh>("mesh_tri")->SetTransform(Renderer::Resources::Get<Transform>("tf_tri"));
     Renderer::Resources::Get<Material>("mtr_tri")->SetUniform("u_Color", Renderer::Resources::Get<Material::Uniform>("green"));
     Renderer::Submit("ele_tri", "Basic");
 }

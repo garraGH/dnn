@@ -48,13 +48,16 @@ std::shared_ptr<Shader> Shader::Define(int macros)
     ENUM_TO_STRING(AMBIENET_OCCLUSION_MAP);
     ENUM_TO_STRING(REFLECTION_MAP);
     ENUM_TO_STRING(SHININESS_MAP);
-    ENUM_TO_STRING(METALNESS_MAP);
+    ENUM_TO_STRING(METALLIC_MAP);
     ENUM_TO_STRING(ROUGHNESS_MAP);
+    ENUM_TO_STRING(AO_MAP);
+    ENUM_TO_STRING(ALBEDO_MAP);
+    ENUM_TO_STRING(IRRADIANCE_DIFFUSE_MAP);
+    ENUM_TO_STRING(IRRADIANCE_SPECULAR_MAP);
     ENUM_TO_STRING(TONE_MAP);
     ENUM_TO_STRING(GAMMA_CORRECTION);
 #undef ENUM_TO_STRING
 
-    INFO("{}", m_macros);
 
     return shared_from_this();
 }
@@ -164,7 +167,7 @@ std::unordered_map<Shader::Type, std::string> Shader::_SplitShaders(const std::s
         splitShaderSources[type] = sources.substr(pos, nextLinePos-pos)+m_macros;
         pos = sources.find(typeToken, nextLinePos);
         splitShaderSources[type] += sources.substr(nextLinePos, pos-(nextLinePos == std::string::npos? sources.size()-1 : nextLinePos));
-        INFO("{}", splitShaderSources[type]);
+//         INFO("{}", splitShaderSources[type]);
             
     }
 

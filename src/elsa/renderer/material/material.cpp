@@ -12,6 +12,7 @@
 #include "../renderer.h"
 #include "material.h"
 #include "material_opengl.h"
+#include "glm/gtx/string_cast.hpp"
 
 std::shared_ptr<Material> Material::Create(const std::string& name)
 {
@@ -110,4 +111,70 @@ void Material::Uniform::UpdateData(const void* data)
     CORE_ASSERT(data, "Material::Uniform::UpdateData: nullptr!");
     int size = m_count*_TypeSize();
     memcpy(GetData(), data, size);
+}
+
+std::string Material::Uniform::TypeString() const
+{
+#define ENUM2STRING(x) case Type::x: return #x;
+    switch(m_type)
+    {
+        ENUM2STRING(Float1)
+        ENUM2STRING(Float2)
+        ENUM2STRING(Float3)
+        ENUM2STRING(Float4)
+
+        ENUM2STRING(Int1)
+        ENUM2STRING(Int2)
+        ENUM2STRING(Int3)
+        ENUM2STRING(Int4)
+
+        ENUM2STRING(UInt1)
+        ENUM2STRING(UInt2)
+        ENUM2STRING(UInt3)
+        ENUM2STRING(UInt4)
+
+        ENUM2STRING(Mat2x2)
+        ENUM2STRING(Mat2x3)
+        ENUM2STRING(Mat2x4)
+        ENUM2STRING(Mat3x2)
+        ENUM2STRING(Mat3x3)
+        ENUM2STRING(Mat3x4)
+        ENUM2STRING(Mat4x2)
+        ENUM2STRING(Mat4x3)
+        ENUM2STRING(Mat4x4)
+        default: return "Unknown";
+    }
+#undef ENUM2STRING
+}
+
+std::string Material::Uniform::DataString() const
+{
+    switch(m_type)
+    {
+        case Type::Float1: return glm::to_string(*reinterpret_cast<glm::vec1*>(m_data.get()));
+        case Type::Float2: return glm::to_string(*reinterpret_cast<glm::vec2*>(m_data.get()));
+        case Type::Float3: return glm::to_string(*reinterpret_cast<glm::vec3*>(m_data.get()));
+        case Type::Float4: return glm::to_string(*reinterpret_cast<glm::vec4*>(m_data.get()));
+
+        case Type::Int1:   return glm::to_string(*reinterpret_cast<glm::ivec1*>(m_data.get()));
+        case Type::Int2:   return glm::to_string(*reinterpret_cast<glm::ivec2*>(m_data.get()));
+        case Type::Int3:   return glm::to_string(*reinterpret_cast<glm::ivec3*>(m_data.get()));
+        case Type::Int4:   return glm::to_string(*reinterpret_cast<glm::ivec4*>(m_data.get()));
+
+        case Type::UInt1:  return glm::to_string(*reinterpret_cast<glm::uvec1*>(m_data.get()));
+        case Type::UInt2:  return glm::to_string(*reinterpret_cast<glm::uvec2*>(m_data.get()));
+        case Type::UInt3:  return glm::to_string(*reinterpret_cast<glm::uvec3*>(m_data.get()));
+        case Type::UInt4:  return glm::to_string(*reinterpret_cast<glm::uvec4*>(m_data.get()));
+
+        case Type::Mat2x2: return glm::to_string(*reinterpret_cast<glm::mat2x2*>(m_data.get()));
+        case Type::Mat2x3: return glm::to_string(*reinterpret_cast<glm::mat2x3*>(m_data.get()));
+        case Type::Mat2x4: return glm::to_string(*reinterpret_cast<glm::mat2x4*>(m_data.get()));
+        case Type::Mat3x2: return glm::to_string(*reinterpret_cast<glm::mat3x2*>(m_data.get()));
+        case Type::Mat3x3: return glm::to_string(*reinterpret_cast<glm::mat3x3*>(m_data.get()));
+        case Type::Mat3x4: return glm::to_string(*reinterpret_cast<glm::mat3x4*>(m_data.get()));
+        case Type::Mat4x2: return glm::to_string(*reinterpret_cast<glm::mat4x2*>(m_data.get()));
+        case Type::Mat4x3: return glm::to_string(*reinterpret_cast<glm::mat4x3*>(m_data.get()));
+        case Type::Mat4x4: return glm::to_string(*reinterpret_cast<glm::mat4x4*>(m_data.get()));
+        default: return "Unknown";
+    }
 }

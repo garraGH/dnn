@@ -12,20 +12,14 @@
 #include "mesh.h"
 namespace Elsa {
 
-std::shared_ptr<Mesh> Mesh::Set(const std::shared_ptr<Buffer>& ib, const std::vector< std::shared_ptr<Buffer> >& vbs, const std::shared_ptr<Transform>& trans)
+std::shared_ptr<Mesh> Mesh::Set(const std::shared_ptr<Buffer>& ib, const std::vector< std::shared_ptr<Buffer> >& vbs)
 {
+    m_bufferArray->Clear();
     m_bufferArray->SetIndexBuffer(ib);
     for(const auto& vb : vbs)
     {
         m_bufferArray->AddVertexBuffer(vb);
     }
-    m_transform = trans;
-    m_dirty = true;
-    return shared_from_this();
-}
-std::shared_ptr<Mesh> Mesh::SetTransform(const std::shared_ptr<Transform>& trans) 
-{ 
-    m_transform = trans;
     m_dirty = true;
     return shared_from_this();
 }

@@ -21,23 +21,29 @@ public:
     };
 
     Texture(const std::string& name) : RenderObject(name) {}
-    virtual std::string GetTypeName() { return "Texture"; }
+    static std::string GetTypeName() { return "Texture"; }
 
-    std::shared_ptr<Texture> Load(const std::string& imagePath);
-    void Reload(const std::string& imagePath);
-    std::shared_ptr<Texture> Set(unsigned int width, unsigned int height, unsigned int samples=1, Format format=Format::RGB8);
-    void Reset(unsigned int width, unsigned int height, unsigned int samples=1, Format format=Format::RGB8);
+    void SetImagePath(const std::string& imagepath) { m_imagePath = imagepath; }
+    std::shared_ptr<Texture> Load(const std::string& imagePath, bool bVerticalFlip=true, unsigned int levels=0);
+    void Reload(const std::string& imagePath, bool bVerticalFlip=true, unsigned int levels=0);
+    std::shared_ptr<Texture> Set(unsigned int width, unsigned int height, Format format=Format::RGB8, unsigned int samples=1, unsigned int levels=1);
+    void Reset(unsigned int width, unsigned int height, Format format=Format::RGB8, unsigned int samples=1);
     const std::string& GetImagePath() const { return m_imagePath; }
     unsigned int GetWidth() const { return m_width; }
     unsigned int GetHeight() const { return m_height; }
     unsigned int GetDepth() const { return m_depth; }
     unsigned int GetChannel() const { return m_channel; }
+    Format GetFormat() const { return m_format; }
+
+    virtual void GenerateMipmap() = 0;
+
 
 protected:
-    virtual void _Load() = 0;
+    virtual void _Load(bool bVerticalFlip) = 0;
     virtual void _Allocate() = 0;
     virtual void _Create() = 0;
     virtual void _Destroy() = 0;
+    virtual unsigned int _FormatOfGraphicsAPI() = 0;
 
 private:
     void _Recreate();
@@ -48,6 +54,7 @@ protected:
     unsigned int m_height = 0;
     unsigned int m_depth = 0;
     unsigned int m_channel = 0;
-    unsigned int m_samples = 1;
+    unsigned int m_levels = 1;
     Format m_format = Format::RGB8;
+    unsigned int m_samples = 1;
 };

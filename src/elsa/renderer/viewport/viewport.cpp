@@ -154,6 +154,7 @@ void Viewport::OnEvent(Event& e)
 {
     if((e.GetType() == EventType::ET_MouseScrolled || e.GetType() == EventType::ET_MouseButtonPressed) && _CursorOutside())
     {
+        INFO("Viewport::OnEvent: _CursorOutside");
         return;
     }
 

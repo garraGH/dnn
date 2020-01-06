@@ -14,8 +14,9 @@
 #include <memory>
 #include "../camera/camera.h"
 #include "../../event/event_application.h"
+#include "../rendererobject.h"
 
-class Viewport : public std::enable_shared_from_this<Viewport> 
+class Viewport : public Asset, public std::enable_shared_from_this<Viewport> 
 {
 public:
     enum class Type

@@ -12,6 +12,7 @@
 #include "material_opengl.h"
 #include "../../core.h"
 #include "glad/gl.h"
+#include "glm/gtx/string_cast.hpp"
 
 std::shared_ptr<Material> OpenGLMaterial::Create(const std::string& name)
 {
@@ -41,7 +42,7 @@ void OpenGLMaterial::_BindUniforms(const std::shared_ptr<Shader>& shader)
     for(auto& u : m_uniforms)
     {
         int location = m_shader->GetUniformLocation(u.first);
-//         INFO("OpenGLMaterial::Bind: {}, {}", u.first, location);
+//         INFO("OpenGLMaterial::Bind: {}-{}, Location: {}, Type: {}, Data: {}", m_name, u.first, location, u.second->TypeString(), u.second->DataString());
         if(location == -1)
         {
             continue;
@@ -86,6 +87,7 @@ void OpenGLMaterial::_BindTextures(const std::shared_ptr<Shader>& shader)
     for(auto& tex : m_textures)
     {
         int location = m_shader->GetUniformLocation(tex.first);
+//         INFO("OpenGLMaterial({})::_BindTextures: {}, location: {}", m_name, tex.first, location);
         if(location == -1)
         {
             continue;
@@ -102,6 +104,7 @@ void OpenGLMaterial::_BindUniformBuffers(const std::shared_ptr<Shader>& shader)
     for(auto ub : m_uniformBuffers)
     {
         GLuint indexOfUniformBlock = m_shader->GetUniformBlockIndex(ub.first);
+//         INFO("OpenGLMaterial::_BindUniformBuffers: {}, indexOfUniformBlock: {}, bindingPoint: {}", ub.first, indexOfUniformBlock, bindingPoint);
         if(indexOfUniformBlock == GL_INVALID_INDEX)
         {
             continue;
@@ -110,7 +113,6 @@ void OpenGLMaterial::_BindUniformBuffers(const std::shared_ptr<Shader>& shader)
         glBindBufferBase(GL_UNIFORM_BUFFER, bindingPoint, ub.second->ID());
         ub.second->Unbind();
         glUniformBlockBinding(shader->ID(), indexOfUniformBlock, bindingPoint);
-//         INFO("ub: {}, indexOfUniformBlock: {}, bindingPoint: {}", ub.first, indexOfUniformBlock, bindingPoint);
         bindingPoint++;
     }
 }

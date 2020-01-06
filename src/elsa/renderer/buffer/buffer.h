@@ -16,6 +16,7 @@
 #include "../../core.h"
 #include "../shader/shader.h"
 #include "../texture/texture.h"
+#include "../texture/texturecubemap.h"
 
 class Buffer : public RenderObject, public std::enable_shared_from_this<Buffer>
 {
@@ -118,34 +119,36 @@ public:
     };
 
 public:
-    RenderBuffer(unsigned int width, unsigned int height, unsigned int samples=1, Format format=Format::R32F, const std::string& name="unnamed");
+    RenderBuffer(unsigned int width, unsigned int height, Format format=Format::R32F, unsigned int samples=1, const std::string& name="unnamed");
     void Reset(Format format);
     void Reset(unsigned int samples);
     void Reset(unsigned int width, unsigned int height);
     void Reset(unsigned int width, unsigned int height, unsigned int samples);
-    void Reset(unsigned int width, unsigned int height, unsigned int samples, Format format);
+    void Reset(unsigned int width, unsigned int height, Format format, unsigned int samples);
 
     unsigned int GetWidth() const { return m_width; }
     unsigned int GetHeight() const { return m_height; }
     unsigned int GetSamples() const { return m_samples; }
     Format GetFormat() const { return m_format; }
 
-    static std::shared_ptr<RenderBuffer> Create(unsigned int width, unsigned int height, unsigned int samples=1, Format format=Format::R32F, const std::string& name="unnamed");
+    static std::shared_ptr<RenderBuffer> Create(unsigned int width, unsigned int height, Format format=Format::R32F, unsigned int samples=1, const std::string& name="unnamed");
 protected: 
     virtual void _Reset() = 0;
 
 protected:
     unsigned int m_width = 1920;
     unsigned int m_height = 1080;
-    unsigned int m_samples = 1;
     Format m_format = Format::R32F;
+    unsigned int m_samples = 1;
 };
 
 class FrameBuffer : public RenderObject, public std::enable_shared_from_this<FrameBuffer>
 {
 public:
+    FrameBuffer(const std::string& name="unnamed");
     FrameBuffer(unsigned int width, unsigned int height, unsigned int samples=1, const std::string& name="unnamed");
     void Reset(unsigned int width, unsigned int height, unsigned int samples=1);
+    std::shared_ptr<FrameBuffer> Set(unsigned int width, unsigned int height, unsigned int samples=1);
 
     unsigned int GetWidth() const { return m_width; }
     unsigned int GetHeight() const { return m_height; }
@@ -155,20 +158,28 @@ public:
     std::shared_ptr<FrameBuffer> AddColorBuffer(const std::string& name, Texture::Format format);
     std::shared_ptr<FrameBuffer> AddRenderBuffer(const std::string& name, std::shared_ptr<RenderBuffer>& renderBuffer);
     std::shared_ptr<FrameBuffer> AddRenderBuffer(const std::string& name, RenderBuffer::Format format);
+    std::shared_ptr<FrameBuffer> AddCubemapBuffer(const std::string& name, std::shared_ptr<Texture>& cubemapBuffer);
+    std::shared_ptr<FrameBuffer> AddCubemapBuffer(const std::string& name, Texture::Format format);
 
+    void UseCubemapFace(const std::string& name, TextureCubemap::Face face, int level=0);
 
     const std::shared_ptr<Texture>& GetColorBuffer(const std::string& name) { CORE_ASSERT(m_colorBuffers[name], "ColorBuffer is not exist: "+name); return m_colorBuffers[name]; }
     const std::shared_ptr<RenderBuffer>& GetRenderBuffer(const std::string& name) { CORE_ASSERT(m_renderBuffers[name], "RenderBuffer is not exist: "+name); return m_renderBuffers[name]; }
+    const std::shared_ptr<Texture>& GetCubemapBuffer(const std::string& name) { CORE_ASSERT(m_cubemapBuffers[name], "CubemapBuffer is not exist: "+name); return m_cubemapBuffers[name]; }
 
+    static std::shared_ptr<FrameBuffer> Create(const std::string& name="unnamed");
     static std::shared_ptr<FrameBuffer> Create(unsigned int width, unsigned int height, unsigned int samples=1, const std::string& name="unnamed");
+    static std::string GetTypeName() { return "FrameBuffer"; }
 
 protected:
     virtual void _Reset() = 0;
     virtual void _Attach(const std::shared_ptr<Texture>& colorBuffer) = 0;
     virtual void _Attach(const std::shared_ptr<RenderBuffer>& renderBuffer) = 0;
+    virtual void _Attach(const std::shared_ptr<Texture>& cubemap, TextureCubemap::Face face, int level=0) = 0;
 
 protected:
     std::map< std::string, std::shared_ptr<Texture> > m_colorBuffers;
+    std::map< std::string, std::shared_ptr<Texture> > m_cubemapBuffers;
     std::map< std::string, std::shared_ptr<RenderBuffer> > m_renderBuffers;
 
     unsigned int m_width = 1920;
@@ -189,6 +200,8 @@ public:
     virtual unsigned int IndexType() const = 0;
 
     static std::shared_ptr<BufferArray> Create();
+    void Clear() { m_indexBuffer=nullptr; m_vertexBuffers.clear(); }
+
 
 protected:
     std::shared_ptr<Shader> m_shader = nullptr;

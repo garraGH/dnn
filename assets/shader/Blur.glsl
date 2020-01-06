@@ -30,7 +30,7 @@ void main()
 #version 460 core
 
 in vec2 v_TexCoord;
-uniform bool u_Horizontal = true;
+uniform int u_Direction = 0;
 uniform float kernel[5] = float[](0.227027, 0.1945946, 0.1216216, 0.054054, 0.016216);
 uniform sampler2D u_Offscreen;
 
@@ -40,7 +40,7 @@ void main()
 {
     vec2 tex_offset = 1.0/textureSize(u_Offscreen, 0);
     vec3 result = texture(u_Offscreen, v_TexCoord).rgb*kernel[0];
-    if(u_Horizontal)
+    if(u_Direction == 0)
     {
         for(int i=1; i<5; i++)
         {

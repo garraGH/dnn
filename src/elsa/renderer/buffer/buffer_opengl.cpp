@@ -63,6 +63,7 @@ void OpenGLVertexBuffer::Bind(const std::shared_ptr<Shader>& shader)
     for(const auto e : m_layout)
     {
         location = shader->GetAttributeLocation(e.Name());
+//         INFO("OpenGLVertexBuffer::Bind: shader({}), element({}), location({}), components({}), divisor({}), offset({})", shader->GetName(), e.Name(), location, e.Components(), e.Divisor(), e.Offset(0));
         if(location == -1)
         {
             continue;
@@ -70,7 +71,6 @@ void OpenGLVertexBuffer::Bind(const std::shared_ptr<Shader>& shader)
 
         for(unsigned int i=0; i<e.NumOfLocations(); i++)
         {
-//             INFO("{}, {}, {}, {}, {}", location, e.Name(), e.Components(), e.Divisor(), e.Offset(i));
             glEnableVertexAttribArray(location);
             glVertexAttribPointer(location, e.Components(), _TypeFrom(e.Type()), e.Normalized()? GL_TRUE:GL_FALSE, m_layout.Stride(), (const void*)e.Offset(i));
             glVertexAttribDivisor(location, e.Divisor());
@@ -115,8 +115,8 @@ GLenum OpenGLIndexBuffer::GetType()
     return _TypeFrom(e.Type());
 }
 //////////////////////////////////////////////////////////////////////
-OpenGLRenderBuffer::OpenGLRenderBuffer(unsigned int width, unsigned int height, unsigned int samples, Format format, const std::string& name)
-    : RenderBuffer(width, height, samples, format, name)
+OpenGLRenderBuffer::OpenGLRenderBuffer(unsigned int width, unsigned int height, Format format, unsigned int samples, const std::string& name)
+    : RenderBuffer(width, height, format, samples, name)
 {
     _Create();
 }
@@ -329,6 +329,12 @@ std::string OpenGLRenderBuffer::_StringOfFormat() const
 }
 
 //////////////////////////////////////////////////////////////////////
+OpenGLFrameBuffer::OpenGLFrameBuffer(const std::string& name)
+    : FrameBuffer(name)
+{
+    _Create();
+}
+
 OpenGLFrameBuffer::OpenGLFrameBuffer(unsigned int width, unsigned int height, unsigned int samples, const std::string& name)
     : FrameBuffer(width, height, samples, name)
 {
@@ -375,7 +381,7 @@ void OpenGLFrameBuffer::_ResetColorBuffers()
 {
     for(auto [name, cb] : m_colorBuffers)
     {
-        cb->Reset(m_width, m_height, m_samples);
+        cb->Reset(m_width, m_height, cb->GetFormat(), m_samples);
         _Attach(cb);
     }
 }
@@ -395,15 +401,6 @@ void OpenGLFrameBuffer::_Reset()
     _ResetColorBuffers();
     _ResetRenderBuffers();
     _Check();
-//     m_colorBuffer->Reset(m_width, m_height, m_samples, m_format);
-//     m_depthStencilBuffer->Reset(m_width, m_height, m_samples);
-// 
-//     glNamedFramebufferTexture(m_id, GL_COLOR_ATTACHMENT0, m_colorBuffer->ID(), 0);
-//     glNamedFramebufferRenderbuffer(m_id, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_depthStencilBuffer->ID());
-//     if(glCheckNamedFramebufferStatus(m_id, GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-//     {
-//         CORE_ASSERT(false, "OpengGLFrameBuffer::_Reset: FrameBuffer is not complete!");
-//     }
 }
 
 void OpenGLFrameBuffer::_Attach(const std::shared_ptr<Texture>& colorBuffer)
@@ -411,7 +408,7 @@ void OpenGLFrameBuffer::_Attach(const std::shared_ptr<Texture>& colorBuffer)
     glBindFramebuffer(GL_FRAMEBUFFER, m_id);
 
     int n = m_colorBuffers.size();
-    glNamedFramebufferTexture(m_id, GL_COLOR_ATTACHMENT0+n-1, colorBuffer->ID(), 0);
+    GLCheck(glNamedFramebufferTexture(m_id, GL_COLOR_ATTACHMENT0+n-1, colorBuffer->ID(), 0));
     _Check();
 
     unsigned int* attachments = new unsigned int[n];
@@ -506,8 +503,15 @@ unsigned int OpenGLFrameBuffer::_Attachment(RenderBuffer::Format format) const
 void OpenGLFrameBuffer::_Attach(const std::shared_ptr<RenderBuffer>& renderBuffer)
 {
     glBindFramebuffer(GL_FRAMEBUFFER, m_id);
-
     glNamedFramebufferRenderbuffer(m_id, _Attachment(renderBuffer->GetFormat()), GL_RENDERBUFFER, renderBuffer->ID());
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void OpenGLFrameBuffer::_Attach(const std::shared_ptr<Texture>& cubemap, TextureCubemap::Face face, int level)
+{
+    INFO("OpenGLFrameBuffer::_Attach: {}, {}, {}", cubemap->GetName(), static_cast<int>(face), level);
+    glBindFramebuffer(GL_FRAMEBUFFER, m_id);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X+static_cast<int>(face), cubemap->ID(), level);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
@@ -557,14 +561,16 @@ void OpenGLBufferArray::SetIndexBuffer(const std::shared_ptr<Buffer>& buffer)
 void OpenGLBufferArray::Bind(const std::shared_ptr<Shader>& shader)
 {
     Bind();
+//     INFO("OpenGLBufferArray({:p})::Bind: shader({}), m_shader({}))", (void*)this, shader->GetName(), (m_shader? m_shader->GetName():"nullptr"));
     if(!shader || shader == m_shader)
     {
-        return ;
+        return;
     }
     m_shader = shader;
 
     for(const auto buffer : m_vertexBuffers)
     {
+//         INFO("OpenGLBufferArray::Bind: buffer({})", buffer->GetName());
         buffer->Bind(shader);
     }
 }

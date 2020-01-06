@@ -17,6 +17,7 @@
 #include "material/material.h"
 #include "shader/shader.h"
 #include "texture/texture2d.h"
+#include "texture/texturecubemap.h"
 #include "viewport/viewport.h"
 
 class Renderer
@@ -73,24 +74,36 @@ public:
     {
     public:
         Element(const std::string& name) : Asset(name) {}
+        static std::string GetTypeName() { return "Renderer::Element"; }
         static std::shared_ptr<Element> Create(const std::string& name) { return std::make_shared<Element>(name); }
-        std::shared_ptr<Element> Set(const std::shared_ptr<Elsa::Mesh>& mesh, const std::shared_ptr<Material>& material)
-        {
-            m_mesh = mesh;
-            m_material = material;
-            return shared_from_this();
-        }
-
-        virtual std::string GetTypeName() const { return "Renderer::Element"; }
+        std::shared_ptr<Element> Set(const std::shared_ptr<Elsa::Mesh>& mesh, const std::shared_ptr<Material>& material, const std::shared_ptr<Shader>& shader=nullptr, unsigned int nInstance=1) { m_mesh = mesh; m_material = material; m_shader = shader; m_nInstance = nInstance; return shared_from_this(); }
         std::shared_ptr<Element> SetMesh(const std::string& meshName) { m_mesh = Renderer::Resources::Get<Elsa::Mesh>(meshName); return shared_from_this(); }
         std::shared_ptr<Element> SetMesh(const std::shared_ptr<Elsa::Mesh>& mesh) { m_mesh = mesh; return shared_from_this(); }
         std::shared_ptr<Element> SetMaterial(const std::string& mtrName) { m_material = Renderer::Resources::Get<Material>(mtrName); return shared_from_this(); }
         std::shared_ptr<Element> SetMaterial(const std::shared_ptr<Material>& material) { m_material = material; return shared_from_this(); }
+        std::shared_ptr<Element> SetShader(const std::shared_ptr<Shader>& shader) { m_shader = shader; return shared_from_this(); }
+        std::shared_ptr<Element> SetShader(const std::string& shaderName) { m_shader = Renderer::Resources::Get<Shader>(shaderName); return shared_from_this(); }
+        std::shared_ptr<Element> SetNumOfInstance(unsigned int nInstance) { m_nInstance = nInstance; return shared_from_this(); }
         void RenderedBy(const std::shared_ptr<Shader>& shader, unsigned int nInstances);
+        void Render();
+        virtual bool OnImgui() { return false; }
+        std::shared_ptr<Element> Prepare() { _Prepare(); return shared_from_this(); }
+        
+    protected:
+        void _Prepare() { _PrepareMesh(); _PrepareTexture(); _PrepareMaterial(); _PrepareShader(); }
+        virtual void _PrepareMesh()     {}
+        virtual void _PrepareTexture()  {}
+        virtual void _PrepareMaterial() {}
+        virtual void _PrepareShader()   {}
+        void _UpdateTexture(std::shared_ptr<Texture>& texture);
 
-    private:
-        std::shared_ptr<Elsa::Mesh> m_mesh = nullptr;
-        std::shared_ptr<Material> m_material = nullptr;
+    protected:
+        std::shared_ptr<Elsa::Mesh> m_mesh     = nullptr;
+        std::shared_ptr<Material>   m_material = nullptr;
+        std::shared_ptr<Shader>     m_shader   = nullptr;
+
+        unsigned int m_nInstance = 1;
+        bool m_bVisible = true;
     };
 
     template<typename T>
@@ -124,7 +137,7 @@ public:
 
         std::shared_ptr<T>& Get(const std::string& name)
         { 
-            CORE_ASSERT(Exist(name), "Assets::Get: asset not found! "+name);
+            CORE_ASSERT(Exist(name), "Assets::Get: asset not found! "+T::GetTypeName()+"-"+name);
             return m_assets[name];
         }
     private:
@@ -158,6 +171,8 @@ public:
     static void BeginScene(const std::shared_ptr<Viewport>& viewport, const std::shared_ptr<FrameBuffer>& frameBuffer=nullptr);
     static void Submit(const std::shared_ptr<Element>& rendererElement, const std::shared_ptr<Shader>& shader, unsigned int nInstances = 1);
     static void Submit(const std::string& nameOfElement, const std::string& nameOfShader, unsigned int nInstances = 1);
+    static void Submit(const std::shared_ptr<Element>& element);
+    static void Submit(const std::string& nameOfElement);
     static void EndScene() {}
 
 

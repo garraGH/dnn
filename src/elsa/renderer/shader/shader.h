@@ -51,10 +51,14 @@ public:
         AMBIENET_OCCLUSION_MAP  = 0x01<<10,  
         REFLECTION_MAP          = 0x01<<11, 
         SHININESS_MAP           = 0x01<<12, 
-        METALNESS_MAP           = 0x01<<13, 
+        METALLIC_MAP            = 0x01<<13, 
         ROUGHNESS_MAP           = 0x01<<14, 
-        TONE_MAP                = 0x01<<15, 
-        GAMMA_CORRECTION        = 0x01<<16,
+        AO_MAP                  = 0x01<<15, 
+        ALBEDO_MAP              = 0x01<<16, 
+        IRRADIANCE_DIFFUSE_MAP  = 0x01<<17, 
+        IRRADIANCE_SPECULAR_MAP = 0x01<<18, 
+        TONE_MAP                = 0x01<<19, 
+        GAMMA_CORRECTION        = 0x01<<20,
     };
 
 public:
@@ -65,7 +69,7 @@ public:
     virtual std::shared_ptr<Shader> LoadFromFile(const std::string& srcFile) = 0;
     virtual std::shared_ptr<Shader> LoadFromSource(const std::string& srcVertex, const std::string& srcFragment) = 0;
 
-    virtual std::string GetTypeName() const { return "Shader"; }
+    static std::string GetTypeName() { return "Shader"; }
 
     int GetAttributeLocation(const std::string& name);
     int GetUniformLocation(const std::string& name);

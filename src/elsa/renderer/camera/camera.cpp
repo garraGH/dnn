@@ -318,8 +318,8 @@ void Camera::OnEvent(Event& e, const Viewport* vp)
     if(e.GetType() == EventType::ET_MouseButtonPressed || e.GetType() == EventType::ET_MouseScrolled)
     {
         m_viewport = vp;
-//         auto[x, y] = _GetCursorPntInViewport({Input::GetMouseX(), Input::GetMouseY()});
-//         INFO("Camera::OnEvent: {}, {}, {}", vp->GetName(), x, y);
+        auto[x, y] = _GetCursorPntInViewport({Input::GetMouseX(), Input::GetMouseY()});
+        INFO("Camera::OnEvent: {}, {}, {}", vp->GetName(), x, y);
     }
 
     EventDispatcher dispatcher(e);
@@ -332,6 +332,7 @@ void Camera::OnEvent(Event& e, const Viewport* vp)
 
 bool Camera::_OnMouseScrolled(MouseScrolledEvent& e)
 {
+    INFO("Camera::_OnMouseScrolled");
     if(Input::IsKeyPressed(KEY_LEFT_CONTROL))
     {
         Scale(-e.GetOffsetY()*m_speedScale);
@@ -343,6 +344,7 @@ bool Camera::_OnMouseScrolled(MouseScrolledEvent& e)
         glm::vec3 offset = worldPosOfCurrentCursor-m_position;
 //         INFO("{}-{}, {}", x, y, glm::to_string(worldPosOfCurrentCursor));
         float distance = e.GetOffsetY()*glm::length(offset);
+        INFO("{}", distance);
         glm::vec3 dir = glm::normalize(offset);
         Translate(dir*distance*m_speedScale);
     }
@@ -561,7 +563,7 @@ bool Camera::_OnMouseButtonReleased(MouseButtonReleasedEvent& e)
 
 bool Camera::_OnWindowResize(WindowResizeEvent& e)
 {
-//     INFO("Camera::_OnWindowResize: {}, {}", e.GetWidth(), e.GetHeight());
+    INFO("Camera::_OnWindowResize: {}, {}", e.GetWidth(), e.GetHeight());
     m_windowSize = {e.GetWidth(), e.GetHeight()};
     return false;
 }

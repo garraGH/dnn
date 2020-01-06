@@ -43,7 +43,10 @@ public:
         int GetCount() const { return m_count; }
         bool NeedTranspose() const { return m_transpose; }
 
-        virtual std::string GetTypeName() const { return "Material::Atrribute"; }
+        static std::string GetTypeName() { return "Material::Uniform"; }
+    
+        std::string TypeString() const;
+        std::string DataString() const;
 
     protected:
         int _TypeSize() const;
@@ -64,7 +67,7 @@ public:
     std::shared_ptr<Material> SetUniformBuffer(const std::string& name, const std::shared_ptr<UniformBuffer>& ub) { m_uniformBuffers[name] = ub; m_dirty = true; return shared_from_this(); }
     
     virtual void Bind(const std::shared_ptr<Shader>& shader) = 0;
-    virtual std::string GetTypeName() const { return "Material"; }
+    static std::string GetTypeName() { return "Material"; }
     static std::shared_ptr<Material> Create(const std::string& name);
 
 protected:

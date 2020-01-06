@@ -36,6 +36,7 @@ void OpenGLAPI::SetViewport(const std::shared_ptr<Viewport>& viewport)
     glEnable(GL_BLEND);
     glEnable(GL_MULTISAMPLE);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_DST_ALPHA);
+    glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 }
 
 void OpenGLAPI::SetFrameBuffer(const std::shared_ptr<FrameBuffer>& frameBuffer)

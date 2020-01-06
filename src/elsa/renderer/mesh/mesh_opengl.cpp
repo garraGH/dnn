@@ -19,16 +19,17 @@ std::shared_ptr<Mesh> Mesh::Create(const std::string& name)
 
 void OpenGLMesh::Bind(const std::shared_ptr<Shader>& shader)
 {
+    CORE_ASSERT(m_bufferArray, "null bufferArray!");
+//     INFO("OpenGLMesh::Bind: mesh {}, shader {}", m_name, shader->GetName());
     m_bufferArray->Bind(shader);
 //     if(!shader || (m_shader == shader && !m_dirty))
 //     {
 //         return;
 //     }
-//     INFO("OpenGLMesh::Bin: ShaderChanged");
+//     INFO("OpenGLMesh::Bind: ShaderChanged");
     m_dirty = false;
     m_shader = shader;
 
-    m_shader->SetModel2WorldMatrix(m_transform->Get());
 }
 
 }

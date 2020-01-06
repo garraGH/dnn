@@ -54,13 +54,13 @@ void ShaderToyLayer::_PrepareResources()
     std::shared_ptr<Elsa::Mesh> msCanvas = Renderer::Resources::Create<Elsa::Mesh>("Canvas")->Set(indexBuffer, {vertexBuffer});
 
 
-    m_canvas = Renderer::Resources::Create<Renderer::Element>("Canvas")->Set(msCanvas, m_shaderToys[m_toyType]->GetMaterial());
+    m_canvas = Renderer::Resources::Create<Renderer::Element>("Canvas")->Set(msCanvas, m_shaderToys[m_toyType]->GetMaterial(), m_shaderToys[m_toyType]->GetShader());
 }
 
 void ShaderToyLayer::OnUpdate(float deltaTime)
 {
     Renderer::BeginScene(m_viewport);
-    Renderer::Submit(m_canvas, m_shaderToys[m_toyType]->GetShader());
+    Renderer::Submit(m_canvas);
     m_shaderToys[m_toyType]->OnUpdate(deltaTime);
     m_viewport->OnUpdate(deltaTime);
     Renderer::EndScene();

@@ -76,10 +76,9 @@ public:
 public:
     Mesh(const std::string& name="unnamed") : Asset(name) {} 
     virtual void Bind(const std::shared_ptr<Shader>& shader) = 0;
-    virtual std::string GetTypeName() const override { return "Mesh"; }
+    static std::string GetTypeName() { return "Mesh"; }
 
-    std::shared_ptr<Mesh> Set(const std::shared_ptr<Buffer>& ib, const std::vector< std::shared_ptr<Buffer> >& vbs, const std::shared_ptr<Transform>& trans=std::make_shared<Transform>());
-    std::shared_ptr<Mesh> SetTransform(const std::shared_ptr<Transform>& trans);
+    std::shared_ptr<Mesh> Set(const std::shared_ptr<Buffer>& ib, const std::vector< std::shared_ptr<Buffer> >& vbs);
     std::shared_ptr<Mesh> SetIndexBuffer(const std::shared_ptr<Buffer>& indexBuffer);
     std::shared_ptr<Mesh> AddVertexBuffer(const std::shared_ptr<Buffer>& vertexBuffer);
 
@@ -100,8 +99,6 @@ protected:
     bool m_dirty = true;
     std::shared_ptr<Shader> m_shader = nullptr;
     std::shared_ptr<BufferArray> m_bufferArray = BufferArray::Create();
-    std::shared_ptr<Transform> m_transform = std::make_shared<Transform>();
-    std::shared_ptr<Material> m_material = nullptr;
 
     std::vector<Vertex> m_vertices;
     std::vector<unsigned int> m_indices;

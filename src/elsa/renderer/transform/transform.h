@@ -21,7 +21,7 @@ public:
     Transform(const std::string& name="unnamed") : Asset(name) {}
     static std::shared_ptr<Transform> Create(const std::string& name) { return std::make_shared<Transform>(name); }
 
-    virtual std::string GetTypeName() const { return "Transform"; }
+    static std::string GetTypeName() { return "Transform"; }
     std::shared_ptr<Transform> Set(const glm::vec3& translation, const glm::vec3& rotation, const glm::vec3& scale) { m_translation = translation; m_rotation = rotation; m_scale = scale; m_dirty = true; return shared_from_this(); }
     std::shared_ptr<Transform> SetTranslation(const glm::vec3& translation) { m_translation = translation; m_dirty = true; return shared_from_this(); }
     std::shared_ptr<Transform> SetRotation(const glm::vec3& rotation) { m_rotation = rotation; m_dirty = true; return shared_from_this(); }
@@ -31,9 +31,9 @@ public:
     const glm::vec3& GetScale() { return m_scale; }
 
     void Revert() { m_translation = glm::vec3(0.0f); m_rotation = glm::vec3(0.0f); m_scale = glm::vec3(1.0f); m_dirty = true; }
-    void Translate(const glm::vec3& displacement) { m_translation += displacement; m_dirty = true; }
-    void Rotate(const glm::vec3& degree) { m_rotation += degree; m_dirty = true; }
-    void Scale(const glm::vec3& size) { m_scale += size; m_dirty = true; }
+    std::shared_ptr<Transform> Translate(const glm::vec3& displacement) { m_translation += displacement; m_dirty = true; return shared_from_this(); }
+    std::shared_ptr<Transform> Rotate(const glm::vec3& degree) { m_rotation += degree; m_dirty = true; return shared_from_this(); }
+    std::shared_ptr<Transform> Scale(const glm::vec3& size) { m_scale += size; m_dirty = true; return shared_from_this(); }
 
     const glm::mat4& Get();
 
