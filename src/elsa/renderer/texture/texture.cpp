@@ -17,7 +17,7 @@ std::shared_ptr<Texture> Texture::Load(const std::string& imagePath, bool bVerti
     m_imagePath = imagePath;
     m_levels = levels;
     
-    INFO("Texture::Load: path({}), levels({})", m_imagePath, m_levels);
+    INFO("{}, verticalflip({}), levels({})", m_imagePath, bVerticalFlip, m_levels);
     _Load(bVerticalFlip);
 
     return shared_from_this();

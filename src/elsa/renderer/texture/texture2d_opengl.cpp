@@ -23,13 +23,13 @@ OpenGLTexture2D::OpenGLTexture2D(const std::string& name)
     , Texture2D(name)
 {
     _Create();
-    INFO("Create OpenGLTexture2D: {}", m_id);
+    INFO("texture({}-{}) created.", m_name, m_id);
 }
 
 OpenGLTexture2D::~OpenGLTexture2D()
 {
     _Destroy();
-    INFO("Destroy OpenGLTexture2D: {}, {}x{}", m_id, m_width, m_height);
+    INFO("texture({}-{}-{}x{}x{}) destroyed.", m_name, m_id, m_width, m_height, m_channel);
 }
 
 void OpenGLTexture2D::_Load(bool bVerticalFlip)

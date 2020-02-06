@@ -10,4 +10,19 @@
 
 
 #include "layer.h"
+#include "imgui.h"
 
+void Layer::OnImGuiRender()
+{
+    ImGui::Begin("Profile");
+    for(auto pr : m_profileResults)
+    {
+        char label[50];
+        strcpy(label, "%.3fms ");
+        strcat(label, pr.Name.c_str());
+        ImGui::Text(label, pr.Time);
+    }
+    m_profileResults.clear();
+
+    ImGui::End();
+}

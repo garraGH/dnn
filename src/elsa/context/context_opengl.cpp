@@ -27,7 +27,7 @@ void OpenGLContext::Init()
     int success = gladLoadGL();
     CORE_ASSERT(success, "Failed to initialize GLAD!");
 
-    CORE_INFO("OpenGL INFO:");
+    CORE_INFO("{}", "OpenGL INFO:");
     CORE_INFO("     Vendor: {}", glGetString(GL_VENDOR));
     CORE_INFO("   Renderer: {}", glGetString(GL_RENDERER));
     CORE_INFO("    Version: {}", glGetString(GL_VERSION));

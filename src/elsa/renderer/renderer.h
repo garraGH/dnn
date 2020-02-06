@@ -117,7 +117,7 @@ public:
         {
             if(Exist(name))
             {
-                CORE_WARN("Assets::Add: asset already exist! "+m_assets[name]->GetTypeName()+" - "+name);
+                CORE_WARN("Assets::Add: asset({}-{}) already exist! ", m_assets[name]->GetTypeName(), name);
                 return m_assets[name];
             }
             std::shared_ptr<T> asset = T::Create(name);
@@ -130,14 +130,14 @@ public:
             const std::string& name = asset->GetName();
             if(Exist(name))
             {
-                CORE_WARN("Assets::Add: asset already exist! "+asset->GetTypeName()+" - "+name);
+                CORE_WARN("Assets::Add: asset({}-{}) already exist! ", m_assets[name]->GetTypeName(), name);
             }
             m_assets[name] = asset;
         }
 
         std::shared_ptr<T>& Get(const std::string& name)
         { 
-            CORE_ASSERT(Exist(name), "Assets::Get: asset not found! "+T::GetTypeName()+"-"+name);
+            CORE_ASSERT(Exist(name), "Assets::Get: asset(" +T::GetTypeName()+"-"+name+ ") not found! ");
             return m_assets[name];
         }
     private:

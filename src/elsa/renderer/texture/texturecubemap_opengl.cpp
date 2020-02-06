@@ -63,21 +63,19 @@ std::string OpenGLTextureCubemap::_FaceFile(int i)
 
 void OpenGLTextureCubemap::_Load(bool bVerticalFlip)
 {
-    INFO("OpenGLTexture2D::_Load: path({}), levels({})", m_imagePath, m_levels);
     glBindTexture(GL_TEXTURE_CUBE_MAP, m_id);
     stbi_set_flip_vertically_on_load(bVerticalFlip);
     for(int i=0; i<6; i++)
     {
         std::string filepath = _FaceFile(i);
-        INFO(filepath);
         unsigned char* data = stbi_load(filepath.c_str(), (int*)&m_width, (int*)&m_height, (int*)&m_channel, 0);
         if(!data)
         {
-            WARN("OpenGLTextureCubemap::_Load: failed at path: {}", filepath);
+            WARN("{} failed!", filepath);
         }
         else
         {
-            INFO("OpenGLTextureCubemap::_Load: {}, {}x{}x{}", filepath, m_width, m_height, m_channel);
+            INFO("{}, size({}x{}x{}), mipmap({})", filepath, m_width, m_height, m_channel, m_levels);
             glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X+i, 0, GL_RGB, m_width, m_height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
         }
         stbi_image_free(data);

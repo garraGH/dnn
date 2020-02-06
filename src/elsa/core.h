@@ -22,8 +22,8 @@
 
 #define ENABLE_ASSERT
 #ifdef ENABLE_ASSERT
-    #define ASSERT(x, ...) { if(!(x)) { ERROR("Assertion Failed: {0}", __VA_ARGS__); DEBUG_BREAK; } } 
-    #define CORE_ASSERT(x, ...) { if(!(x)) { CORE_ERROR("Assertion Failed: {0}", __VA_ARGS__); DEBUG_BREAK; } }
+    #define ASSERT(x, ...) { if(!(x)) { ERROR("Assertion Failed: {}", __VA_ARGS__); DEBUG_BREAK; } } 
+    #define CORE_ASSERT(x, ...) { if(!(x)) { CORE_ERROR("Assertion Failed: {}", __VA_ARGS__); DEBUG_BREAK; } }
 #else
     #define ASSERT(x, ...)
     #define CORE_ASSERT(x, ...)

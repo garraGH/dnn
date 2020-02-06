@@ -1,0 +1,17 @@
+
+-isystem/usr/include/
+-isystem/usr/local/cuda/include/
+-I./src/elsa
+-I./src/utils/
+-I./deps/modules/glm/
+-I./deps/modules/spdlog/include/
+-I./deps/modules/imgui/
+-I./deps/modules/imgui/examples/
+-I./deps/modules/glfw/deps/
+-I./deps/modules/stb/
+-I./deps/modules/assimp/include/
+-I./deps/modules/osdialog/
+-std = c++17
+-stdlib = libc++
+%h -x
+%h c++-header

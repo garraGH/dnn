@@ -56,27 +56,30 @@ private:
 
 #ifdef ENABLE_LOG
 
-#define CORE_WARN(...)     Logger::getCoreLogger()->warn(__VA_ARGS__);
-#define CORE_INFO(...)     Logger::getCoreLogger()->info(__VA_ARGS__);
-#define CORE_TRACE(...)    Logger::getCoreLogger()->trace(__VA_ARGS__);
-#define CORE_ERROR(...)    Logger::getCoreLogger()->error(__VA_ARGS__);
-#define CORE_CRITICAL(...) Logger::getCoreLogger()->critical(__VA_ARGS__);
+#define     CORE_WARN(fmt, ...)     Logger::getCoreLogger()->warn    ("{}::{}({}): " fmt, __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__);
+#define     CORE_INFO(fmt, ...)     Logger::getCoreLogger()->info    ("{}::{}({}): " fmt, __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__);
+#define    CORE_TRACE(fmt, ...)     Logger::getCoreLogger()->trace   ("{}::{}({}): " fmt, __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__);
+#define    CORE_ERROR(fmt, ...)     Logger::getCoreLogger()->error   ("{}::{}({}): " fmt, __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__);
+#define CORE_CRITICAL(fmt, ...)     Logger::getCoreLogger()->critical("{}::{}({}): " fmt, __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__);
 
-#define WARN(...)     Logger::getClientLogger()->warn(__VA_ARGS__);
-#define INFO(...)     Logger::getClientLogger()->info(__VA_ARGS__);
-#define TRACE(...)    Logger::getClientLogger()->trace(__VA_ARGS__);
-#define ERROR(...)    Logger::getClientLogger()->error(__VA_ARGS__);
-#define CRITICAL(...) Logger::getClientLogger()->critical(__VA_ARGS__);
+#define     WARN(fmt, ...)     Logger::getClientLogger()->warn    ("{}::{}({}): " fmt, __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__);
+#define     INFO(fmt, ...)     Logger::getClientLogger()->info    ("{}::{}({}): " fmt, __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__);
+#define    TRACE(fmt, ...)     Logger::getClientLogger()->trace   ("{}::{}({}): " fmt, __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__);
+#define    ERROR(fmt, ...)     Logger::getClientLogger()->error   ("{}::{}({}): " fmt, __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__);
+#define CRITICAL(fmt, ...)     Logger::getClientLogger()->critical("{}::{}({}): " fmt, __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__);
+
 #else
-#define CORE_WARN(...)     
-#define CORE_INFO(...)     
-#define CORE_TRACE(...)    
-#define CORE_ERROR(...)    
+
+#define     CORE_WARN(...)     
+#define     CORE_INFO(...)     
+#define    CORE_TRACE(...)    
+#define    CORE_ERROR(...)    
 #define CORE_CRITICAL(...) 
 
-#define WARN(...)     
-#define INFO(...)     
-#define TRACE(...)    
-#define ERROR(...)    
+#define     WARN(...)     
+#define     INFO(...)     
+#define    TRACE(...)    
+#define    ERROR(...)    
 #define CRITICAL(...) 
+
 #endif

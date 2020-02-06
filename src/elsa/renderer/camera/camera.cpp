@@ -332,7 +332,7 @@ void Camera::OnEvent(Event& e, const Viewport* vp)
 
 bool Camera::_OnMouseScrolled(MouseScrolledEvent& e)
 {
-    INFO("Camera::_OnMouseScrolled");
+    INFO("{}", "Camera::_OnMouseScrolled");
     if(Input::IsKeyPressed(KEY_LEFT_CONTROL))
     {
         Scale(-e.GetOffsetY()*m_speedScale);

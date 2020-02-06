@@ -155,6 +155,7 @@ void REBloom::_PrepareShader()
 
 Bloom::Bloom()
 {
+    PROFILE_FUNCTION
     std::shared_ptr<Camera> cam = m_vpOffscreen->GetCamera();
     cam->SetFrameBuffer(m_fbBaseBright);
     cam->SetPosition(glm::vec3(0, 2, 10));
@@ -167,6 +168,7 @@ Bloom::Bloom()
 
 void Bloom::OnUpdate()
 {
+    PROFILE_FUNCTION
     _UpdateUniform();
 
     _RenderToTexture_BaseBright();

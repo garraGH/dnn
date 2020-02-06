@@ -103,11 +103,11 @@ void GLSLProgram::_Compile(const std::unordered_map<Type, std::string>& splitSha
             {
                 glDeleteShader(id);
             }
-            CORE_ERROR(infoLog.data());
-            CORE_ASSERT(false, "GLSLProgram::_Compile: Compile " + _GetStringType(type)+" Shader Failed! "+m_srcFile);
+            CORE_ERROR("{}", infoLog.data());
+            CORE_ASSERT(false, "Shader({}-{}) Compile failed!", m_srcFile, _GetStringType(type));
             return;
         }
-        CORE_TRACE("GLSLProgram::_Compile: Compile {} Shader ({}, {}) OK!", _GetStringType(type), m_srcFile, shaderID);
+        CORE_TRACE("Shader({}-{}-{}) Compile OK!", m_srcFile, _GetStringType(type), shaderID);
         shaderIDs[i++] = shaderID;
     }
 
@@ -131,11 +131,11 @@ void GLSLProgram::_Compile(const std::unordered_map<Type, std::string>& splitSha
         {
             glDeleteShader(id);
         }
-        CORE_ERROR(infoLog.data());
-        CORE_ASSERT(false, "GLSLProgram::_Compile: LinkProgram Failed! "+m_srcFile);
+        CORE_ERROR("{}", infoLog.data());
+        CORE_ASSERT(false, "Program({}) Link Failed!", m_srcFile);
         return;
     }
-    CORE_TRACE("GLSLProgram::_Compile: LinkProgram ({}, {}) OK!", m_srcFile, programID);
+    CORE_TRACE("Program({}-{}) Link OK!", m_srcFile, programID);
 
     for(auto shaderID : shaderIDs)
     {

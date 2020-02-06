@@ -23,11 +23,16 @@ class DNN : public Application
 public:
     DNN()
     {
-        Renderer::SetAPIType(Renderer::API::OpenGL);
+        PROFILE_BEGIN("profile_start", 1)
+        {
+            PROFILE_FUNCTION
+            Renderer::SetAPIType(Renderer::API::OpenGL);
+            PushLayer(LearnOpenGLLayer::Create());
+        }
 
-        PushLayer(LearnOpenGLLayer::Create());
 //         PushLayer(ExampleLayer::Create());
 //         PushLayer(ShaderToyLayer::Create());
+        PROFILE_END
     }
 
     ~DNN()

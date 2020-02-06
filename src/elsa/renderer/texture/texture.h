@@ -31,7 +31,6 @@ public:
     const std::string& GetImagePath() const { return m_imagePath; }
     unsigned int GetWidth() const { return m_width; }
     unsigned int GetHeight() const { return m_height; }
-    unsigned int GetDepth() const { return m_depth; }
     unsigned int GetChannel() const { return m_channel; }
     Format GetFormat() const { return m_format; }
 
@@ -52,7 +51,6 @@ protected:
     std::string m_imagePath;
     unsigned int m_width = 0;
     unsigned int m_height = 0;
-    unsigned int m_depth = 0;
     unsigned int m_channel = 0;
     unsigned int m_levels = 1;
     Format m_format = Format::RGB8;

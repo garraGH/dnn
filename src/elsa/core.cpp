@@ -21,17 +21,17 @@ bool GLLogCall(const char* function, const char* file, int line)
 {
     while(GLenum error = glGetError())
     {
-        CORE_ERROR("[OpenGL Error]");
+        CORE_ERROR("{}", "[OpenGL Error]");
         switch(error)
         {
-            case GL_INVALID_ENUM: CORE_ERROR("GL_INVALID_ENUM"); break;
-            case GL_INVALID_VALUE: CORE_ERROR("GL_INVALID_VALUE"); break;
-            case GL_INVALID_OPERATION: CORE_ERROR("GL_INVALID_OPERATION"); break;
-            case GL_INVALID_FRAMEBUFFER_OPERATION: CORE_ERROR("GL_INVALID_FRAMEBUFFER_OPERATION"); break;
-            case GL_STACK_OVERFLOW: CORE_ERROR("GL_STACK_OVERFLOW"); break;
-            case GL_STACK_UNDERFLOW: CORE_ERROR("GL_STACK_UNDERFLOW"); break;
-            case GL_OUT_OF_MEMORY: CORE_ERROR("GL_OUT_OF_MEMORY"); break;
-            default: CORE_ERROR(error);
+            case GL_INVALID_ENUM                 : CORE_ERROR("(}", "GL_INVALID_ENUM"                 ); break;
+            case GL_INVALID_VALUE                : CORE_ERROR("{}", "GL_INVALID_VALUE"                ); break;
+            case GL_INVALID_OPERATION            : CORE_ERROR("{}", "GL_INVALID_OPERATION"            ); break;
+            case GL_INVALID_FRAMEBUFFER_OPERATION: CORE_ERROR("{}", "GL_INVALID_FRAMEBUFFER_OPERATION"); break;
+            case GL_STACK_OVERFLOW               : CORE_ERROR("{}", "GL_STACK_OVERFLOW"               ); break;
+            case GL_STACK_UNDERFLOW              : CORE_ERROR("{}", "GL_STACK_UNDERFLOW"              ); break;
+            case GL_OUT_OF_MEMORY                : CORE_ERROR("{}", "GL_OUT_OF_MEMORY"                ); break;
+            default                              : CORE_ERROR("{}", error                             );
         }
         CORE_ERROR("         File: {}", file);
         CORE_ERROR("     Function: {}", function);

@@ -23,10 +23,10 @@ std::shared_ptr<Camera> Application::s_camera = nullptr;
 Application::Application()
     : m_running(true)
 {
+    PROFILE_FUNCTION
     CORE_ASSERT(!s_instance, "Application already exist!");
     s_instance = this;
     s_camera = std::make_shared<Camera>("GlobalMainCamera");
-    m_timer = std::make_unique<TimerCPU>(TimerCPU("ApplicationRun"));
 
     m_window = std::unique_ptr<Window>(Window::Create(WindowsProps("Elsa", 1000, 1000)));
     m_window->SetEventCallback(BIND_EVENT_CALLBACK(Application, OnEvent));
@@ -51,12 +51,12 @@ Application::Application()
 
 Application::~Application()
 {
-    CORE_TRACE("Application destructed.");
+    CORE_TRACE("{}", "Application destructed.");
 }
 
 void Application::OnEvent(Event& e)
 {
-    CORE_TRACE("{0}", e);
+    CORE_TRACE("{}", e);
     EventDispatcher ed(e);
 #define DISPATCH(event) ed.Dispatch<event>(BIND_EVENT_CALLBACK(Application, _On##event))
     DISPATCH(WindowCloseEvent);
@@ -83,7 +83,7 @@ void Application::OnEvent(Event& e)
 #define _ON(event) bool Application::_On##event(event& e)
 _ON(WindowCloseEvent)
 {
-    INFO("CLOSED");
+    INFO("{}", "CLOSED");
     m_running = false;
     return true;
 }
@@ -104,24 +104,37 @@ _ON(KeyReleasedEvent)
 
 void Application::Run()
 {
-    INFO("Application::Run\n");
+    PROFILE_FUNCTION
+    INFO("{}", "Application::Run");
     WindowResizeEvent e(1280, 720);
     if(e.IsCategory(EC_Application))
     {
-        TRACE(e);
+        TRACE("{}", e);
     }
     if(e.IsCategory(EC_Input))
     {
-        TRACE(e);
+        TRACE("{}", e);
     }
 
     while(m_running)
     {
-        for(auto& layer : *m_layerStack.get())
-        {
-            layer->OnUpdate(m_timer->GetDeltaTime());
-        }
+        TimerCPU::NeedProfile()? _RunWithProfile() : _RunNeatly();
+    }
+}
 
+void Application::_RunWithProfile()
+{
+    PROFILE_INCREASE
+    PROFILE_SCOPE("RunLoop")
+
+    for(auto& layer : *m_layerStack.get())
+    {
+        PROFILE_SCOPE(layer->GetName());
+        layer->OnUpdate(m_timer->GetDeltaTime());
+    }
+
+    {
+        PROFILE_SCOPE("ImGui");
         m_layerImGui->Begin();
         for(auto& layer : *m_layerStack.get())
         {
@@ -129,9 +142,25 @@ void Application::Run()
         }
         m_layerImGui->End();
 
-        m_window->OnUpdate();
-
     }
+    m_window->OnUpdate();
+}
+
+void Application::_RunNeatly()
+{
+    for(auto& layer : *m_layerStack.get())
+    {
+        layer->OnUpdate(m_timer->GetDeltaTime());
+    }
+
+    m_layerImGui->Begin();
+    for(auto& layer : *m_layerStack.get())
+    {
+        layer->OnImGuiRender();
+    }
+    m_layerImGui->End();
+
+    m_window->OnUpdate();
 }
 
 bool Application::_OnKeyPressed_a(int repeatCount)
@@ -148,14 +177,14 @@ bool Application::_OnKeyPressed_R(int repeatCount)
 
 bool Application::_OnKeyReleased_q()
 {
-    INFO("q released");
+    INFO("{}", "q released");
     m_running = false;
     return true;
 }
 
 bool Application::_OnKeyReleased_Q()
 {
-    INFO("Q released");
+    INFO("{}", "Q released");
     m_running = false;
     return true;
 }

@@ -16,6 +16,7 @@
 
 PBR::PBR()
 {
+    PROFILE_FUNCTION
     _IrradianceConvolution();
     _PrefilterConvolution();
     _BRDF();
@@ -28,6 +29,7 @@ PBR::~PBR()
 
 void PBR::OnUpdate()
 {
+    PROFILE_FUNCTION
     _UpdateUniform();
     _Render();
 }
@@ -97,6 +99,7 @@ glm::mat4 PBR::_CaptureView(int i)
 
 void PBR::_IrradianceConvolution()
 {
+    PROFILE_FUNCTION
     static bool bFirst = true;
     if(bFirst)
     {
@@ -138,6 +141,7 @@ void PBR::_IrradianceConvolution()
 
 void PBR::_PrefilterConvolution()
 {
+    PROFILE_FUNCTION
     const unsigned int w = 128;
     const unsigned int h = 128;
     const unsigned int maxMipLevels = 5;
@@ -201,6 +205,7 @@ void PBR::_PrefilterConvolution()
 
 void PBR::_BRDF()
 {
+    PROFILE_FUNCTION
     const unsigned int w = 512;
     const unsigned int h = 512;
     static bool bFirst = true;

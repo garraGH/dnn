@@ -17,11 +17,13 @@ std::shared_ptr<spdlog::logger> Logger::s_clientLogger;
 
 void Logger::Init()
 {
-    spdlog::set_pattern("%^[%T] %n: %v%$");
+//     spdlog::set_pattern("%^[%T] %n: %v%$");
     s_coreLogger = spdlog::stdout_color_mt("CORE");
     s_coreLogger->set_level(spdlog::level::trace);
+    s_coreLogger->set_pattern("[%x %X] [pid(%P) tid(%t)] %v");
     s_clientLogger = spdlog::stdout_color_mt("APP");
     s_clientLogger->set_level(spdlog::level::trace);
+    s_clientLogger->set_pattern("[%x %X] [pid(%P) tid(%t)] %v");
 }
 
 void Logger::Close()

@@ -142,6 +142,29 @@ void ImGuiLayer::OnImGuiRender()
     {
         m_window->UpdateSize();
     }
+
+#define SIZE 256
+    static char profilePath[SIZE];
+    ImGui::InputText("##ProfilePath", profilePath, SIZE);
+#undef SIZE
+
+    ImGui::SameLine();
+
+    static int nFrames = 10;
+    ImGui::InputInt("##NumOfFrames", &nFrames, 1, 1, ImGuiInputTextFlags_CharsDecimal);
+    ImGui::SameLine();
+    static bool e = false;
+    if(ImGui::Checkbox("Profile", &e))
+    {
+        if(e)     
+        {
+            PROFILE_BEGIN(profilePath, nFrames)
+        }
+        else
+        {
+            PROFILE_END
+        }
+    }
     ImGui::End();
 }
 

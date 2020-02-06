@@ -17,6 +17,7 @@
 
 std::shared_ptr<LearnOpenGLLayer> LearnOpenGLLayer::Create()
 {
+    PROFILE_FUNCTION
     return std::make_shared<LearnOpenGLLayer>();
 }
 
@@ -24,8 +25,13 @@ LearnOpenGLLayer::LearnOpenGLLayer()
     : Layer( "LearnOpenGLLayer" )
 {
 
+    PROFILE_FUNCTION
     _PrepareUniformBuffers();
-    m_current = std::make_shared<PBR>();
+
+    {
+        PROFILE_SCOPE("pbr")
+        m_current = std::make_shared<PBR>();
+    }
 }
 
 void LearnOpenGLLayer::OnEvent(Event& e)
@@ -35,11 +41,16 @@ void LearnOpenGLLayer::OnEvent(Event& e)
 
 void LearnOpenGLLayer::OnUpdate(float deltaTime)
 {
+//     PROFILE_TO_IMGUI("OnUpdate");
+
+    PROFILE_FUNCTION
     m_current->OnUpdate();
 }
 
 void LearnOpenGLLayer::OnImGuiRender()
 {
+    PROFILE_FUNCTION
+    Layer::OnImGuiRender();
     m_current->OnImgui();
     ImGui::Begin("LearnOpenGLLayer");
     static int e = 0;
@@ -170,6 +181,7 @@ void LearnOpenGLLayer::_PrepareModel()
 
 void LearnOpenGLLayer::_PrepareUniformBuffers()
 {
+    PROFILE_FUNCTION
     std::shared_ptr<UniformBuffer> ubTransform = Renderer::Resources::Create<UniformBuffer>("ub_Transform")->SetSize(64);
     ubTransform->Push("WS2CS", glm::ivec2(0, 64));
 //     ubTransform->Upload("WS2CS", glm::value_ptr(m_vpBase->GetCamera()->World2Clip()));

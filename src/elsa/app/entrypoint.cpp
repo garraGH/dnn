@@ -10,15 +10,13 @@
 
 #include "application.h"
 #include "logger.h"
+#include "timer_cpu.h"
 
 int main(int argc, char** argv)
 {
     Logger::Init();
-
     CreateApplication()->Run();
-
     Logger::Close();
-
     return 0;
 }
 

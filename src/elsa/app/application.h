@@ -39,6 +39,10 @@ public:
     inline static std::shared_ptr<Camera>& GetCamera() { return s_camera; }
 
 protected:
+    void _RunNeatly();
+    void _RunWithProfile();
+
+protected:
 #define ON(event) bool _On##event(event& e)
     void OnEvent(Event& e);
     ON(KeyPressedEvent);
@@ -68,7 +72,7 @@ private:
     std::map<int, std::function<bool(int)>> m_keyPressed;
     std::map<int, std::function<bool()>> m_keyReleased;
     std::unique_ptr<LayerStack> m_layerStack;
-    std::unique_ptr<TimerCPU> m_timer;
+    std::unique_ptr<TimerCPU> m_timer = std::make_unique<TimerCPU>("ApplicationRun");
 
 private:
     static Application* s_instance;
